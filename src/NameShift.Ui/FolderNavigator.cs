@@ -25,12 +25,13 @@ public sealed class FolderNavigator
     /// <summary>Goes to the source's start folder.</summary>
     public void Start() => SelectFromTree(_source.StartFolder);
 
-    /// <summary>A path the tree supplied (trusted). Supersedes a pending typed navigation.</summary>
+    /// <summary>A path the tree supplied (trusted). A real change supersedes a pending typed navigation.</summary>
     public void SelectFromTree(string folderPath)
     {
-        _version++;
+        // Only a real change supersedes a pending typed navigation: the echo of an old reveal must not.
         if (CurrentFolder is null || !PathInput.SameFolder(CurrentFolder, folderPath))
         {
+            _version++;
             Change(folderPath);
         }
     }

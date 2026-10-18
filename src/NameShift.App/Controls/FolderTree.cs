@@ -14,6 +14,7 @@ internal sealed class FolderTree : UserControl
     private readonly FolderTreeModel _model;
     private readonly Action<string> _showStatus;
     private readonly TreeView _tree = new TreeView();
+    private static readonly object LoadingTag = new object();
     private int _revealCounter;
 
     public FolderTree(FolderTreeModel model, Action<string> showStatus)
@@ -54,10 +55,10 @@ internal sealed class FolderTree : UserControl
             _tree.SelectedNode = node;
             node.EnsureVisible();
         }
-        catch (Exception e)
+        catch (Exception)
         {
             // Reveal runs fire-and-forget: report instead of letting the exception go unobserved.
-            _showStatus(e.Message);
+            _showStatus(Strings.SomethingWentWrong);
         }
     }
 
@@ -95,27 +96,31 @@ internal sealed class FolderTree : UserControl
         var node = new TreeNode(folder.Name) { Tag = folder };
         if (folder.MayHaveChildren)
         {
-            node.Nodes.Add(PlaceholderNode(Strings.Loading));
+            node.Nodes.Add(LoadingNode());
         }
 
         return node;
     }
 
-    private static TreeNode PlaceholderNode(string text) => new TreeNode(text) { ForeColor = SystemColors.GrayText };
+    private static TreeNode LoadingNode() => new TreeNode(Strings.Loading) { ForeColor = SystemColors.GrayText, Tag = LoadingTag };
+
+    private static TreeNode MessageNode(string text) => new TreeNode(text) { ForeColor = SystemColors.GrayText };
 
     private async void OnBeforeExpand(object? sender, TreeViewCancelEventArgs e)
     {
         try
         {
             TreeNode treeNode = e.Node!;
-            if (!(treeNode.Tag is FolderNode folder)
-                || (folder.State != FolderNodeState.NotLoaded && folder.State != FolderNodeState.Failed))
+
+            // Render whenever the children are not on screen, whatever the model state: a reveal may have
+            // loaded this node in the model without rendering it (hidden target, superseded reveal).
+            if (!(treeNode.Tag is FolderNode folder) || (folder.State != FolderNodeState.Failed && IsRendered(treeNode)))
             {
                 return;
             }
 
             treeNode.Nodes.Clear();
-            treeNode.Nodes.Add(PlaceholderNode(Strings.Loading));
+            treeNode.Nodes.Add(LoadingNode());
             await _model.ExpandAsync(folder);
             if (IsDisposed || treeNode.TreeView is null)
             {
@@ -124,10 +129,10 @@ internal sealed class FolderTree : UserControl
 
             RenderChildren(treeNode, folder);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // An exception escaping an async void handler would end the process.
-            _showStatus(ex.Message);
+            _showStatus(Strings.SomethingWentWrong);
         }
     }
 
@@ -139,7 +144,7 @@ internal sealed class FolderTree : UserControl
             treeNode.Nodes.Clear();
             if (folder.Problem is FolderProblem problem)
             {
-                treeNode.Nodes.Add(PlaceholderNode(FolderProblemText.For(problem)));
+                treeNode.Nodes.Add(MessageNode(FolderProblemText.For(problem)));
                 return;
             }
 
@@ -198,8 +203,7 @@ internal sealed class FolderTree : UserControl
         return current;
     }
 
-    private static bool IsRendered(TreeNode node) =>
-        node.Nodes.Count != 1 || node.Nodes[0].Tag is FolderNode || node.Nodes[0].Text != Strings.Loading;
+    private static bool IsRendered(TreeNode node) => node.Nodes.Count != 1 || !ReferenceEquals(node.Nodes[0].Tag, LoadingTag);
 
     [DllImport("uxtheme.dll", CharSet = CharSet.Unicode)]
     private static extern int SetWindowTheme(IntPtr hWnd, string pszSubAppName, string? pszSubIdList);

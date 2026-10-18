@@ -41,6 +41,8 @@ public static class Strings
 
     public static string PathBarHint => Get(nameof(PathBarHint));
 
+    public static string SomethingWentWrong => Get(nameof(SomethingWentWrong));
+
     public static string FolderTreeName => Get(nameof(FolderTreeName));
 
     private static string Get(string key) =>

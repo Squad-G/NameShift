@@ -118,6 +118,24 @@ public sealed class FolderNavigatorTests
     }
 
     [Fact]
+    public async Task TypedPath_NotSupersededByTreeEchoOfTheCurrentFolder()
+    {
+        _source.Folders.Add(@"D:\Typed");
+        _navigator.Start();
+        _events.Clear();
+        using var gate = new ManualResetEventSlim(false);
+        _source.Gate = gate;
+
+        Task<PathBarResult> typed = _navigator.NavigateToTypedPathAsync(@"D:\Typed");
+        _navigator.SelectFromTree(@"c:\start");
+        gate.Set();
+        PathBarResult result = await typed;
+
+        Assert.Equal(PathBarResult.Navigated, result);
+        Assert.Equal(new[] { @"D:\Typed" }, _events);
+    }
+
+    [Fact]
     public async Task TypedPath_SupersededByTreeSelection_DoesNotRaiseForTheTypedPath()
     {
         _source.Folders.Add(@"D:\Typed");

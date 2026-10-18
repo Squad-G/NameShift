@@ -124,9 +124,8 @@ internal sealed class MainForm : Form
         var statusStrip = new StatusStrip { Dock = DockStyle.Bottom };
         statusStrip.Items.Add(_statusText);
 
-        // Edge-docked controls first, the Fill control last: that is the order WinForms lays them out in.
+        // Add the Fill control first, then the edge-docked ones: WinForms lays the edge-docked ones out first.
         Controls.Add(rootLayout);
-        Controls.SetChildIndex(rootLayout, 0);
         Controls.Add(statusStrip);
     }
 
@@ -168,10 +167,10 @@ internal sealed class MainForm : Form
             PathBarResult result = await _navigator.NavigateToTypedPathAsync(text);
             ShowPathResult(result, text);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             // An exception escaping an async void handler would end the process.
-            ShowStatus(ex.Message);
+            ShowStatus(Strings.SomethingWentWrong);
         }
     }
 
@@ -180,8 +179,11 @@ internal sealed class MainForm : Form
         switch (result)
         {
             case PathBarResult.Navigated:
+                ShowStatus("");
+                break;
             case PathBarResult.Unchanged:
                 ShowStatus("");
+                _pathBar.ShowFolder(_navigator.CurrentFolder ?? "");
                 break;
             case PathBarResult.Empty:
                 _pathBar.ShowFolder(_navigator.CurrentFolder ?? "");

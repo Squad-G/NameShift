@@ -19,5 +19,6 @@
   <data name="PathNotFound" xml:space="preserve"><value>Folder not found: {0}</value></data>
   <data name="PathNotAFolder" xml:space="preserve"><value>That is a file, not a folder: {0}</value></data>
   <data name="PathBarHint" xml:space="preserve"><value>Type a folder path and press Enter</value></data>
+  <data name="SomethingWentWrong" xml:space="preserve"><value>Something went wrong. Try again.</value></data>
   <data name="FolderTreeName" xml:space="preserve"><value>Folders</value></data>
 </root>
