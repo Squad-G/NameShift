@@ -1,6 +1,6 @@
 # NS-8: Safe rename executor
 
-Status: In Progress
+Status: In Review
 Depends on: NS-1, NS-5, NS-6, NS-7
 Area: app
 
@@ -37,3 +37,4 @@ Turn a checked plan into real renames without losing a file, even for swaps and 
 - 2026-10-18: created (po).
 - 2026-10-18: set Ready, first round of the minimal usable slice (po).
 - 2026-10-18: In Progress (builder).
+- 2026-10-18: In Review, PR #12 (builder).
