@@ -32,6 +32,9 @@ Turn a checked plan into real renames without losing a file, even for swaps and 
 - **A folder and items inside it in the same batch: allowed.** Deepest folders first, so every rename happens while its folder still has its old name; the output's new paths are rebuilt after parents (tech-lead, 2026-10-18).
 - **Nothing is ever deleted:** the file-system seam has no delete method; the executor never calls `File.Delete` or `Directory.Delete` (tech-lead, 2026-10-18).
 - **Rule errors in the plan:** a plan where any result has `Status == Error` is refused like a conflict (`HasRuleErrors`), because a partial batch breaks sets (numbering gaps) and the user sees the error in the preview first; NS-15 should disable Rename on rule errors too (tech-lead default, 2026-10-18; po may overrule).
+- **Mid-batch tests change the disk in the hook of move call 2:** the hook runs inside a move call, after the executor's own check, so the 3rd item is changed before its check runs, which proves the check stops the 3rd move before it is called (tech-lead, 2026-10-18, from the NS-8 review).
+- **An undo is skipped when the item is not where the undo expects it** (an earlier undo it depends on failed, e.g. a child inside a folder whose undo failed); the item is still listed in `NeedsAttention` (tech-lead, 2026-10-18, from the NS-8 review).
+- **A failure on the first move reports `RolledBack`** (zero renames undone); `Refused` means refused by the checks before any move was attempted (tech-lead, 2026-10-18, from the NS-8 review).
 
 ## Log
 - 2026-10-18: created (po).

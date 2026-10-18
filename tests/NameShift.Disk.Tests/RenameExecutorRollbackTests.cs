@@ -94,12 +94,12 @@ public sealed class RenameExecutorRollbackTests : ExecutorTestBase
     public void Execute_RollbackStepFails_ListsNeedsAttentionWithBothNames()
     {
         var renames = FiveFiles();
-        FileStream? lockOnG1 = null;
+        FileStream? lockOnG2 = null;
         Disk.BeforeMove = (call, _, _) =>
         {
             if (call == 3)
             {
-                lockOnG1 = new FileStream(Temp.Full("g1"), FileMode.Open, FileAccess.Read, FileShare.None);
+                lockOnG2 = new FileStream(Temp.Full("g2"), FileMode.Open, FileAccess.Read, FileShare.None);
             }
         };
         Disk.FailMove = (from, _) => from == Temp.Full("f3") ? new IOException("f3 failed") : null;
@@ -111,19 +111,20 @@ public sealed class RenameExecutorRollbackTests : ExecutorTestBase
         }
         finally
         {
-            lockOnG1?.Dispose();
+            lockOnG2?.Dispose();
         }
 
         Assert.Equal(ExecutionOutcome.NeedsAttention, result.Outcome);
         Assert.Equal(FailureReason.RenameFailed, result.Failure!.Reason);
         Assert.Equal("f3 failed", result.Failure.SystemMessage);
         var stranded = Assert.Single(result.NeedsAttention);
-        Assert.Equal(Temp.Full("g1"), stranded.CurrentPath);
-        Assert.Equal(Temp.Full("f1"), stranded.OriginalPath);
+        Assert.Equal(Temp.Full("g2"), stranded.CurrentPath);
+        Assert.Equal(Temp.Full("f2"), stranded.OriginalPath);
         Assert.Equal(ItemKind.File, stranded.Kind);
         Assert.NotNull(stranded.SystemMessage);
-        Assert.Equal(["f2", "f3", "f4", "f5", "g1"], Temp.Listing());
-        Assert.Equal("f1", Temp.Content("g1"));
+        Assert.Equal(["f1", "f3", "f4", "f5", "g2"], Temp.Listing());
+        Assert.Equal("f1", Temp.Content("f1"));
+        Assert.Equal("f2", Temp.Content("g2"));
     }
 
     [Fact]
@@ -191,7 +192,8 @@ public sealed class RenameExecutorRollbackTests : ExecutorTestBase
 
         var result = Executor.Execute([Rename("a", "x", kind)]);
 
-        Assert.NotEqual(ExecutionOutcome.Succeeded, result.Outcome);
+        Assert.Equal(ExecutionOutcome.RolledBack, result.Outcome);
+        Assert.Equal(FailureReason.RenameFailed, result.Failure!.Reason);
         Assert.Single(Disk.Moves);
         Assert.Equal("intruder", Temp.Content("x"));
         Assert.Equal(["a", "x"], Temp.Listing());
