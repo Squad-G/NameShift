@@ -12,7 +12,7 @@ IDs), not the rank: the rank is the row order.
 | 4 | [NS-4 Add rule](NS-4-add.md) | Done | NS-1 |
 | 17 | [NS-17 Numbering rule (basic)](NS-17-numbering.md) | Done | NS-1 |
 | 5 | [NS-5 Invalid Windows names check](NS-5-invalid.md) | Done | NS-1 |
-| 6 | [NS-6 Duplicate target detection](NS-6-duplicates.md) | In Progress | NS-1 |
+| 6 | [NS-6 Duplicate target detection](NS-6-duplicates.md) | In Review | NS-1 |
 | 7 | [NS-7 Path length check](NS-7-pathlength.md) | Ready | NS-1 |
 | 8 | [NS-8 Safe rename executor](NS-8-executor.md) | Ready | NS-1, NS-5, NS-6, NS-7 |
 | 9 | [NS-9 Undo journal and Revert](NS-9-journal.md) | Ready | NS-8 |
