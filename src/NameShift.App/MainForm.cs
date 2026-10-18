@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows.Forms;
 using NameShift.App.Controls;
 using NameShift.Ui;
+using NameShift.Ui.Actions;
 using NameShift.Ui.Files;
 using NameShift.Ui.Folders;
 using NameShift.Ui.Preview;
@@ -13,8 +14,9 @@ using NameShift.Ui.Rules;
 namespace NameShift.App;
 
 /// <summary>
-/// Main window: folder tree (left), file list with live new-name preview (right), rule panels (bottom).
-/// It only composes the controls and wires them to the navigator; the logic lives in NameShift.Ui.
+/// Main window: folder tree (left), file list with live new-name preview (right), rule panels (bottom), and the Reset,
+/// Revert and Rename buttons (bottom right). It only composes the controls and wires them to the navigator and the
+/// actions; the logic lives in NameShift.Ui. While a Rename or Revert runs, the window is locked and cannot be closed.
 /// </summary>
 internal sealed class MainForm : Form
 {
@@ -28,8 +30,10 @@ internal sealed class MainForm : Form
     private readonly SplitContainer _mainSplit = new SplitContainer();
     private readonly SplitContainer _rightSplit = new SplitContainer();
     private readonly ToolStripStatusLabel _statusText = new ToolStripStatusLabel();
+    private readonly ToolStripProgressBar _progress = new ToolStripProgressBar { Style = ProgressBarStyle.Marquee, Visible = false };
+    private bool _shownBusy;
 
-    public MainForm(IFolderSource source, IFileListSource fileListSource)
+    public MainForm(IFolderSource source, IFileListSource fileListSource, IBatchRenamer renamer)
     {
         _navigator = new FolderNavigator(source);
         _folderTree = new FolderTree(new FolderTreeModel(source), ShowStatus);
@@ -41,6 +45,8 @@ internal sealed class MainForm : Form
 
         Preview = new PreviewModel(RuleHost, FileListModel);
         _fileList = new FileList(FileListModel, Preview, ShowStatus) { Dock = DockStyle.Fill };
+        Actions = new MainActions(Preview, FileListModel, RuleHost, renamer);
+        ButtonsHost.Controls.Add(new ActionButtons(Actions, ShowReport, ShowStatus));
 
         AutoScaleDimensions = new SizeF(96F, 96F);
         AutoScaleMode = AutoScaleMode.Dpi;
@@ -53,6 +59,7 @@ internal sealed class MainForm : Form
         _folderTree.FolderSelected += (_, path) => _navigator.SelectFromTree(path);
         _pathBar.PathSubmitted += OnPathSubmitted;
         _navigator.FolderChanged += OnFolderChanged;
+        Actions.Changed += (_, _) => OnActionsChanged();
     }
 
     /// <summary>The current folder and its change event.</summary>
@@ -67,13 +74,16 @@ internal sealed class MainForm : Form
     /// <summary>The New Name preview, for conflicts (NS-52), selection (NS-14) and Rename (NS-15).</summary>
     internal PreviewModel Preview { get; }
 
+    /// <summary>Rename, Revert and Reset (NS-15).</summary>
+    internal MainActions Actions { get; }
+
     /// <summary>Where the file list docks.</summary>
     internal Panel FileListHost { get; } = new Panel { Dock = DockStyle.Fill };
 
     /// <summary>Where the rule panel stack docks.</summary>
     internal Panel PanelHost { get; } = new Panel { Dock = DockStyle.Fill };
 
-    /// <summary>Where the action buttons go.</summary>
+    /// <summary>Where the Reset, Revert and Rename buttons dock (NS-15).</summary>
     internal FlowLayoutPanel ButtonsHost { get; } = new FlowLayoutPanel
     {
         FlowDirection = FlowDirection.TopDown,
@@ -83,7 +93,32 @@ internal sealed class MainForm : Form
     };
 
     /// <summary>A non-blocking message in the status bar.</summary>
-    internal void ShowStatus(string text) => _statusText.Text = text;
+    internal void ShowStatus(string text)
+    {
+        _statusText.Text = text;
+        _statusText.ToolTipText = text; // the full text, when the bar cuts it
+    }
+
+    /// <summary>The result of a Rename or Revert: the status bar, plus a dialog only when items need a look.</summary>
+    internal void ShowReport(ActionReport report)
+    {
+        ShowStatus(report.Status);
+        if (report.Details != null)
+        {
+            MessageBox.Show(this, report.Details, Strings.AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+    }
+
+    protected override void OnFormClosing(FormClosingEventArgs e)
+    {
+        if (Actions.IsBusy && e.CloseReason == CloseReason.UserClosing)
+        {
+            e.Cancel = true;
+            ShowStatus(Strings.WaitForAction);
+        }
+
+        base.OnFormClosing(e);
+    }
 
     protected override void OnLoad(EventArgs e)
     {
@@ -103,6 +138,7 @@ internal sealed class MainForm : Form
     {
         base.OnShown(e);
         _navigator.Start();
+        _ = Actions.LoadJournalAsync();
     }
 
     protected override void OnDpiChanged(DpiChangedEventArgs e)
@@ -145,8 +181,9 @@ internal sealed class MainForm : Form
 
         _statusText.Spring = true;
         _statusText.TextAlign = ContentAlignment.MiddleLeft;
-        var statusStrip = new StatusStrip { Dock = DockStyle.Bottom };
+        var statusStrip = new StatusStrip { Dock = DockStyle.Bottom, ShowItemToolTips = true };
         statusStrip.Items.Add(_statusText);
+        statusStrip.Items.Add(_progress);
 
         // Add the Fill control first, then the edge-docked ones: WinForms lays the edge-docked ones out first.
         Controls.Add(rootLayout);
@@ -175,6 +212,30 @@ internal sealed class MainForm : Form
         Rectangle area = Screen.FromControl(this).WorkingArea;
         Size initial = LogicalToDeviceUnits(InitialLogicalSize);
         Size = new Size(Math.Min(initial.Width, area.Width), Math.Min(initial.Height, area.Height));
+    }
+
+    /// <summary>Locks the window while a Rename or Revert runs, and unlocks it after the folder reloaded.</summary>
+    private void OnActionsChanged()
+    {
+        bool busy = Actions.IsBusy;
+        if (busy == _shownBusy || IsDisposed)
+        {
+            return;
+        }
+
+        _shownBusy = busy;
+        _mainSplit.Enabled = !busy;
+        _pathBar.Enabled = !busy;
+        UseWaitCursor = busy;
+        _progress.Visible = busy;
+        if (busy)
+        {
+            ShowStatus(Actions.BusyText);
+        }
+        else
+        {
+            _fileList.Focus();
+        }
     }
 
     private void OnFolderChanged(object? sender, FolderChangedEventArgs e)

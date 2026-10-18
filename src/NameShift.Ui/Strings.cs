@@ -186,6 +186,115 @@ public static class Strings
 
     public static string NumberingPositionInvalid => Get(nameof(NumberingPositionInvalid));
 
+    public static string ButtonRename => Get(nameof(ButtonRename));
+
+    public static string ButtonRevert => Get(nameof(ButtonRevert));
+
+    public static string ButtonReset => Get(nameof(ButtonReset));
+
+    public static string ResetDescription => Get(nameof(ResetDescription));
+
+    /// <summary>"Undo the last rename: 1 name in {0}".</summary>
+    public static string RevertDescriptionOne => Get(nameof(RevertDescriptionOne));
+
+    /// <summary>"Undo the last rename: {0} names in {1}".</summary>
+    public static string RevertDescriptionMany => Get(nameof(RevertDescriptionMany));
+
+    public static string RenameHintConflicts => Get(nameof(RenameHintConflicts));
+
+    public static string RenameHintErrors => Get(nameof(RenameHintErrors));
+
+    public static string RenameHintBoth => Get(nameof(RenameHintBoth));
+
+    /// <summary>"Rename {0} files?".</summary>
+    public static string RenameConfirm => Get(nameof(RenameConfirm));
+
+    public static string RenamingOne => Get(nameof(RenamingOne));
+
+    /// <summary>"Renaming {0} files...".</summary>
+    public static string RenamingMany => Get(nameof(RenamingMany));
+
+    public static string Reverting => Get(nameof(Reverting));
+
+    public static string WaitForAction => Get(nameof(WaitForAction));
+
+    public static string PreviewChanged => Get(nameof(PreviewChanged));
+
+    public static string RenameDoneOne => Get(nameof(RenameDoneOne));
+
+    /// <summary>"{0} files renamed.".</summary>
+    public static string RenameDoneMany => Get(nameof(RenameDoneMany));
+
+    public static string NothingRenamed => Get(nameof(NothingRenamed));
+
+    public static string FixConflictsFirst => Get(nameof(FixConflictsFirst));
+
+    public static string FixRuleErrorsFirst => Get(nameof(FixRuleErrorsFirst));
+
+    /// <summary>"{0} is no longer there.".</summary>
+    public static string ItemGone => Get(nameof(ItemGone));
+
+    /// <summary>"{0} cannot be renamed: {1} already exists.".</summary>
+    public static string ItemBlocked => Get(nameof(ItemBlocked));
+
+    /// <summary>"{0} could not be renamed: {1}".</summary>
+    public static string ItemFailed => Get(nameof(ItemFailed));
+
+    /// <summary>"Nothing was renamed, because the history needed for Revert could not be saved: {0}".</summary>
+    public static string RenameNoHistory => Get(nameof(RenameNoHistory));
+
+    /// <summary>"Revert is not available, because the history could not be saved: {0}".</summary>
+    public static string HistoryNotSaved => Get(nameof(HistoryNotSaved));
+
+    public static string RenameAttentionOne => Get(nameof(RenameAttentionOne));
+
+    /// <summary>"The rename failed and {0} items could not get their old names back. Check them now.".</summary>
+    public static string RenameAttentionMany => Get(nameof(RenameAttentionMany));
+
+    public static string AttentionHeader => Get(nameof(AttentionHeader));
+
+    /// <summary>"{0}  (was {1})".</summary>
+    public static string AttentionLine => Get(nameof(AttentionLine));
+
+    public static string NothingToRevert => Get(nameof(NothingToRevert));
+
+    public static string RevertDoneOne => Get(nameof(RevertDoneOne));
+
+    /// <summary>"{0} names restored.".</summary>
+    public static string RevertDoneMany => Get(nameof(RevertDoneMany));
+
+    /// <summary>"{0} of {1} names restored. The others could not be restored; Revert stays available for them.".</summary>
+    public static string RevertPartly => Get(nameof(RevertPartly));
+
+    public static string RevertNone => Get(nameof(RevertNone));
+
+    /// <summary>"Nothing was reverted, because the history could not be saved: {0}".</summary>
+    public static string RevertNoHistory => Get(nameof(RevertNoHistory));
+
+    public static string RevertAttentionOne => Get(nameof(RevertAttentionOne));
+
+    /// <summary>"Revert failed and {0} items could not get their names back. Check them now.".</summary>
+    public static string RevertAttentionMany => Get(nameof(RevertAttentionMany));
+
+    public static string SkippedHeader => Get(nameof(SkippedHeader));
+
+    /// <summary>"{0}: it is no longer where the rename left it.".</summary>
+    public static string SkipItemMissing => Get(nameof(SkipItemMissing));
+
+    /// <summary>"{0}: {1} now has its old name.".</summary>
+    public static string SkipNameTaken => Get(nameof(SkipNameTaken));
+
+    /// <summary>"{0}: its old name is still used by {1}.".</summary>
+    public static string SkipWaits => Get(nameof(SkipWaits));
+
+    /// <summary>"{0}: {1}".</summary>
+    public static string SkipFailed => Get(nameof(SkipFailed));
+
+    /// <summary>"...and {0} more.".</summary>
+    public static string DetailsMore => Get(nameof(DetailsMore));
+
+    public static string ActionUnexpected => Get(nameof(ActionUnexpected));
+
     private static string Get(string key) =>
         Manager.GetString(key, CultureInfo.CurrentUICulture)
         ?? throw new InvalidOperationException("Missing string resource: " + key);

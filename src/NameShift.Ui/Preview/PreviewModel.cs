@@ -26,6 +26,7 @@ public sealed class PreviewModel
     private readonly Func<TimeSpan, CancellationToken, Task> _delay;
     private CancellationTokenSource? _current;
     private int _version;
+    private int _appliedVersion;
 
     public PreviewModel(RulePanelHostModel rules, FileListModel files)
         : this(rules, files, (delay, token) => Task.Delay(delay, token))
@@ -50,6 +51,14 @@ public sealed class PreviewModel
 
     /// <summary>Raised on the calling thread when Snapshot (or HasFailed) changes.</summary>
     public event EventHandler? Changed;
+
+    /// <summary>True when Snapshot answers the latest request: no debounce waiting, no run in flight, and it is for the
+    /// file list's current batch. Rename (NS-15) runs only on a current snapshot.</summary>
+    public bool IsCurrent => _appliedVersion == _version && ReferenceEquals(Snapshot.Batch, _files.Batch);
+
+    /// <summary>Raised on the calling thread, synchronously, when a new run is requested: Snapshot is no longer current.
+    /// Handlers must not throw.</summary>
+    public event EventHandler? Outdated;
 
     /// <summary>The latest request's task, for tests (never faults).</summary>
     internal Task Pending { get; private set; } = Task.CompletedTask;
@@ -114,6 +123,7 @@ public sealed class PreviewModel
     {
         _current?.Cancel();
         _version++;
+        _appliedVersion = _version;
         Snapshot = PreviewSnapshot.Empty;
         HasFailed = false;
         Changed?.Invoke(this, EventArgs.Empty);
@@ -146,6 +156,7 @@ public sealed class PreviewModel
         var cts = new CancellationTokenSource();
         _current = cts;
         int version = ++_version;
+        Outdated?.Invoke(this, EventArgs.Empty);
         PreviewSnapshot snapshot;
         try
         {
@@ -172,6 +183,7 @@ public sealed class PreviewModel
                 return false;
             }
 
+            _appliedVersion = version;
             Snapshot = PreviewSnapshot.Empty;
             HasFailed = true;
             Changed?.Invoke(this, EventArgs.Empty);
@@ -185,6 +197,7 @@ public sealed class PreviewModel
             return false;
         }
 
+        _appliedVersion = version;
         Snapshot = snapshot;
         HasFailed = false;
         Changed?.Invoke(this, EventArgs.Empty);

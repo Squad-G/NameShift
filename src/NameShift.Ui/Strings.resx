@@ -89,4 +89,48 @@
   <data name="NumberingStepInvalid" xml:space="preserve"><value>Type a whole number (0 or negative is fine). Until then numbering is skipped.</value></data>
   <data name="NumberingPadInvalid" xml:space="preserve"><value>Type a whole number from 0 to {0}. Until then numbering is skipped.</value></data>
   <data name="NumberingPositionInvalid" xml:space="preserve"><value>Type a whole number from 1. Until then numbering is skipped.</value></data>
+  <data name="ButtonRename" xml:space="preserve"><value>Rename</value></data>
+  <data name="ButtonRevert" xml:space="preserve"><value>Revert</value></data>
+  <data name="ButtonReset" xml:space="preserve"><value>Reset</value></data>
+  <data name="ResetDescription" xml:space="preserve"><value>Turn off and clear every rule. Files are not touched.</value></data>
+  <data name="RevertDescriptionOne" xml:space="preserve"><value>Undo the last rename: 1 name in {0}</value></data>
+  <data name="RevertDescriptionMany" xml:space="preserve"><value>Undo the last rename: {0} names in {1}</value></data>
+  <data name="RenameHintConflicts" xml:space="preserve"><value>Fix the conflicts to rename.</value></data>
+  <data name="RenameHintErrors" xml:space="preserve"><value>Fix the rule errors to rename.</value></data>
+  <data name="RenameHintBoth" xml:space="preserve"><value>Fix the conflicts and rule errors to rename.</value></data>
+  <data name="RenameConfirm" xml:space="preserve"><value>Rename {0} files?</value></data>
+  <data name="RenamingOne" xml:space="preserve"><value>Renaming 1 file...</value></data>
+  <data name="RenamingMany" xml:space="preserve"><value>Renaming {0} files...</value></data>
+  <data name="Reverting" xml:space="preserve"><value>Reverting...</value></data>
+  <data name="WaitForAction" xml:space="preserve"><value>Wait until the rename finishes.</value></data>
+  <data name="PreviewChanged" xml:space="preserve"><value>The new names changed. Check them and click Rename again.</value></data>
+  <data name="RenameDoneOne" xml:space="preserve"><value>1 file renamed.</value></data>
+  <data name="RenameDoneMany" xml:space="preserve"><value>{0} files renamed.</value></data>
+  <data name="NothingRenamed" xml:space="preserve"><value>Nothing was renamed.</value></data>
+  <data name="FixConflictsFirst" xml:space="preserve"><value>Fix the conflicts first.</value></data>
+  <data name="FixRuleErrorsFirst" xml:space="preserve"><value>Fix the rule errors first.</value></data>
+  <data name="ItemGone" xml:space="preserve"><value>{0} is no longer there.</value></data>
+  <data name="ItemBlocked" xml:space="preserve"><value>{0} cannot be renamed: {1} already exists.</value></data>
+  <data name="ItemFailed" xml:space="preserve"><value>{0} could not be renamed: {1}</value></data>
+  <data name="RenameNoHistory" xml:space="preserve"><value>Nothing was renamed, because the history needed for Revert could not be saved: {0}</value></data>
+  <data name="HistoryNotSaved" xml:space="preserve"><value>Revert is not available, because the history could not be saved: {0}</value></data>
+  <data name="RenameAttentionOne" xml:space="preserve"><value>The rename failed and 1 item could not get its old name back. Check it now.</value></data>
+  <data name="RenameAttentionMany" xml:space="preserve"><value>The rename failed and {0} items could not get their old names back. Check them now.</value></data>
+  <data name="AttentionHeader" xml:space="preserve"><value>Not back to their old names:</value></data>
+  <data name="AttentionLine" xml:space="preserve"><value>{0}  (was {1})</value></data>
+  <data name="NothingToRevert" xml:space="preserve"><value>There is nothing to revert.</value></data>
+  <data name="RevertDoneOne" xml:space="preserve"><value>1 name restored.</value></data>
+  <data name="RevertDoneMany" xml:space="preserve"><value>{0} names restored.</value></data>
+  <data name="RevertPartly" xml:space="preserve"><value>{0} of {1} names restored. The others could not be restored; Revert stays available for them.</value></data>
+  <data name="RevertNone" xml:space="preserve"><value>No name could be restored; Revert stays available for them.</value></data>
+  <data name="RevertNoHistory" xml:space="preserve"><value>Nothing was reverted, because the history could not be saved: {0}</value></data>
+  <data name="RevertAttentionOne" xml:space="preserve"><value>Revert failed and 1 item could not get its name back. Check it now.</value></data>
+  <data name="RevertAttentionMany" xml:space="preserve"><value>Revert failed and {0} items could not get their names back. Check them now.</value></data>
+  <data name="SkippedHeader" xml:space="preserve"><value>Not restored:</value></data>
+  <data name="SkipItemMissing" xml:space="preserve"><value>{0}: it is no longer where the rename left it.</value></data>
+  <data name="SkipNameTaken" xml:space="preserve"><value>{0}: {1} now has its old name.</value></data>
+  <data name="SkipWaits" xml:space="preserve"><value>{0}: its old name is still used by {1}.</value></data>
+  <data name="SkipFailed" xml:space="preserve"><value>{0}: {1}</value></data>
+  <data name="DetailsMore" xml:space="preserve"><value>...and {0} more.</value></data>
+  <data name="ActionUnexpected" xml:space="preserve"><value>Something went wrong. Check the files in the folder before you continue.</value></data>
 </root>

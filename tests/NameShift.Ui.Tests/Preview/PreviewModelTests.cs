@@ -771,4 +771,136 @@ public sealed class PreviewModelTests
         Assert.Equal(PreviewCellKind.None, preview.CellForRow(0).Kind);
         Assert.Equal(PreviewCellKind.None, preview.CellForRow(9998).Kind);
     }
+
+    [Fact]
+    public async Task ChangedCount_CountsChangedOnly()
+    {
+        PreviewModel preview = Build(EnabledPanelOf(_ => new ReplaceRule("a", "_")));
+
+        await _files.LoadAsync(@"C:\A");
+        await preview.Pending;
+
+        Assert.Equal(2, preview.Snapshot.ChangedCount);
+        Assert.Equal(0, PreviewSnapshot.Empty.ChangedCount);
+    }
+
+    [Fact]
+    public async Task ChangedCount_ExcludesErrors()
+    {
+        PreviewModel preview = Build(EnabledPanelOf(_ => new ThrowingRule(RuleStage.Replace, 1, "boom")));
+
+        await _files.LoadAsync(@"C:\A");
+        await preview.Pending;
+
+        Assert.Equal(0, preview.Snapshot.ChangedCount);
+        Assert.Equal(1, preview.Snapshot.ErrorCount);
+    }
+
+    [Fact]
+    public async Task IsCurrent_FalseFromRequestUntilApplied_OutdatedRaisedOnce()
+    {
+        FakeRulePanelModel panel = ReplacePanel("a");
+        PreviewModel preview = await BuildLoaded(panel);
+        int outdated = 0;
+        preview.Outdated += (_, _) => Interlocked.Increment(ref outdated);
+        Assert.True(preview.IsCurrent);
+
+        panel.Text = "ab";
+
+        Assert.False(preview.IsCurrent);
+        Assert.Equal(1, outdated);
+        _delay.ReleaseAll();
+        await preview.Pending;
+        Assert.True(preview.IsCurrent);
+        Assert.Equal(1, outdated);
+    }
+
+    [Fact]
+    public async Task IsCurrent_StaleRunCancelled_StaysFalseUntilNewestApplied()
+    {
+        var gate = new ManualResetEventSlim(false);
+        try
+        {
+            FakeRulePanelModel panel = PanelOf(t =>
+                t == "go" ? new ReplaceRule("a", "_") : new GateRule(RuleStage.Replace, gate, "b.txt"));
+            PreviewModel preview = Build(panel);
+            panel.Enabled = true;
+            await _files.LoadAsync(@"C:\A");
+            Task firstRun = preview.Pending;
+            Assert.False(preview.IsCurrent);
+
+            panel.Text = "go";
+            gate.Set();
+            await firstRun;
+
+            Assert.False(preview.IsCurrent);
+            _delay.ReleaseAll();
+            await preview.Pending;
+            Assert.True(preview.IsCurrent);
+            Assert.Equal(2, preview.Snapshot.ChangedCount);
+        }
+        finally
+        {
+            gate.Set();
+        }
+    }
+
+    [Fact]
+    public async Task IsCurrent_AfterFailedRun_False_SnapshotEmpty()
+    {
+        FakeRulePanelModel panel = PanelOf(t => t == "bad" ? new BrokenRule(RuleStage.Replace) : new ReplaceRule("a", "_"));
+        PreviewModel preview = Build(panel);
+        panel.Enabled = true;
+        await _files.LoadAsync(@"C:\A");
+        await preview.Pending;
+
+        panel.Text = "bad";
+        _delay.ReleaseAll();
+        await preview.Pending;
+
+        Assert.True(preview.HasFailed);
+        Assert.Same(PreviewSnapshot.Empty, preview.Snapshot);
+        Assert.False(preview.IsCurrent);
+
+        panel.Text = "ok";
+        _delay.ReleaseAll();
+        await preview.Pending;
+
+        Assert.True(preview.IsCurrent);
+    }
+
+    [Fact]
+    public async Task IsCurrent_SelectionChanged_FalseUntilApplied()
+    {
+        PreviewModel preview = await BuildLoaded(ReplacePanel("a"));
+
+        _files.SetSelection(new[] { 0 });
+
+        Assert.False(preview.IsCurrent);
+        _delay.ReleaseAll();
+        await preview.Pending;
+        Assert.True(preview.IsCurrent);
+    }
+
+    [Fact]
+    public async Task IsCurrent_WhileLoading_TrueForTheEmptyList()
+    {
+        PreviewModel preview = await BuildLoaded(ReplacePanel("a"));
+        ManualResetEventSlim gate = _source.Gate(@"C:\B");
+        try
+        {
+            Task load = _files.LoadAsync(@"C:\B");
+
+            Assert.Same(PreviewSnapshot.Empty, preview.Snapshot);
+            Assert.True(preview.IsCurrent);
+            gate.Set();
+            await load;
+            await preview.Pending;
+            Assert.True(preview.IsCurrent);
+        }
+        finally
+        {
+            gate.Set();
+        }
+    }
 }

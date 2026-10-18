@@ -11,6 +11,9 @@ namespace NameShift.Ui.Rules;
 /// </summary>
 public sealed class RulePanelHostModel
 {
+    private bool _resetting;
+    private bool _changedWhileResetting;
+
     public RulePanelHostModel(IEnumerable<IRulePanelModel> panels)
     {
         if (panels == null)
@@ -61,8 +64,42 @@ public sealed class RulePanelHostModel
     /// <summary>True when there is something to reset: the panel is enabled or has a non-default setting.</summary>
     public static bool CanReset(IRulePanelModel panel) => panel.Enabled || !panel.IsDefault;
 
+    /// <summary>True when at least one panel has something to reset.</summary>
+    public bool CanResetAny => Panels.Any(CanReset);
+
+    /// <summary>Resets every panel that has something to reset (settings to defaults, unchecked). Rebuilds Rules and
+    /// raises RulesChanged once at most, after the last panel, not once per panel. Each reset panel still raises its own
+    /// Changed (its control resyncs); a panel already default and unchecked is left alone, so it raises nothing.</summary>
+    public void ResetAll()
+    {
+        _resetting = true;
+        _changedWhileResetting = false;
+        try
+        {
+            foreach (IRulePanelModel panel in Panels.Where(CanReset).ToList())
+            {
+                panel.Reset();
+            }
+        }
+        finally
+        {
+            _resetting = false;
+        }
+
+        if (_changedWhileResetting)
+        {
+            OnPanelChanged();
+        }
+    }
+
     private void OnPanelChanged()
     {
+        if (_resetting)
+        {
+            _changedWhileResetting = true;
+            return;
+        }
+
         Rules = BuildRules();
         RulesChanged?.Invoke(this, EventArgs.Empty);
     }

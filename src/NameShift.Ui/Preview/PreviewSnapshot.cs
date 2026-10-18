@@ -63,6 +63,10 @@ public sealed class PreviewSnapshot
             {
                 ErrorCount++;
             }
+            else if (results[i].Status == RenameStatus.Changed)
+            {
+                ChangedCount++;
+            }
         }
     }
 
@@ -83,6 +87,9 @@ public sealed class PreviewSnapshot
 
     /// <summary>Results whose status is Error (a rule failed). For NS-15, which disables Rename on conflicts or errors.</summary>
     public int ErrorCount { get; }
+
+    /// <summary>Results whose status is Changed: what a Rename would rename.</summary>
+    public int ChangedCount { get; }
 
     /// <summary>ConflictCount > 0.</summary>
     public bool HasConflicts => ConflictCount > 0;
