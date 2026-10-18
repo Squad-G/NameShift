@@ -14,6 +14,11 @@ internal static class FolderKey
         return full.Length > root.Length ? full.TrimEnd('\\', '/') : full;
     }
 
+    /// <summary>The normalized full path of an item (not a root): its folder's key plus its name, the form the executor
+    /// uses for its own keys. Compare the results ordinal ignore-case.</summary>
+    public static string NormalizePath(string itemPath) =>
+        Path.Combine(Of(Path.GetDirectoryName(itemPath)!), Path.GetFileName(itemPath));
+
     /// <summary>The key of the containing folder, or null for a root.</summary>
     public static string? Parent(string key) => Path.GetDirectoryName(key);
 
