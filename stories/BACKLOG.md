@@ -19,7 +19,7 @@ IDs), not the rank: the rank is the row order.
 | 10 | [NS-10 Window shell: path bar and folder tree](NS-10-windowshell.md) | Done | |
 | 51 | [NS-51 File list with folders and natural sort](NS-51-filelist.md) | Done | NS-10 |
 | 11 | [NS-11 Rule panel host: enable and reset per rule](NS-11-panelhost.md) | Done | NS-10, NS-1 |
-| 12 | [NS-12 Panels for Replace, Case and Add](NS-12-firstpanels.md) | Ready | NS-11, NS-2, NS-3, NS-4 |
+| 12 | [NS-12 Panels for Replace, Case and Add](NS-12-firstpanels.md) | In Progress | NS-11, NS-2, NS-3, NS-4 |
 | 53 | [NS-53 Numbering panel](NS-53-numberingpanel.md) | Ready | NS-11, NS-17 |
 | 13 | [NS-13 Live preview](NS-13-preview.md) | Ready | NS-51, NS-11, NS-1 |
 | 52 | [NS-52 Conflict display](NS-52-conflictdisplay.md) | Ready | NS-13, NS-5, NS-6, NS-7 |
