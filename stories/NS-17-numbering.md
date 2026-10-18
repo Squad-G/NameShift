@@ -1,6 +1,6 @@
 # NS-17: Numbering rule (basic)
 
-Status: In Progress
+Status: In Review
 Depends on: NS-1
 Area: engine
 
@@ -33,3 +33,4 @@ Number files in order.
 - 2026-10-18: created (po).
 - 2026-10-18: set Ready and added to the first round after review: numbering is the most common bulk-rename need, so the minimal usable slice includes it (with its panel, NS-53) (po).
 - 2026-10-18: In Progress (builder).
+- 2026-10-18: In Review, PR #8 (builder).
