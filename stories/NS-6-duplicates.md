@@ -1,6 +1,6 @@
 # NS-6: Duplicate target detection
 
-Status: Ready
+Status: In Progress
 Depends on: NS-1
 Area: engine
 
@@ -25,3 +25,4 @@ Never overwrite or lose a file because two files get the same name.
 ## Log
 - 2026-10-18: created (po).
 - 2026-10-18: set Ready, first round of the minimal usable slice (po).
+- 2026-10-18: In Progress, branch feature/NS-6-duplicates (builder).
