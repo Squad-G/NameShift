@@ -1,6 +1,6 @@
 # NS-4: Add rule
 
-Status: Ready
+Status: In Progress
 Depends on: NS-1
 Area: engine
 
@@ -26,3 +26,4 @@ Add text to the start, end or inside of a name.
 ## Log
 - 2026-10-18: created (po).
 - 2026-10-18: set Ready, first round of the minimal usable slice (po).
+- 2026-10-18: In Progress (builder).
