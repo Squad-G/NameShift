@@ -142,4 +142,48 @@ public sealed class FileListModelTests
             Assert.Same(_model.Items[i], results[i].Item);
         }
     }
+
+    [Fact]
+    public async Task Load_KeepsEveryEntryName_IncludingHidden()
+    {
+        _source.SetEntries(@"C:\A", new[] { "secret.txt" }, File("b.txt"), File("a.txt"));
+
+        await _model.LoadAsync(@"C:\A");
+
+        Assert.Equal(new[] { "a.txt", "b.txt" }, _model.Items.Select(i => i.Name));
+        Assert.Equal(new[] { "a.txt", "b.txt", "secret.txt" }, _model.ExistingNames.OrderBy(n => n, StringComparer.Ordinal));
+    }
+
+    [Fact]
+    public async Task Load_Starting_ClearsExistingNames()
+    {
+        _source.SetEntries(@"C:\A", new[] { "secret.txt" }, File("a.txt"));
+        await _model.LoadAsync(@"C:\A");
+        var gate = _source.Gate(@"C:\B");
+
+        Task<bool> loading = _model.LoadAsync(@"C:\B");
+
+        Assert.Empty(_model.ExistingNames);
+        gate.Set();
+        Assert.True(await loading);
+    }
+
+    [Fact]
+    public async Task Load_Failed_HasNoExistingNames()
+    {
+        _source.SetListing(@"C:\A", FileListing.Failed(FolderProblem.NotFound));
+
+        await _model.LoadAsync(@"C:\A");
+
+        Assert.Empty(_model.ExistingNames);
+    }
+
+    [Fact]
+    public void Listing_Ok_NullArguments_Throw()
+    {
+        Assert.Throws<ArgumentNullException>(() => FileListing.Ok(null!));
+        Assert.Throws<ArgumentNullException>(() => FileListing.Ok(null!, Array.Empty<string>()));
+        Assert.Throws<ArgumentNullException>(() => FileListing.Ok(Array.Empty<RenameItem>(), null!));
+        Assert.Equal(new[] { "a.txt" }, FileListing.Ok(new[] { File("a.txt") }).ExistingNames);
+    }
 }

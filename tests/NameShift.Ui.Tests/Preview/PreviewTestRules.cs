@@ -113,3 +113,33 @@ internal sealed class BrokenRule : IRenameRule
 
     public NameParts Apply(NameParts name, ItemContext context) => name;
 }
+
+/// <summary>Gives every item (or only those whose name starts with the given text) one fixed full name, after waiting for the gate if there is one.</summary>
+internal sealed class RenameToRule : IRenameRule
+{
+    private readonly string _fullName;
+    private readonly string? _onlyItemNameStart;
+    private readonly ManualResetEventSlim? _gate;
+
+    public RenameToRule(string fullName, string? onlyItemNameStart = null, ManualResetEventSlim? gate = null)
+    {
+        _fullName = fullName;
+        _onlyItemNameStart = onlyItemNameStart;
+        _gate = gate;
+    }
+
+    public RuleStage Stage => RuleStage.Replace;
+
+    public bool Enabled => true;
+
+    public NameParts Apply(NameParts name, ItemContext context)
+    {
+        if (_onlyItemNameStart != null && !context.Item.Name.StartsWith(_onlyItemNameStart, StringComparison.Ordinal))
+        {
+            return name;
+        }
+
+        _gate?.Wait();
+        return NameParts.Split(_fullName, context.Item.Kind);
+    }
+}

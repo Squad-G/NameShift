@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using Xunit;
 
 namespace NameShift.Core.Tests;
@@ -102,5 +104,32 @@ public sealed class ConflictCheckerTests
     private sealed class FixedCheck(params IReadOnlyList<Conflict>[] perItem) : IConflictCheck
     {
         public IReadOnlyList<IReadOnlyList<Conflict>> Check(IReadOnlyList<RenameResult> results) => perItem;
+    }
+
+    [Fact]
+    public void Run_TenThousandChangedItems_IsLinearAndFast()
+    {
+        const int count = 10000;
+        var results = new RenameResult[count];
+        for (var i = 0; i < count; i++)
+        {
+            var item = new RenameItem($"f{i}.txt", @"C:\Test");
+            results[i] = new RenameResult(item, i, i % 2 == 0 ? "same.txt" : $"n{i}.txt", RenameStatus.Changed, null);
+        }
+
+        var existing = new Dictionary<string, IReadOnlyCollection<string>>
+        {
+            [@"C:\Test"] = Enumerable.Range(0, count).Select(i => $"e{i}.txt").ToArray(),
+        };
+        IConflictCheck[] checks = [new InvalidNameCheck(), new DuplicateTargetCheck(existing), new PathLengthCheck()];
+
+        var watch = Stopwatch.StartNew();
+        var report = ConflictChecker.Run(results, checks);
+        watch.Stop();
+
+        Assert.Equal(count, report.Count);
+        Assert.Equal([new Conflict(ConflictCode.DuplicateTarget)], report.ForItem(0));
+        Assert.Empty(report.ForItem(1));
+        Assert.True(watch.Elapsed < TimeSpan.FromSeconds(1), watch.Elapsed.ToString());
     }
 }

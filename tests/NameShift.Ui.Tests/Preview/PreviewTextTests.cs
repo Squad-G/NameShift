@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NameShift.Core;
 using NameShift.Ui.Preview;
 using Xunit;
@@ -80,11 +81,15 @@ public sealed class PreviewTextTests
 
 public sealed class PreviewSnapshotTests
 {
+    private static ConflictReport NoConflicts(int count) =>
+        new ConflictReport(Enumerable.Range(0, count).Select(_ => (IReadOnlyList<Conflict>)Array.Empty<Conflict>()).ToArray());
+
     [Fact]
     public void Ctor_Null_Throws()
     {
-        Assert.Throws<ArgumentNullException>(() => new PreviewSnapshot(null!, Array.Empty<RenameResult>()));
-        Assert.Throws<ArgumentNullException>(() => new PreviewSnapshot(Array.Empty<RenameItem>(), null!));
+        Assert.Throws<ArgumentNullException>(() => new PreviewSnapshot(null!, Array.Empty<RenameResult>(), NoConflicts(0)));
+        Assert.Throws<ArgumentNullException>(() => new PreviewSnapshot(Array.Empty<RenameItem>(), null!, NoConflicts(0)));
+        Assert.Throws<ArgumentNullException>(() => new PreviewSnapshot(Array.Empty<RenameItem>(), Array.Empty<RenameResult>(), null!));
     }
 
     [Fact]
@@ -92,7 +97,7 @@ public sealed class PreviewSnapshotTests
     {
         var items = new[] { new RenameItem("a.txt", @"C:\A") };
 
-        Assert.Throws<ArgumentException>(() => new PreviewSnapshot(items, Array.Empty<RenameResult>()));
+        Assert.Throws<ArgumentException>(() => new PreviewSnapshot(items, Array.Empty<RenameResult>(), NoConflicts(0)));
     }
 
     [Fact]
@@ -108,9 +113,52 @@ public sealed class PreviewSnapshotTests
         var items = new[] { new RenameItem("a.txt", @"C:\A") };
         var results = new[] { new RenameResult(items[0], 0, "a.txt", RenameStatus.Unchanged, null) };
 
-        var snapshot = new PreviewSnapshot(items, results);
+        var snapshot = new PreviewSnapshot(items, results, NoConflicts(1));
 
         Assert.Same(items, snapshot.Items);
         Assert.Same(results, snapshot.Results);
+    }
+
+    [Fact]
+    public void Snapshot_CountsConflictRowsAndErrors()
+    {
+        var items = new[] { new RenameItem("a.txt", @"C:\A"), new RenameItem("b.txt", @"C:\A"), new RenameItem("c.txt", @"C:\A") };
+        var results = new[]
+        {
+            new RenameResult(items[0], 0, "x.txt", RenameStatus.Changed, null),
+            new RenameResult(items[1], 1, "b.txt", RenameStatus.Error, new RenameError(RuleStage.Replace, "Replace", "boom")),
+            new RenameResult(items[2], 2, "d.txt", RenameStatus.Changed, null),
+        };
+        var conflicts = new ConflictReport(new IReadOnlyList<Conflict>[]
+        {
+            new[] { new Conflict(ConflictCode.InvalidCharacter, "?"), new Conflict(ConflictCode.PathTooLong) },
+            Array.Empty<Conflict>(),
+            Array.Empty<Conflict>(),
+        });
+
+        var snapshot = new PreviewSnapshot(items, results, conflicts);
+
+        Assert.Same(conflicts, snapshot.Conflicts);
+        Assert.Equal(1, snapshot.ConflictCount);
+        Assert.Equal(1, snapshot.ErrorCount);
+        Assert.True(snapshot.HasConflicts);
+    }
+
+    [Fact]
+    public void Snapshot_ConflictsCountMismatch_Throws()
+    {
+        var items = new[] { new RenameItem("a.txt", @"C:\A") };
+        var results = new[] { new RenameResult(items[0], 0, "a.txt", RenameStatus.Unchanged, null) };
+
+        Assert.Throws<ArgumentException>(() => new PreviewSnapshot(items, results, NoConflicts(2)));
+    }
+
+    [Fact]
+    public void Snapshot_Empty_HasNoConflicts()
+    {
+        Assert.Equal(0, PreviewSnapshot.Empty.ConflictCount);
+        Assert.Equal(0, PreviewSnapshot.Empty.ErrorCount);
+        Assert.False(PreviewSnapshot.Empty.HasConflicts);
+        Assert.Equal(0, PreviewSnapshot.Empty.Conflicts.Count);
     }
 }

@@ -27,6 +27,11 @@ public sealed class FileListModel
     /// <summary>The rows in display order; row i is pipeline index i.</summary>
     public IReadOnlyList<RenameItem> Items { get; private set; } = Array.Empty<RenameItem>();
 
+    /// <summary>Every entry name of the folder, hidden and system included, for the duplicate check (NS-6:3). Not the
+    /// visible list. A snapshot of the folder at load time: a file created later is not seen until the folder reloads;
+    /// NS-8 re-checks every target on disk before renaming and never replaces, so this is safe.</summary>
+    public IReadOnlyList<string> ExistingNames { get; private set; } = Array.Empty<string>();
+
     /// <summary>Set only when the state is Failed.</summary>
     public FolderProblem? Problem { get; private set; }
 
@@ -59,6 +64,7 @@ public sealed class FileListModel
         FolderPath = folderPath;
         State = FileListState.Loading;
         Items = Array.Empty<RenameItem>();
+        ExistingNames = Array.Empty<string>();
         Problem = null;
         Changed?.Invoke(this, EventArgs.Empty);
 
@@ -68,7 +74,7 @@ public sealed class FileListModel
             listing = await Task.Run(() =>
             {
                 FileListing found = _source.ListEntries(folderPath);
-                return found.Problem is null ? FileListing.Ok(FileListOrder.Sort(found.Items)) : found;
+                return found.Problem is null ? FileListing.Ok(FileListOrder.Sort(found.Items), found.ExistingNames) : found;
             });
         }
         catch (Exception)
@@ -84,6 +90,7 @@ public sealed class FileListModel
         }
 
         Items = listing.Items;
+        ExistingNames = listing.ExistingNames;
         Problem = listing.Problem;
         State = listing.Problem is null ? FileListState.Loaded : FileListState.Failed;
         Changed?.Invoke(this, EventArgs.Empty);
