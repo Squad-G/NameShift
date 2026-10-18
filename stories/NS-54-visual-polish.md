@@ -11,26 +11,32 @@ the finished layout (preview, conflicts, selection, buttons).
 
 ## Acceptance criteria
 1. Given the main window, then the spacing between controls, the panel margins and the alignment of the tree, file
-   list, rule panels and buttons come from one set of named constants (for example 4, 8, 12 px at 100 % scale), with no
-   other literal spacing values in the layout code. A test checks that the constants are the ones used.
-2. Given the main window and every dialog, then the font is Segoe UI at the system message-box size
-   (`SystemFonts.MessageBoxFont`), and it follows the Windows text-size setting. A test checks the font family and
-   size of the main controls.
+   list, rule panels and buttons come from one spacing class of named constants (for example 4, 8, 12 px at 100 %
+   scale). This story migrates the existing panels' literal spacing values (NS-12, NS-53, the panel frame, the file
+   list) to it. A test checks that each panel uses the constants (reads the App sources for literal `Padding(` and
+   `Margin` numbers outside the spacing class).
+2. Given the main window and every dialog, then the font is the system message-box font (Segoe UI on Windows 10/11) at
+   the system size, and it follows the Windows text-size setting. A test checks the controls use
+   `SystemFonts.MessageBoxFont`.
 3. Given any theme, then every colour comes from `SystemColors` or from one accent colour derived from
-   `SystemColors.Highlight`, never from a hard-coded RGB value. Given a Windows high-contrast theme, the window uses
-   the system colours unchanged and stays fully readable. A test checks that no hard-coded colour is used outside the
-   one derivation helper.
-4. Given a rule panel, then it has a subtle border, a clear title, and the existing active highlight (enabled panel)
-   is kept and still not colour-only (the title or a mark also shows it).
+   `SystemColors.Highlight`, never from a hard-coded RGB value. Given a Windows high-contrast theme, the accent helper
+   returns `SystemColors.Highlight` itself (when `SystemInformation.HighContrast` is true) and the window stays fully
+   readable. A test checks that no hard-coded colour is used outside the one derivation helper, and the helper's
+   high-contrast result.
+4. Given a rule panel, then it has a subtle border and its title is bold or semibold at the same size as the body text,
+   not clipped at 200 %. NS-11's active-panel highlight (border, bold title, screen-reader description) is kept
+   unchanged, with the new subtle border only on inactive panels, so the active state is still not colour-only.
 5. Given the main buttons (Rename, Revert, Reset) and the panel titles, then each has a small icon that is sharp at
-   100 %, 125 %, 150 % and 200 % scale (vector-drawn or one image per scale, loaded from embedded resources). Button
-   text stays, so the icon is never the only label.
+   100 %, 125 %, 150 % and 200 % scale (drawn in code, or our own embedded resources, one image per scale). The icons
+   are original, drawn for NameShift, never copied from another product or an icon set. Button text stays, so the icon
+   is never the only label.
 6. Given the same folder and rules as before the story, then the preview, conflicts, selection and rename results are
    identical: no behaviour changes, and all existing tests pass unchanged.
-7. Given the installer built after the story, then its size is within 0.5 MB of the size before, and still a few MB.
+7. Given the app's Release output folder (total size of the published files), then its size after the story is at most
+   0.5 MB more than before. The installer's own size is NS-44's criterion.
 8. Given the finished window, then David walks through this checklist by eye at 100 % and 200 % scale, in light mode
    and in a high-contrast theme: aligned edges, even gaps, one font, one accent colour, readable titles, icons
-   crisp, nothing clipped.
+   crisp, nothing clipped. This is David's manual check, tracked in the PR.
 
 ## Out of scope
 - Custom skins or themes.
@@ -46,7 +52,8 @@ the finished layout (preview, conflicts, selection, buttons).
   colours go through system colours, which is what dark mode will build on (po, 2026-10-18).
 - One accent colour from where? **Decision:** derived from the system highlight colour, so it respects the user's
   Windows accent and high-contrast themes (po, 2026-10-18).
-- Icons: **Decision:** embedded resources only, no icon font or package, to keep the binary small (po, 2026-10-18).
+- Icons: **Decision:** drawn in code or our own embedded resources, original, no icon font or package, to keep the binary small (po, 2026-10-18).
 
 ## Log
 - 2026-10-18: created (po).
+- 2026-10-18: criteria 1-5 and 7 tightened: size measured on the Release output folder (no installer yet), spacing, font, colour, title and icon checks made testable (po, from the PR #19 review).
