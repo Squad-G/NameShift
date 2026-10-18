@@ -1,6 +1,6 @@
 # NS-6: Duplicate target detection
 
-Status: In Review
+Status: Done
 Depends on: NS-1
 Area: engine
 
@@ -30,3 +30,4 @@ Never overwrite or lose a file because two files get the same name.
 - 2026-10-18: set Ready, first round of the minimal usable slice (po).
 - 2026-10-18: In Progress, branch feature/NS-6-duplicates (builder).
 - 2026-10-18: In Review, PR #10 (builder).
+- 2026-10-18: Done, PR #10 merged; review nits folded in (separate target parameter in Check_NameOfAnEntryOutsideTheBatch_FlagsTargetExists, constructor parameter renamed existingNames) (tech-lead).

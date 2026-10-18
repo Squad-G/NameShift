@@ -15,19 +15,19 @@ public sealed class DuplicateTargetCheck : IConflictCheck
     /// <summary>Creates the check from the existing entries of every folder of the batch, as listed on disk by the app
     /// (every file and folder, hidden and system ones included; never the visible list). Folder paths and names are
     /// compared ordinal ignore-case.</summary>
-    public DuplicateTargetCheck(IReadOnlyDictionary<string, IReadOnlyCollection<string>> existingNamesByFolder)
+    public DuplicateTargetCheck(IReadOnlyDictionary<string, IReadOnlyCollection<string>> existingNames)
     {
-        if (existingNamesByFolder == null)
+        if (existingNames == null)
         {
-            throw new ArgumentNullException(nameof(existingNamesByFolder));
+            throw new ArgumentNullException(nameof(existingNames));
         }
 
-        foreach (var pair in existingNamesByFolder)
+        foreach (var pair in existingNames)
         {
-            if (!this.existingNamesByFolder.TryGetValue(pair.Key, out var set))
+            if (!existingNamesByFolder.TryGetValue(pair.Key, out var set))
             {
                 set = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                this.existingNamesByFolder.Add(pair.Key, set);
+                existingNamesByFolder.Add(pair.Key, set);
             }
 
             set.UnionWith(pair.Value);

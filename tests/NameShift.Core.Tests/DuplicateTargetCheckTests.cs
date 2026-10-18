@@ -41,14 +41,11 @@ public sealed class DuplicateTargetCheckTests
             [Dup], [Dup]);
 
     [Theory]
-    [InlineData("x.txt")]
-    [InlineData("X.TXT")]
-    [InlineData("desktop.ini")]
-    public void Check_NameOfAnEntryOutsideTheBatch_FlagsTargetExists(string listed)
-    {
-        var target = listed == "X.TXT" ? "x.txt" : listed;
+    [InlineData("x.txt", "x.txt")]
+    [InlineData("X.TXT", "x.txt")]
+    [InlineData("desktop.ini", "desktop.ini")]
+    public void Check_NameOfAnEntryOutsideTheBatch_FlagsTargetExists(string listed, string target) =>
         AssertLists(With("a.txt", listed).Check([R(0, "a.txt", target)]), [[Exists]]);
-    }
 
     [Fact]
     public void Check_NameOfAFolderOutsideTheBatch_FlagsTargetExists() =>
