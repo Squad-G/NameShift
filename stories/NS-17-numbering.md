@@ -1,6 +1,6 @@
 # NS-17: Numbering rule (basic)
 
-Status: Ready
+Status: Done
 Depends on: NS-1
 Area: engine
 
@@ -25,6 +25,14 @@ Number files in order.
 
 - Default separator in the engine? **Decision:** none, so the rule adds only what is asked; the panel's default is `_` (NS-53) (tech-lead, 2026-10-18).
 
+- Where does the separator go in insert mode? **Decision:** after the number (`abc1_def`), as in prefix mode (tech-lead default, 2026-10-18; po may overrule).
+- Insert mode without a valid position? **Decision:** the rule does nothing, as Add's insert part (tech-lead default, 2026-10-18; po may overrule).
+- Largest pad? **Decision:** 255 digits (a Windows name's length); the panel validates its own field (tech-lead default, 2026-10-18; po may overrule).
+- Separator in insert mode at or past the end of the name? **Decision:** (tech-lead, 2026-10-18, from the NS-17 review) in insert mode the separator is only added when text follows the number.
+
 ## Log
 - 2026-10-18: created (po).
 - 2026-10-18: set Ready and added to the first round after review: numbering is the most common bulk-rename need, so the minimal usable slice includes it (with its panel, NS-53) (po).
+- 2026-10-18: In Progress (builder).
+- 2026-10-18: In Review, PR #8 (builder).
+- 2026-10-18: Done, PR #8 merged after review; folded the review's nits (pad 255 test, no separator at the end in insert mode) (tech-lead).
