@@ -45,6 +45,21 @@ public static class Strings
 
     public static string FolderTreeName => Get(nameof(FolderTreeName));
 
+    public static string ColumnName => Get(nameof(ColumnName));
+
+    public static string ColumnNewName => Get(nameof(ColumnNewName));
+
+    public static string ColumnSize => Get(nameof(ColumnSize));
+
+    public static string ColumnModified => Get(nameof(ColumnModified));
+
+    /// <summary>"{0} KB".</summary>
+    public static string SizeKilobytes => Get(nameof(SizeKilobytes));
+
+    public static string FolderEmpty => Get(nameof(FolderEmpty));
+
+    public static string FileListName => Get(nameof(FileListName));
+
     private static string Get(string key) =>
         Manager.GetString(key, CultureInfo.CurrentUICulture)
         ?? throw new InvalidOperationException("Missing string resource: " + key);

@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using NameShift.App.Controls;
 using NameShift.Ui;
+using NameShift.Ui.Files;
 using NameShift.Ui.Folders;
 
 namespace NameShift.App;
@@ -19,14 +20,17 @@ internal sealed class MainForm : Form
     private readonly FolderNavigator _navigator;
     private readonly PathBar _pathBar = new PathBar();
     private readonly FolderTree _folderTree;
+    private readonly FileList _fileList;
     private readonly SplitContainer _mainSplit = new SplitContainer();
     private readonly SplitContainer _rightSplit = new SplitContainer();
     private readonly ToolStripStatusLabel _statusText = new ToolStripStatusLabel();
 
-    public MainForm(IFolderSource source)
+    public MainForm(IFolderSource source, IFileListSource fileListSource)
     {
         _navigator = new FolderNavigator(source);
         _folderTree = new FolderTree(new FolderTreeModel(source), ShowStatus);
+        FileListModel = new FileListModel(fileListSource);
+        _fileList = new FileList(FileListModel, ShowStatus) { Dock = DockStyle.Fill };
 
         AutoScaleDimensions = new SizeF(96F, 96F);
         AutoScaleMode = AutoScaleMode.Dpi;
@@ -41,8 +45,11 @@ internal sealed class MainForm : Form
         _navigator.FolderChanged += OnFolderChanged;
     }
 
-    /// <summary>The current folder and its change event, for the file list (NS-51).</summary>
+    /// <summary>The current folder and its change event.</summary>
     internal FolderNavigator Navigator => _navigator;
+
+    /// <summary>The listed items, for the preview (NS-13) and the selection (NS-14).</summary>
+    internal FileListModel FileListModel { get; }
 
     /// <summary>Where the file list docks.</summary>
     internal Panel FileListHost { get; } = new Panel { Dock = DockStyle.Fill };
@@ -99,6 +106,7 @@ internal sealed class MainForm : Form
         _rightSplit.Dock = DockStyle.Fill;
         _rightSplit.Orientation = Orientation.Horizontal;
         _rightSplit.FixedPanel = FixedPanel.Panel2;
+        FileListHost.Controls.Add(_fileList);
         _rightSplit.Panel1.Controls.Add(FileListHost);
         _rightSplit.Panel2.Controls.Add(BuildBottomLayout());
         _mainSplit.Panel2.Controls.Add(_rightSplit);
@@ -158,6 +166,7 @@ internal sealed class MainForm : Form
         _pathBar.ShowFolder(e.Path);
         ShowStatus("");
         _ = _folderTree.RevealAsync(e.Path);
+        _ = _fileList.ShowFolderAsync(e.Path);
     }
 
     private async void OnPathSubmitted(object? sender, string text)
