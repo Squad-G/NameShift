@@ -8,7 +8,7 @@ IDs), not the rank: the rank is the row order.
 |---|---|---|---|
 | 1 | [NS-1 Rename pipeline and rule contract](NS-1-pipeline.md) | Done | |
 | 2 | [NS-2 Replace rule](NS-2-replace.md) | Done | NS-1 |
-| 3 | [NS-3 Case rule](NS-3-case.md) | In Progress | NS-1 |
+| 3 | [NS-3 Case rule](NS-3-case.md) | In Review | NS-1 |
 | 4 | [NS-4 Add rule](NS-4-add.md) | Ready | NS-1 |
 | 17 | [NS-17 Numbering rule (basic)](NS-17-numbering.md) | Ready | NS-1 |
 | 5 | [NS-5 Invalid Windows names check](NS-5-invalid.md) | Ready | NS-1 |

@@ -1,6 +1,6 @@
 # NS-3: Case rule
 
-Status: In Progress
+Status: In Review
 Depends on: NS-1
 Area: engine
 
@@ -33,3 +33,4 @@ Change the capitalisation of names.
 - 2026-10-18: created (po).
 - 2026-10-18: set Ready, first round of the minimal usable slice (po).
 - 2026-10-18: In Progress, branch feature/NS-3-case (builder).
+- 2026-10-18: In Review, PR opened (builder).
