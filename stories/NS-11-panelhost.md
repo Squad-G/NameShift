@@ -1,6 +1,6 @@
 # NS-11: Rule panel host: enable and reset per rule
 
-Status: Ready
+Status: In Progress
 Depends on: NS-10, NS-1
 Area: app
 
@@ -25,3 +25,4 @@ The bottom area where each rule is a panel I can switch on and reset.
 ## Log
 - 2026-10-18: created (po).
 - 2026-10-18: set Ready, first round of the minimal usable slice (po).
+- 2026-10-18: In Progress (builder).
