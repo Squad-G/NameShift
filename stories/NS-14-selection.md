@@ -1,6 +1,6 @@
 # NS-14: Choose which files to rename
 
-Status: Ready
+Status: In Progress
 Depends on: NS-51, NS-13
 Area: app
 
@@ -23,3 +23,4 @@ Rename only the files I pick, not always the whole folder.
 ## Log
 - 2026-10-18: created (po).
 - 2026-10-18: set Ready, first round of the minimal usable slice (po).
+- 2026-10-18: In Progress, branch feature/NS-14-selection (builder).
