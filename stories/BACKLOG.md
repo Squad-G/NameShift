@@ -6,7 +6,7 @@ IDs), not the rank: the rank is the row order.
 
 | # | Story | Status | Depends on |
 |---|---|---|---|
-| 1 | [NS-1 Rename pipeline and rule contract](NS-1-pipeline.md) | In Progress | |
+| 1 | [NS-1 Rename pipeline and rule contract](NS-1-pipeline.md) | In Review | |
 | 2 | [NS-2 Replace rule](NS-2-replace.md) | Ready | NS-1 |
 | 3 | [NS-3 Case rule](NS-3-case.md) | Ready | NS-1 |
 | 4 | [NS-4 Add rule](NS-4-add.md) | Ready | NS-1 |

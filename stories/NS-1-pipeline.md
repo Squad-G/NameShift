@@ -1,6 +1,6 @@
 # NS-1: Rename pipeline and rule contract
 
-Status: In Progress
+Status: In Review
 Depends on:
 Area: engine
 
@@ -34,3 +34,4 @@ A single engine that takes a list of files and a stack of rules and returns the 
 - 2026-10-18: set Ready, first round of the minimal usable slice (po).
 - 2026-10-18: contract made precise after review: item fields, stage declaration, skeleton replaced (po).
 - 2026-10-18: In Progress, branch feature/NS-1-pipeline (builder).
+- 2026-10-18: In Review, PR opened (builder).
