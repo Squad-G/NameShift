@@ -39,10 +39,4 @@ MIT. NameShift is an independent project, not affiliated with any other renaming
 - `releases/vX.Y.Z`: one locked branch per release, kept forever. Only the owner creates them; nobody can change or
   delete them.
 
-Making a release (owner only, from an up-to-date `dev` with a clean working tree, in Git Bash):
-
-```
-tools/bump-version.sh 0.2.0      # sets <Version> in the app's csproj and commits it; then push dev
-tools/release.sh --dry-run       # checks, builds, tests, shows what it would do
-tools/release.sh                 # fast-forwards prod to dev and creates releases/v0.2.0
-```
+Making a release (owner only): see [docs/RELEASING.md](docs/RELEASING.md).
