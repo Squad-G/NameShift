@@ -33,4 +33,28 @@
   <data name="RulePanelResetName" xml:space="preserve"><value>Reset {0}</value></data>
   <data name="RulePanelActive" xml:space="preserve"><value>Active: this rule changes names</value></data>
   <data name="RulePanelsName" xml:space="preserve"><value>Rename rules</value></data>
+  <data name="ReplaceTitle" xml:space="preserve"><value>&amp;Replace</value></data>
+  <data name="ReplaceFind" xml:space="preserve"><value>&amp;Find</value></data>
+  <data name="ReplaceWith" xml:space="preserve"><value>&amp;With</value></data>
+  <data name="ReplaceMatchCase" xml:space="preserve"><value>&amp;Match case</value></data>
+  <data name="ReplaceIncludeExtension" xml:space="preserve"><value>Include e&amp;xtension</value></data>
+  <data name="CaseTitle" xml:space="preserve"><value>&amp;Case</value></data>
+  <data name="CaseMode" xml:space="preserve"><value>M&amp;ode</value></data>
+  <data name="CaseExceptions" xml:space="preserve"><value>Excep&amp;tions</value></data>
+  <data name="CaseExceptionsHint" xml:space="preserve"><value>Title case only: words kept as typed, separated by commas</value></data>
+  <data name="CaseModeSame" xml:space="preserve"><value>Same</value></data>
+  <data name="CaseModeLower" xml:space="preserve"><value>lower case</value></data>
+  <data name="CaseModeUpper" xml:space="preserve"><value>UPPER CASE</value></data>
+  <data name="CaseModeTitle" xml:space="preserve"><value>Title Case</value></data>
+  <data name="CaseModeSentence" xml:space="preserve"><value>Sentence case</value></data>
+  <data name="AddTitle" xml:space="preserve"><value>&amp;Add</value></data>
+  <data name="AddPrefix" xml:space="preserve"><value>&amp;Prefix</value></data>
+  <data name="AddInsert" xml:space="preserve"><value>&amp;Insert</value></data>
+  <data name="AddPosition" xml:space="preserve"><value>Po&amp;sition</value></data>
+  <data name="AddPositionFromEnd" xml:space="preserve"><value>Character&amp;s left after</value></data>
+  <data name="AddFromEnd" xml:space="preserve"><value>From the en&amp;d</value></data>
+  <data name="AddSuffix" xml:space="preserve"><value>S&amp;uffix</value></data>
+  <data name="AddWordSpace" xml:space="preserve"><value>Word spac&amp;e</value></data>
+  <data name="AddWordSpaceHint" xml:space="preserve"><value>Puts a space before a capital that follows a lower-case letter or a digit</value></data>
+  <data name="AddPositionInvalid" xml:space="preserve"><value>Type a whole number from 1. Until then the insert is skipped.</value></data>
 </root>

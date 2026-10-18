@@ -72,6 +72,54 @@ public static class Strings
 
     public static string RulePanelsName => Get(nameof(RulePanelsName));
 
+    public static string ReplaceTitle => Get(nameof(ReplaceTitle));
+
+    public static string ReplaceFind => Get(nameof(ReplaceFind));
+
+    public static string ReplaceWith => Get(nameof(ReplaceWith));
+
+    public static string ReplaceMatchCase => Get(nameof(ReplaceMatchCase));
+
+    public static string ReplaceIncludeExtension => Get(nameof(ReplaceIncludeExtension));
+
+    public static string CaseTitle => Get(nameof(CaseTitle));
+
+    public static string CaseMode => Get(nameof(CaseMode));
+
+    public static string CaseExceptions => Get(nameof(CaseExceptions));
+
+    public static string CaseExceptionsHint => Get(nameof(CaseExceptionsHint));
+
+    public static string CaseModeSame => Get(nameof(CaseModeSame));
+
+    public static string CaseModeLower => Get(nameof(CaseModeLower));
+
+    public static string CaseModeUpper => Get(nameof(CaseModeUpper));
+
+    public static string CaseModeTitle => Get(nameof(CaseModeTitle));
+
+    public static string CaseModeSentence => Get(nameof(CaseModeSentence));
+
+    public static string AddTitle => Get(nameof(AddTitle));
+
+    public static string AddPrefix => Get(nameof(AddPrefix));
+
+    public static string AddInsert => Get(nameof(AddInsert));
+
+    public static string AddPosition => Get(nameof(AddPosition));
+
+    public static string AddPositionFromEnd => Get(nameof(AddPositionFromEnd));
+
+    public static string AddFromEnd => Get(nameof(AddFromEnd));
+
+    public static string AddSuffix => Get(nameof(AddSuffix));
+
+    public static string AddWordSpace => Get(nameof(AddWordSpace));
+
+    public static string AddWordSpaceHint => Get(nameof(AddWordSpaceHint));
+
+    public static string AddPositionInvalid => Get(nameof(AddPositionInvalid));
+
     private static string Get(string key) =>
         Manager.GetString(key, CultureInfo.CurrentUICulture)
         ?? throw new InvalidOperationException("Missing string resource: " + key);
