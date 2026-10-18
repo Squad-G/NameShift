@@ -25,6 +25,9 @@ A single engine that takes a list of files and a stack of rules and returns the 
 - Is a hidden dotfile like `.gitignore` a name with an empty base? **Decision:** the whole name is the base name and the extension is empty, because a rename of `.gitignore` should not produce a nameless file (po, 2026-10-18).
 - Rule order configurable? **Decision:** no, fixed as in docs/PLAN.md, because it keeps behaviour predictable and the window simple (po, 2026-10-18).
 - The existing skeleton (a rule interface taking only a name and an index, and a pipeline splitting names with `Path.GetFileNameWithoutExtension`, which gives an empty base for `.gitignore`) does not meet this contract. **Decision:** this story replaces or extends it, and `ReplaceRule` is reworked in NS-2 to the new contract, because the contract must be settled once here or every rule story reopens it (po, 2026-10-18).
+- Who sets an item's index and count? **Decision:** the pipeline, from the item's position in the list it is given, passed to each rule with the item (`ItemContext`), so they can never disagree with the list (tech-lead, 2026-10-18).
+- How is a name ending in a dot (`a.`) split? **Decision:** like a name without a dot (whole name is the base), so splitting and joining always gives back the same name (tech-lead, 2026-10-18).
+- What happens to an item after a rule fails? **Decision:** it keeps its original name, later rules are skipped for it, and the error names the rule's stage (tech-lead, 2026-10-18).
 
 ## Log
 - 2026-10-18: created (po).
