@@ -109,8 +109,6 @@ internal sealed class AddPanel : UserControl
         RulePanelLayout.SetTextIfDifferent(_positionLabel, _model.InsertPositionLabel);
         _position.AccessibleName = RulePanelText.PlainTitle(_model.InsertPositionLabel);
 
-        string message = _model.InsertPositionInvalid ? Strings.AddPositionInvalid : "";
-        _error.SetError(_position, message);
-        _position.AccessibleDescription = message.Length == 0 ? null : message;
+        RulePanelLayout.Mark(_error, _position, _model.InsertPositionInvalid ? Strings.AddPositionInvalid : "", null);
     }
 }
