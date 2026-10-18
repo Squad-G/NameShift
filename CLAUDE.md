@@ -9,8 +9,19 @@ Free, open-source, lightweight bulk file renamer for Windows (MIT). Owner: **Dav
   `tests/NameShift.Core.Tests` (net10.0, xUnit): engine tests.
 - `src/NameShift.Disk` (netstandard2.0): the rename executor, the app's only code that renames files.
   `tests/NameShift.Disk.Tests` (net10.0 and net48, xUnit): executor tests against real temp folders.
+- `src/NameShift.Ui` (netstandard2.0): window logic (navigation, path parsing, tree model, disk folder source) and
+  every visible string (`Strings.resx`), no WinForms reference. `tests/NameShift.Ui.Tests` (net10.0 and net48, xUnit).
 - Installer: Inno Setup 6 (`installer/`). Target: a download of a few MB at most.
 - No third-party UI framework. A new NuGet dependency needs a reason in the PR (size, and an MIT-compatible licence).
+
+### Window code
+- Each window area is a `UserControl` in `src/NameShift.App/Controls/`, docked into a named host panel of `MainForm`;
+  `MainForm` only composes and wires.
+- Logic goes in a `NameShift.Ui` class with a test; the App keeps thin controls that render and forward input.
+- Routine feedback goes to the status bar (`MainForm.ShowStatus`), never a `MessageBox`.
+- Disk access the UI triggers runs off the UI thread (`Task.Run`); apply the result on the UI thread after `await`.
+- Every visible string comes from `NameShift.Ui.Strings`. Controls are built in code (no designer files), sizes in
+  96-DPI logical pixels.
 
 ## Rules
 - **Clean-room:** NameShift reproduces the *behaviour* of classic bulk renamers. Never copy another product's code,

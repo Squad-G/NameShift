@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AppTitle" xml:space="preserve"><value>NameShift</value></data>
+  <data name="Desktop" xml:space="preserve"><value>Desktop</value></data>
+  <data name="Documents" xml:space="preserve"><value>Documents</value></data>
+  <data name="Downloads" xml:space="preserve"><value>Downloads</value></data>
+  <data name="Pictures" xml:space="preserve"><value>Pictures</value></data>
+  <data name="Loading" xml:space="preserve"><value>Loading…</value></data>
+  <data name="DriveNotReady" xml:space="preserve"><value>Drive not ready</value></data>
+  <data name="AccessDenied" xml:space="preserve"><value>Access denied</value></data>
+  <data name="FolderNotFound" xml:space="preserve"><value>Folder not found</value></data>
+  <data name="FolderUnavailable" xml:space="preserve"><value>Can't open this folder</value></data>
+  <data name="PathBarLabel" xml:space="preserve"><value>Folder</value></data>
+  <data name="PathInvalid" xml:space="preserve"><value>That is not a valid folder path.</value></data>
+  <data name="PathNotFound" xml:space="preserve"><value>Folder not found: {0}</value></data>
+  <data name="PathNotAFolder" xml:space="preserve"><value>That is a file, not a folder: {0}</value></data>
+  <data name="PathBarHint" xml:space="preserve"><value>Type a folder path and press Enter</value></data>
+  <data name="FolderTreeName" xml:space="preserve"><value>Folders</value></data>
+</root>
