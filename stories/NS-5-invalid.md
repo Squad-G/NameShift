@@ -1,6 +1,6 @@
 # NS-5: Invalid Windows names check
 
-Status: Ready
+Status: Done
 Depends on: NS-1
 Area: engine
 
@@ -21,7 +21,15 @@ Never let a name through that Windows will refuse or silently change.
 
 ## Decisions
 - Silently strip invalid characters? **Decision:** no, flag and block, because silent changes surprise people and break numbering (po, 2026-10-18).
+- Device-name stem: trailing spaces are dropped before comparing (`CON .txt` flagged); the superscript variants `COM¹²³`/`LPT¹²³` are flagged; `COM0`/`LPT0` are not (Windows does not treat them as devices) (tech-lead, 2026-10-18).
+- A name that is empty or only dots/spaces gets `EmptyName` only (tech-lead, 2026-10-18).
+- `.txt` (empty base, an extension) is a valid name, like `.gitignore`: not flagged (tech-lead, 2026-10-18).
+- Error and Unchanged results are not checked: they will not be renamed (tech-lead, 2026-10-18).
+- Checks run after the pipeline (`ConflictChecker.Run(results, checks)`), one `IConflictCheck` per story; NS-6/NS-7 add theirs, the codes for all three are in `ConflictCode` already (tech-lead, 2026-10-18).
 
 ## Log
 - 2026-10-18: created (po).
 - 2026-10-18: set Ready, first round of the minimal usable slice (po).
+- 2026-10-18: In Progress, branch feature/NS-5-invalid-names (builder).
+- 2026-10-18: In Review, PR #9 (builder).
+- 2026-10-18: Done, PR #9 merged; review nits folded in (CheckName and MaxNameLength private, no per-hit allocation in OffendingCharacters, ReservedName and Detail docs, CONIN$ case removed) (tech-lead).

@@ -13,6 +13,7 @@ Know which names cannot be used, and why, before pressing Rename.
 3. Given a conflict, then it is also shown by an icon or text, never by colour alone (accessibility).
 4. Given a `TargetExists` flag, then it is shown as NS-6 computes it (where the existing names come from is defined once, in NS-6:3).
 5. Given a file that is not selected (NS-14), then its Status is empty; it can still cause `TargetExists` on a selected file.
+6. Given a conflict whose detail contains a control character (NS-5 returns it raw, e.g. a tab), then it is shown escaped (e.g. `U+0001`), never raw.
 
 ## Out of scope
 - Disabling the Rename button (NS-15 owns that).
@@ -24,3 +25,4 @@ Know which names cannot be used, and why, before pressing Rename.
 ## Log
 - 2026-10-18: created, split from NS-13 (po).
 - 2026-10-18: set Ready, first round of the minimal usable slice (po).
+- 2026-10-18: criterion 6 added, control characters in a conflict's detail are shown escaped (tech-lead, from the NS-5 review).
