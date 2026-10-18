@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 using NameShift.App.Controls;
 using NameShift.Ui;
 using NameShift.Ui.Files;
 using NameShift.Ui.Folders;
+using NameShift.Ui.Rules;
 
 namespace NameShift.App;
 
@@ -32,6 +35,10 @@ internal sealed class MainForm : Form
         FileListModel = new FileListModel(fileListSource);
         _fileList = new FileList(FileListModel, ShowStatus) { Dock = DockStyle.Fill };
 
+        IReadOnlyList<RulePanelEntry> entries = RulePanels.Create();
+        RuleHost = new RulePanelHostModel(entries.Select(e => e.Model));
+        PanelHost.Controls.Add(new RulePanelStack(RuleHost, entries) { Dock = DockStyle.Fill });
+
         AutoScaleDimensions = new SizeF(96F, 96F);
         AutoScaleMode = AutoScaleMode.Dpi;
         Font = SystemFonts.MessageBoxFont;
@@ -50,6 +57,9 @@ internal sealed class MainForm : Form
 
     /// <summary>The listed items, for the preview (NS-13) and the selection (NS-14).</summary>
     internal FileListModel FileListModel { get; }
+
+    /// <summary>The enabled rules in pipeline order and their change event, for the preview (NS-13).</summary>
+    internal RulePanelHostModel RuleHost { get; }
 
     /// <summary>Where the file list docks.</summary>
     internal Panel FileListHost { get; } = new Panel { Dock = DockStyle.Fill };

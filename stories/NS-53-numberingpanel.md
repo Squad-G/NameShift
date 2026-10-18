@@ -13,6 +13,7 @@ Use the numbering rule (NS-17) from the window, so the first usable version can 
 3. Given the panel's reset, then it returns to defaults (suffix, start 1, step 1, pad 0, separator `_`) and is unchecked.
 4. Given I select only some files (NS-14), then numbering follows the selected files in list order.
 5. Given the settings, then they are saved in presets (NS-36) and have a command-line option (NS-40) as soon as those stories exist.
+6. BuildRule never throws: invalid input (e.g. a non-numeric position) returns null, and a test proves it (tech-lead, from the NS-11 review).
 
 ## Out of scope
 - Hex, letters, roman numerals and break per folder (NS-29).
@@ -24,3 +25,4 @@ Use the numbering rule (NS-17) from the window, so the first usable version can 
 ## Log
 - 2026-10-18: created after review so numbering is in the first round (po).
 - 2026-10-18: set Ready (po).
+- 2026-10-18: criterion 6 added, BuildRule never throws (tech-lead, from the NS-11 review).

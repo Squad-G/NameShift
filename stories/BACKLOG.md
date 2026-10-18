@@ -18,7 +18,7 @@ IDs), not the rank: the rank is the row order.
 | 9 | [NS-9 Undo journal and Revert](NS-9-journal.md) | Done | NS-8 |
 | 10 | [NS-10 Window shell: path bar and folder tree](NS-10-windowshell.md) | Done | |
 | 51 | [NS-51 File list with folders and natural sort](NS-51-filelist.md) | Done | NS-10 |
-| 11 | [NS-11 Rule panel host: enable and reset per rule](NS-11-panelhost.md) | Ready | NS-10, NS-1 |
+| 11 | [NS-11 Rule panel host: enable and reset per rule](NS-11-panelhost.md) | Done | NS-10, NS-1 |
 | 12 | [NS-12 Panels for Replace, Case and Add](NS-12-firstpanels.md) | Ready | NS-11, NS-2, NS-3, NS-4 |
 | 53 | [NS-53 Numbering panel](NS-53-numberingpanel.md) | Ready | NS-11, NS-17 |
 | 13 | [NS-13 Live preview](NS-13-preview.md) | Ready | NS-51, NS-11, NS-1 |

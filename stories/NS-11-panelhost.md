@@ -1,6 +1,6 @@
 # NS-11: Rule panel host: enable and reset per rule
 
-Status: Ready
+Status: Done
 Depends on: NS-10, NS-1
 Area: app
 
@@ -22,6 +22,14 @@ The bottom area where each rule is a panel I can switch on and reset.
 ## Decisions
 - Tabs or all visible? **Decision:** a scrolling stack of panels, all visible, because the pipeline is the point of the UI and tabs hide what is active (po, 2026-10-18).
 
+- Panels start unchecked at launch (same as after Reset); remembering them is NS-37/NS-36. (tech-lead default, 2026-10-18; po may overrule)
+- Until NS-12 merges the bottom area is empty; the frame's look is checked by hand with NS-12's panels. (tech-lead default, 2026-10-18; po may overrule)
+- Panel contract in `NameShift.Ui.Rules` (`IRulePanelModel`, abstract `RulePanelModel`, `RulePanelHostModel`); the App only frames and stacks the content controls, composed in `RulePanels.Create()`. (tech-lead, 2026-10-18)
+- The host rebuilds `Rules` and raises `RulesChanged` synchronously with no timer; the preview alone debounces. (tech-lead, 2026-10-18)
+- Active = enabled and non-default: thicker `SystemColors.Highlight` border, bold title and an accessible description, never colour alone. (tech-lead, 2026-10-18)
 ## Log
 - 2026-10-18: created (po).
 - 2026-10-18: set Ready, first round of the minimal usable slice (po).
+- 2026-10-18: In Progress (builder).
+- 2026-10-18: In Review (builder): panel contract and host in NameShift.Ui, framed scrolling stack in the App; no panels yet (NS-12).
+- 2026-10-18: Done (tech-lead): merged after VERDICT: APPROVE, review nits folded (focus moves to the check box when Reset disables, the title inherits the frame's font when inactive). David's manual checks M2–M5 (look, scrolling, minimum size, DPI, focus after Reset) come with NS-12's panels.

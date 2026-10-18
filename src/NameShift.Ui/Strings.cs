@@ -60,6 +60,18 @@ public static class Strings
 
     public static string FileListName => Get(nameof(FileListName));
 
+    /// <summary>"{0}. {1}": the stage number and the panel title.</summary>
+    public static string RulePanelHeading => Get(nameof(RulePanelHeading));
+
+    public static string RulePanelReset => Get(nameof(RulePanelReset));
+
+    /// <summary>"Reset {0}": the reset button's accessible name.</summary>
+    public static string RulePanelResetName => Get(nameof(RulePanelResetName));
+
+    public static string RulePanelActive => Get(nameof(RulePanelActive));
+
+    public static string RulePanelsName => Get(nameof(RulePanelsName));
+
     private static string Get(string key) =>
         Manager.GetString(key, CultureInfo.CurrentUICulture)
         ?? throw new InvalidOperationException("Missing string resource: " + key);
