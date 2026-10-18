@@ -1,6 +1,6 @@
 # NS-10: Window shell: path bar and folder tree
 
-Status: In Review
+Status: Done
 Depends on:
 Area: app
 
@@ -39,3 +39,4 @@ A window where I pick a folder. The file list that shows its contents is NS-51.
 - 2026-10-18: file list moved to NS-51 after review (po).
 - 2026-10-18: In Progress (builder).
 - 2026-10-18: In Review (builder): NameShift.Ui library + tests; tree lazy-loads off the UI thread; PerMonitorV2.
+- 2026-10-18: Done (tech-lead): merged after review round 2 APPROVE. The manual checks the builder could not run (clicking in the tree, typing in the path bar, expanding a node after a hidden-path reveal, a folder with access denied, 150% scale and moving the window between monitors) are pending David's check.
