@@ -1,6 +1,6 @@
 # NS-53: Numbering panel
 
-Status: Ready
+Status: In Progress
 Depends on: NS-11, NS-17
 Area: app
 
@@ -26,3 +26,4 @@ Use the numbering rule (NS-17) from the window, so the first usable version can 
 - 2026-10-18: created after review so numbering is in the first round (po).
 - 2026-10-18: set Ready (po).
 - 2026-10-18: criterion 6 added, BuildRule never throws (tech-lead, from the NS-11 review).
+- 2026-10-18: In Progress (builder).
