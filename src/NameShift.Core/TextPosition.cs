@@ -1,12 +1,15 @@
 using System;
 using System.Globalization;
+using System.Linq;
 
 namespace NameShift.Core;
 
 /// <summary>The 1-based positions users type in positional rules (Add, Numbering, Remove), one rule everywhere.</summary>
 public static class TextPosition
 {
-    /// <summary>Reads a typed position: null when it is empty, not a whole number, or below 1 (the part is then ignored).</summary>
+    /// <summary>Reads a typed position: null when it is empty, not a whole number, or below 1 (the part is then ignored).
+    /// A whole number too large to store is read as <see cref="int.MaxValue"/>, so it is clamped like any other
+    /// out-of-range position.</summary>
     public static int? Parse(string? text)
     {
         if (string.IsNullOrWhiteSpace(text))
@@ -14,9 +17,19 @@ public static class TextPosition
             return null;
         }
 
-        return int.TryParse(text!.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var number) && number >= 1
-            ? number
-            : (int?)null;
+        var trimmed = text!.Trim();
+        if (int.TryParse(trimmed, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number))
+        {
+            return number >= 1 ? number : (int?)null;
+        }
+
+        return IsPositiveWholeNumber(trimmed) ? int.MaxValue : (int?)null;
+    }
+
+    private static bool IsPositiveWholeNumber(string text)
+    {
+        var digits = text.StartsWith("+", StringComparison.Ordinal) ? text.Substring(1) : text;
+        return digits.Length > 0 && digits.All(c => c >= '0' && c <= '9');
     }
 
     /// <summary>The 0-based insertion index in a text of <paramref name="length"/> characters, clamped to [0, length].

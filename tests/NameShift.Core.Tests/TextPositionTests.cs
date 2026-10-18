@@ -20,9 +20,15 @@ public sealed class TextPositionTests
     [InlineData("-3")]
     [InlineData("abc")]
     [InlineData("4.5")]
-    [InlineData("99999999999")]
+    [InlineData("-99999999999")]
     public void Parse_ReturnsNullWhenThePartMustBeIgnored(string? text) =>
         Assert.Null(TextPosition.Parse(text));
+
+    [Theory]
+    [InlineData("99999999999")]
+    [InlineData(" +99999999999999999999 ")]
+    public void Parse_ReadsAWholeNumberTooLargeToStoreAsTheLargestPosition(string text) =>
+        Assert.Equal(int.MaxValue, TextPosition.Parse(text));
 
     [Theory]
     [InlineData(4, 6, 3)]
