@@ -11,8 +11,9 @@ namespace NameShift.Ui.Preview;
 
 /// <summary>
 /// Computes the New Name column: runs RenamePipeline over the file list's batch (the selected rows, or every row with no
-/// selection) off the UI thread, 150 ms after the last rule or selection change and at once when a folder finishes loading. All state is touched on the calling (UI) thread; only
-/// the pipeline runs on the pool. A newer request cancels and supersedes an older one.
+/// selection) off the UI thread, 150 ms after the last rule or selection change and at once when a folder finishes
+/// loading. All state is touched on the calling (UI) thread; only the pipeline runs on the pool.
+/// A newer request cancels and supersedes an older one.
 /// Its lifetime is the window's: it has no Dispose and never unsubscribes (the window's controls guard with IsDisposed).
 /// </summary>
 public sealed class PreviewModel

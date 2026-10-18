@@ -1,6 +1,6 @@
 # NS-14: Choose which files to rename
 
-Status: In Review
+Status: Done
 Depends on: NS-51, NS-13
 Area: app
 
@@ -34,3 +34,4 @@ Rename only the files I pick, not always the whole folder.
 - 2026-10-18: set Ready, first round of the minimal usable slice (po).
 - 2026-10-18: In Progress, branch feature/NS-14-selection (builder).
 - 2026-10-18: In Review. The batch is in `FileListModel.Batch`, the snapshot carries the batch it ran on, a selection change recomputes after the 150 ms debounce, `N of M files` shows under the list, and NS-52 criterion 5 (an unselected file has no Status and still causes TargetExists) is now covered (builder).
+- 2026-10-18: Done. Review APPROVE; formatting nits folded in; merged into dev (lead). David's 9 manual checks are still pending.

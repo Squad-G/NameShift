@@ -329,4 +329,5 @@ public sealed class FileListModelTests
         Assert.Throws<ArgumentOutOfRangeException>(() => _model.SetSelection(new[] { 0 }));
         gate.Set();
         await loading;
-    }}
+    }
+}

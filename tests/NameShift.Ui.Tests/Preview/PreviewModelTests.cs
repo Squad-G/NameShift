@@ -770,4 +770,5 @@ public sealed class PreviewModelTests
         Assert.Equal(4999, last);
         Assert.Equal(PreviewCellKind.None, preview.CellForRow(0).Kind);
         Assert.Equal(PreviewCellKind.None, preview.CellForRow(9998).Kind);
-    }}
+    }
+}

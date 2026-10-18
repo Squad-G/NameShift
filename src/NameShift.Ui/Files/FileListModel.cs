@@ -134,6 +134,7 @@ public sealed class FileListModel
 
         return current.Rows.SequenceEqual(next.Rows);
     }
+
     /// <summary>Lists the folder; false when a newer load superseded this one. Never throws.</summary>
     public async Task<bool> LoadAsync(string folderPath)
     {

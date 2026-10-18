@@ -23,7 +23,7 @@ IDs), not the rank: the rank is the row order.
 | 53 | [NS-53 Numbering panel](NS-53-numberingpanel.md) | Done | NS-11, NS-17 |
 | 13 | [NS-13 Live preview](NS-13-preview.md) | Done | NS-51, NS-11, NS-1 |
 | 52 | [NS-52 Conflict display](NS-52-conflictdisplay.md) | Done | NS-13, NS-5, NS-6, NS-7 |
-| 14 | [NS-14 Choose which files to rename](NS-14-selection.md) | In Review | NS-51, NS-13 |
+| 14 | [NS-14 Choose which files to rename](NS-14-selection.md) | Done | NS-51, NS-13 |
 | 15 | [NS-15 Rename, Revert and Reset buttons](NS-15-buttons.md) | Ready | NS-13, NS-52, NS-14, NS-9 |
 | 54 | [NS-54 Visual polish](NS-54-visual-polish.md) | Draft | NS-15 |
 | 16 | [NS-16 Replace rule: keep the case pattern of the found text](NS-16-replacecase.md) | Draft | NS-2, NS-12 |
