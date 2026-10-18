@@ -1,6 +1,6 @@
 # NS-2: Replace rule
 
-Status: Ready
+Status: Done
 Depends on: NS-1
 Area: engine
 
@@ -24,7 +24,12 @@ Find text in names and replace it, the most used rename operation.
 - Match case default? **Decision:** off, because users rarely mean to distinguish case when replacing (po, 2026-10-18).
 - Should a case-insensitive match copy the case of the found text (`Dump` -> `Bob`)? **Decision:** no by default, the replacement is always inserted exactly as typed, because it is predictable and matches the live preview; an opt-in option comes in a separate story (replacecase), because it is a clever extra not every user wants (po, 2026-10-18).
 - Does it touch the extension? **Decision:** not by default; an option includes it, because changing extensions by accident is the costly mistake (po, 2026-10-18).
+- How does "include extension" match? **Decision:** the whole name is searched as one string (a find can span the dot), then the extension is taken again from the last dot of the result, because that is what the user sees as the name (tech-lead, 2026-10-18).
+- How is "ignore case" compared? **Decision:** ordinal ignore-case, never the current culture, so the same name gives the same result on every PC (tech-lead, 2026-10-18).
 
 ## Log
 - 2026-10-18: created (po).
 - 2026-10-18: set Ready, first round of the minimal usable slice (po).
+- 2026-10-18: In Progress, branch feature/NS-2-replace (builder).
+- 2026-10-18: In Review, PR opened (builder).
+- 2026-10-18: Done, merged after VERDICT: APPROVE; folded in an Apply test of the include-extension re-split (tech-lead).
