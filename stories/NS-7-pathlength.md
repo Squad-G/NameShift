@@ -1,6 +1,6 @@
 # NS-7: Path length check
 
-Status: Ready
+Status: Done
 Depends on: NS-1
 Area: engine
 
@@ -18,7 +18,13 @@ Warn before a rename would produce a path Windows cannot handle.
 
 ## Decisions
 - Limit value? **Decision:** 259 characters, the classic limit, because it works in every Windows program including Explorer (po, 2026-10-18).
+- Full path = `FolderPath` + `\` (not added when `FolderPath` already ends with `\` or `/`, e.g. a drive root `C:\`) + `NewName`, counted in UTF-16 units; flagged when over 259. Computed arithmetically, never with `Path.Combine` (it throws on .NET Framework for characters NS-5 flags) (tech-lead, 2026-10-18).
+- Only changed results are checked, as in NS-5/NS-6; detail is null (tech-lead, 2026-10-18).
+- A folder being renamed lengthens its children's paths; this check does not look at children (the story's criteria are about the item's own path only). A later story can add it if wanted (tech-lead default, 2026-10-18; po may overrule; question logged for David).
 
 ## Log
 - 2026-10-18: created (po).
 - 2026-10-18: set Ready, first round of the minimal usable slice (po).
+- 2026-10-18: In Progress, branch feature/NS-7-path-length (builder).
+- 2026-10-18: In Review, PR #11 (builder).
+- 2026-10-18: Done, reviewer APPROVE; nits folded (empty-folder test: an empty `FolderPath` counts one separator, as the decision above says; trailing newlines); merged into dev (tech-lead).
