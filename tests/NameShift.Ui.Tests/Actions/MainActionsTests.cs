@@ -625,6 +625,30 @@ public sealed class MainActionsTests
     }
 
     [Fact]
+    public async Task PreviewChangedAndAppliedDuringConfirmation_DoesNotRun()
+    {
+        SetBigFolder(501, 0);
+        FakeRulePanelModel panel = ReplaceA();
+        MainActions actions = await BuildLoadedIn(@"C:\Big", panel);
+        PreviewSnapshot before = _preview.Snapshot;
+
+        ActionReport? report = await actions.RenameAsync(_ =>
+        {
+            // The new preview is applied before the dialog closes: Rename would be allowed again, on another snapshot.
+            panel.Text = "fa";
+            _delay.ReleaseAll();
+            _preview.Pending.GetAwaiter().GetResult();
+            Assert.True(actions.CanRename);
+            Assert.NotSame(before, _preview.Snapshot);
+            return true;
+        });
+
+        Assert.Equal("The new names changed. Check them and click Rename again.", report!.Status);
+        Assert.Equal(0, _renamer.RenameCalls);
+        Assert.False(actions.IsBusy);
+    }
+
+    [Fact]
     public async Task Rename_NotAllowed_ReturnsNull_NeverAsks()
     {
         MainActions actions = await BuildLoaded(FakeRulePanelModel.Add());

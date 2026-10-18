@@ -1,6 +1,6 @@
 # NS-15: Rename, Revert and Reset buttons
 
-Status: In Review
+Status: Done
 Depends on: NS-13, NS-52, NS-14, NS-9
 Area: app
 
@@ -47,3 +47,4 @@ Run the batch, undo it, or start over, from the window.
 - 2026-10-18: criterion 2 extended: rule errors (any item with an Error status) also disable Rename (tech-lead, from NS-8's rule-error decision).
 - 2026-10-18: In Progress, branch feature/NS-15-buttons (builder).
 - 2026-10-18: In Review, PR #23 (builder): Reset, Revert and Rename buttons at the bottom right; Rename runs the preview on screen through the journaled renamer off the UI thread with the window locked, then reloads the folder; Revert undoes the journal's last batch the same way; Reset clears the rule panels.
+- 2026-10-18: Done, PR #23 merged after the reviewer's APPROVE (tech-lead). Nits folded in: a test where the preview changes and is applied during the confirmation (the snapshot-identity re-check), the lock-taking Changed raised inside the try/finally, the folder read after the re-check, a comment on the startup journal read overlapping a Rename (harmless: the read only reads and its result is dropped), and the RevertNone wording. Pending: David's manual checks, on a throw-away folder. Follow-up story to write: refresh the folder tree after a rename.

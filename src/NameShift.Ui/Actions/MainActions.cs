@@ -103,7 +103,6 @@ public sealed class MainActions
         }
 
         PreviewSnapshot snapshot = _preview.Snapshot;
-        string folder = _files.FolderPath!;
         int count = snapshot.ChangedCount;
         if (count > ConfirmAbove && !confirm(ActionText.Confirm(count, CultureInfo.CurrentCulture)))
         {
@@ -116,6 +115,8 @@ public sealed class MainActions
             return Task.FromResult<ActionReport?>(new ActionReport(Strings.PreviewChanged));
         }
 
+        // Same snapshot, so same batch, so the folder it was made from.
+        string folder = _files.FolderPath!;
         return RunAsync(
             ActionText.Busy(count, CultureInfo.CurrentCulture),
             folder,
@@ -144,15 +145,18 @@ public sealed class MainActions
     }
 
     /// <summary>Locks, runs the action and the journal read in one pool task, applies the result, reloads the folder
-    /// (when there is one), then unlocks. The lock is taken before the first await.</summary>
+    /// (when there is one), then unlocks. The lock is taken before the first await, and the finally always releases it.
+    /// A startup journal read may still be running (CanRename does not wait for it): JournaledRenamer is "one operation
+    /// at a time", but its read only reads, the read's result is dropped by the version check, and the worst overlap is
+    /// a journal file briefly opened by both, which Rename reports as a journal problem in its result, never a wrong rename.</summary>
     private async Task<ActionReport?> RunAsync<T>(string busyText, string? folder, Func<T> action, Func<T, CultureInfo, ActionReport> describe)
     {
         IsBusy = true;
         BusyText = busyText;
         _journalVersion++;
-        RaiseChanged();
         try
         {
+            RaiseChanged();
             ActionReport report;
             try
             {

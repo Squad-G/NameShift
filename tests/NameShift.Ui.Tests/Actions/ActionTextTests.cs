@@ -245,7 +245,7 @@ public sealed class ActionTextTests
 
         ActionReport report = ActionText.ForRevert(result, En);
 
-        Assert.Equal("No name could be restored; Revert stays available for them.", report.Status);
+        Assert.Equal("No name could be restored; Revert stays available.", report.Status);
         Assert.Equal("Not restored:" + NL + @"C:\A\x_f0.txt: it is no longer where the rename left it.", report.Details);
     }
 
