@@ -29,15 +29,16 @@ release_branch="releases/v$version"
 if git ls-remote --exit-code --heads origin "$release_branch" >/dev/null; then
     die "$release_branch already exists: bump the version first (tools/bump-version.sh)"
 fi
+git rev-parse --verify --quiet origin/prod >/dev/null || die "origin/prod doesn't exist"
 git merge-base --is-ancestor origin/prod origin/dev || die "prod has commits dev doesn't: it can't be fast-forwarded"
 
-echo "Building and testing (Release)…"
+echo "Building and testing (Release)..."
 dotnet build --configuration Release --verbosity quiet --nologo
 dotnet test --configuration Release --no-build --verbosity quiet --nologo
 
 commit=$(git rev-parse --short origin/dev)
 echo
-echo "Release v$version: prod $(git rev-parse --short origin/prod) → $commit, and new locked branch $release_branch at $commit."
+echo "Release v$version: prod $(git rev-parse --short origin/prod) -> $commit, and new locked branch $release_branch at $commit."
 if $dry_run; then
     echo "Dry run: nothing pushed."
     exit 0

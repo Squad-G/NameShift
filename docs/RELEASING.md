@@ -46,7 +46,10 @@ git push
 ```
 
 The script writes the number into `src/NameShift.App/NameShift.App.csproj` (`<Version>`), which is where the app and the
-release script read it, and commits it on `dev`. It refuses a number that's lower than or equal to the current one.
+release script read it, and commits it on `dev`. It refuses a number that's lower than or equal to the current one, and runs only from `dev`.
+
+Pushing this commit straight to `dev` is the owner-only exception: everyone else changes `dev` through a pull
+request.
 
 ### 3. Do a dry run
 
@@ -57,7 +60,7 @@ tools/release.sh --dry-run
 It checks everything, builds and runs the tests in Release mode, then shows what it would do, for example:
 
 ```
-Release v0.3.0: prod 9c1d835 → 239e26d, and new locked branch releases/v0.3.0 at 239e26d.
+Release v0.3.0: prod 9c1d835 -> 239e26d, and new locked branch releases/v0.3.0 at 239e26d.
 Dry run: nothing pushed.
 ```
 
