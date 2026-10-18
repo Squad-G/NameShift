@@ -1,6 +1,6 @@
 # NS-51: File list with folders and natural sort
 
-Status: Ready
+Status: In Progress
 Depends on: NS-10
 Area: app
 
@@ -25,3 +25,4 @@ See the files and folders of the chosen folder, ready for the preview column (NS
 ## Log
 - 2026-10-18: created, split from NS-10 (po).
 - 2026-10-18: set Ready, first round of the minimal usable slice (po).
+- 2026-10-18: In Progress (builder).
