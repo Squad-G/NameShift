@@ -1,6 +1,6 @@
 # NS-13: Live preview
 
-Status: In Review
+Status: Done
 Depends on: NS-51, NS-11, NS-1
 Area: app
 
@@ -33,3 +33,4 @@ See every new name before anything is touched. Conflict marking is NS-52.
 - 2026-10-18: In Progress (builder).
 - 2026-10-18: In Review (builder): preview model in NameShift.Ui (150 ms debounce, off-thread pipeline, stale runs cancelled), New Name column green and bold / grey / Error text.
 
+- 2026-10-18: Done (tech-lead): merged after VERDICT: APPROVE (round 2, after the review fixes); no nits left to fold. David's manual checks are pending, including criterion 4 (typing never lags with a 10 000-file folder).
