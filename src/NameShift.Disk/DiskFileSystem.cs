@@ -3,7 +3,7 @@ using NameShift.Core;
 
 namespace NameShift.Disk;
 
-/// <summary>The real disk: the only class that calls System.IO.</summary>
+/// <summary>The real disk for the executor: the only class that renames user items.</summary>
 internal sealed class DiskFileSystem : IFileSystem
 {
     /// <inheritdoc />
