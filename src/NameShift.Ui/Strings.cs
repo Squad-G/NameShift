@@ -73,6 +73,10 @@ public static class Strings
 
     public static string ConflictSummaryMany => Get(nameof(ConflictSummaryMany));
 
+    public static string SelectionCountOne => Get(nameof(SelectionCountOne));
+
+    public static string SelectionCountMany => Get(nameof(SelectionCountMany));
+
     public static string ColumnSize => Get(nameof(ColumnSize));
 
     public static string ColumnModified => Get(nameof(ColumnModified));

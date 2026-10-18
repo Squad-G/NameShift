@@ -14,6 +14,17 @@ public sealed class FileListTextTests
         new RenameItem("a.txt", @"C:\A", ItemKind.File, ItemAttributes.None, size, default, modified);
 
     [Theory]
+    [InlineData(2, 3, "2 of 3 files")]
+    [InlineData(3, 3, "3 of 3 files")]
+    [InlineData(1, 1, "1 of 1 file")]
+    [InlineData(0, 0, "")]
+    [InlineData(1234, 10000, "1,234 of 10,000 files")]
+    public void SelectionCount_Text(int batchCount, int total, string expected)
+    {
+        Assert.Equal(expected, FileListText.SelectionCount(batchCount, total, CultureInfo.GetCultureInfo("en-US")));
+    }
+
+    [Theory]
     [InlineData(0L, "0 KB")]
     [InlineData(1L, "1 KB")]
     [InlineData(1024L, "1 KB")]

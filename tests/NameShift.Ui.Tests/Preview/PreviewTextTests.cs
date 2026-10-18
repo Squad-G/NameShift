@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NameShift.Core;
+using NameShift.Ui.Files;
 using NameShift.Ui.Preview;
 using Xunit;
 
@@ -87,7 +88,9 @@ public sealed class PreviewSnapshotTests
     [Fact]
     public void Ctor_Null_Throws()
     {
-        Assert.Throws<ArgumentNullException>(() => new PreviewSnapshot(null!, Array.Empty<RenameResult>(), NoConflicts(0)));
+        // The cast picks the list constructor: a bare null would match both.
+        Assert.Throws<ArgumentNullException>(() => new PreviewSnapshot((IReadOnlyList<RenameItem>)null!, Array.Empty<RenameResult>(), NoConflicts(0)));
+        Assert.Throws<ArgumentNullException>(() => new PreviewSnapshot((FileBatch)null!, Array.Empty<RenameResult>(), NoConflicts(0)));
         Assert.Throws<ArgumentNullException>(() => new PreviewSnapshot(Array.Empty<RenameItem>(), null!, NoConflicts(0)));
         Assert.Throws<ArgumentNullException>(() => new PreviewSnapshot(Array.Empty<RenameItem>(), Array.Empty<RenameResult>(), null!));
     }
@@ -98,6 +101,26 @@ public sealed class PreviewSnapshotTests
         var items = new[] { new RenameItem("a.txt", @"C:\A") };
 
         Assert.Throws<ArgumentException>(() => new PreviewSnapshot(items, Array.Empty<RenameResult>(), NoConflicts(0)));
+    }
+
+    [Fact]
+    public void BatchCtor_CountMismatch_Throws()
+    {
+        FileBatch batch = FileBatch.WholeList(new[] { new RenameItem("a.txt", @"C:\A") });
+
+        Assert.Throws<ArgumentException>(() => new PreviewSnapshot(batch, Array.Empty<RenameResult>(), NoConflicts(0)));
+    }
+
+    [Fact]
+    public void BatchCtor_ItemsAreTheBatchItems()
+    {
+        FileBatch batch = FileBatch.WholeList(new[] { new RenameItem("a.txt", @"C:\A") });
+        var results = new[] { new RenameResult(batch.Items[0], 0, "a.txt", RenameStatus.Unchanged, null) };
+
+        var snapshot = new PreviewSnapshot(batch, results, NoConflicts(1));
+
+        Assert.Same(batch, snapshot.Batch);
+        Assert.Same(batch.Items, snapshot.Items);
     }
 
     [Fact]

@@ -186,4 +186,147 @@ public sealed class FileListModelTests
         Assert.Throws<ArgumentNullException>(() => FileListing.Ok(Array.Empty<RenameItem>(), null!));
         Assert.Equal(new[] { "a.txt" }, FileListing.Ok(new[] { File("a.txt") }).ExistingNames);
     }
-}
+
+    private async Task LoadThree()
+    {
+        _source.SetEntries(@"C:\A", File("a1.txt"), File("a2.txt"), File("b.txt"));
+        await _model.LoadAsync(@"C:\A");
+    }
+
+    [Fact]
+    public async Task Load_BatchIsTheWholeList()
+    {
+        await LoadThree();
+
+        Assert.True(_model.Batch.IsWholeList);
+        Assert.Same(_model.Items, _model.Batch.Items);
+        Assert.Equal(3, _model.Batch.Count);
+    }
+
+    [Fact]
+    public async Task SetSelection_AnyOrderAndDuplicates_GivesListOrder()
+    {
+        await LoadThree();
+
+        _model.SetSelection(new[] { 2, 0, 2 });
+
+        Assert.False(_model.Batch.IsWholeList);
+        Assert.Equal(new[] { 0, 2 }, _model.Batch.Rows);
+        Assert.Equal(new[] { "a1.txt", "b.txt" }, _model.Batch.Items.Select(i => i.Name));
+        Assert.Same(_model.Items, _model.Batch.ListItems);
+        Assert.True(_model.Batch.TryGetIndex(2, out int index));
+        Assert.Equal(1, index);
+        Assert.False(_model.Batch.TryGetIndex(1, out _));
+    }
+
+    [Fact]
+    public async Task SetSelection_RaisesSelectionChanged_NotChanged()
+    {
+        await LoadThree();
+        int selections = 0;
+        _model.SelectionChanged += (_, _) => selections++;
+        int changes = _changes;
+
+        _model.SetSelection(new[] { 1 });
+
+        Assert.Equal(1, selections);
+        Assert.Equal(changes, _changes);
+    }
+
+    [Fact]
+    public async Task SetSelection_EveryRow_IsTheWholeList()
+    {
+        await LoadThree();
+        int selections = 0;
+        _model.SelectionChanged += (_, _) => selections++;
+
+        _model.SetSelection(new[] { 0, 1, 2 });
+
+        Assert.True(_model.Batch.IsWholeList);
+        Assert.Equal(0, selections);
+
+        _model.SetSelection(new[] { 1 });
+        _model.SetSelection(new[] { 2, 1, 0 });
+
+        Assert.True(_model.Batch.IsWholeList);
+        Assert.Equal(2, selections);
+    }
+
+    [Fact]
+    public async Task SetSelection_Same_RaisesNothing()
+    {
+        await LoadThree();
+        int selections = 0;
+        _model.SelectionChanged += (_, _) => selections++;
+
+        _model.SetSelection(Array.Empty<int>());
+        _model.SetSelection(new[] { 0 });
+        _model.SetSelection(new[] { 0, 0 });
+
+        Assert.Equal(1, selections);
+    }
+
+    [Fact]
+    public async Task SetSelection_DifferentRowsOfTheSameSize_RaisesAgain()
+    {
+        await LoadThree();
+        int selections = 0;
+        _model.SelectionChanged += (_, _) => selections++;
+
+        _model.SetSelection(new[] { 0 });
+        _model.SetSelection(new[] { 1 });
+
+        Assert.Equal(2, selections);
+    }
+
+    [Fact]
+    public async Task Load_ResetsTheSelection()
+    {
+        await LoadThree();
+        _source.SetEntries(@"C:\B", File("x.txt", folder: @"C:\B"), File("y.txt", folder: @"C:\B"));
+        _model.SetSelection(new[] { 1 });
+
+        await _model.LoadAsync(@"C:\B");
+
+        Assert.True(_model.Batch.IsWholeList);
+        Assert.Same(_model.Items, _model.Batch.Items);
+        Assert.Equal(2, _model.Batch.Count);
+
+        _model.SetSelection(new[] { 1 });
+        await _model.LoadAsync(@"C:\B");
+
+        Assert.True(_model.Batch.IsWholeList);
+    }
+
+    [Fact]
+    public async Task LoadAsync_WhileLoading_TheBatchIsEmpty()
+    {
+        await LoadThree();
+        _model.SetSelection(new[] { 1 });
+        var gate = _source.Gate(@"C:\B");
+
+        Task<bool> loading = _model.LoadAsync(@"C:\B");
+
+        Assert.Equal(0, _model.Batch.Count);
+        gate.Set();
+        await loading;
+    }
+
+    [Fact]
+    public async Task SetSelection_OutOfRangeOrNull_Throws()
+    {
+        await LoadThree();
+        _model.SetSelection(new[] { 1 });
+        FileBatch before = _model.Batch;
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => _model.SetSelection(new[] { -1 }));
+        Assert.Throws<ArgumentOutOfRangeException>(() => _model.SetSelection(new[] { 3 }));
+        Assert.Throws<ArgumentNullException>(() => _model.SetSelection(null!));
+        Assert.Same(before, _model.Batch);
+
+        var gate = _source.Gate(@"C:\B");
+        Task<bool> loading = _model.LoadAsync(@"C:\B");
+        Assert.Throws<ArgumentOutOfRangeException>(() => _model.SetSelection(new[] { 0 }));
+        gate.Set();
+        await loading;
+    }}
