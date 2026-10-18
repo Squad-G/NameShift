@@ -105,6 +105,20 @@ public sealed class ReplaceRuleTests
     }
 
     [Theory]
+    [InlineData("v1.2", ItemKind.Folder, "v1.2", "", "1", "x", "vx.2", "")]
+    [InlineData("abc.txt", ItemKind.File, "abc", "txt", "txt", "x.y", "abc.x", "y")]
+    public void Apply_WithIncludeExtension_SplitsTheResultAgain(
+        string name, ItemKind kind, string baseName, string extension, string find, string with,
+        string expectedBaseName, string expectedExtension)
+    {
+        var context = new ItemContext(new RenameItem(name, @"C:\Test", kind), 0, 1);
+
+        var result = new ReplaceRule(find, with, includeExtension: true).Apply(new NameParts(baseName, extension), context);
+
+        Assert.Equal(new NameParts(expectedBaseName, expectedExtension), result);
+    }
+
+    [Theory]
     [InlineData("abc.txt", ".", "_", "abc.txt")]
     [InlineData("photo (1).jpg", "(1)", "_1", "photo _1.jpg")]
     [InlineData("x+y$^[z].txt", "+y$^[", "_", "x_z].txt")]
