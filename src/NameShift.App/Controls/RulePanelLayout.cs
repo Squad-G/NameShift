@@ -56,6 +56,14 @@ internal static class RulePanelLayout
         table.SetColumnSpan(control, 2);
     }
 
+    /// <summary>Shows the field's error icon (none when <paramref name="error"/> is empty) and sets its accessible
+    /// description to the error, or else to the hint.</summary>
+    public static void Mark(ErrorProvider provider, Control field, string error, string? hint)
+    {
+        provider.SetError(field, error);
+        field.AccessibleDescription = error.Length > 0 ? error : hint;
+    }
+
     public static void SetTextIfDifferent(Control control, string text)
     {
         if (control.Text != text)

@@ -65,10 +65,10 @@ internal sealed class NumberingPanel : UserControl
         RulePanelLayout.AddLabeledRow(table, Strings.NumberingSeparator, _separator);
         Label positionLabel = RulePanelLayout.AddLabeledRow(table, Strings.NumberingPosition, _position);
 
-        foreach (TextBox box in new[] { _start, _step, _pad, _position })
+        foreach (Control field in new Control[] { _mode, _start, _step, _pad, _separator, _position })
         {
-            box.Margin = new Padding(3, 3, LogicalToDeviceUnits(20), 3); // room for the error icon
-            _error.SetIconPadding(box, 2);
+            field.Margin = new Padding(3, 3, LogicalToDeviceUnits(20), 3); // room for the error icon, same right edge for all
+            _error.SetIconPadding(field, 2);
         }
 
         Controls.Add(table);
@@ -101,16 +101,9 @@ internal sealed class NumberingPanel : UserControl
         _position.Enabled = _model.InsertPositionApplies;
         _positionLabel.Enabled = _model.InsertPositionApplies;
 
-        Mark(_start, _model.StartError, null);
-        Mark(_step, _model.StepError, null);
-        Mark(_pad, _model.PadError, Strings.NumberingPadHint);
-        Mark(_position, _model.InsertPositionError, Strings.NumberingPositionHint);
-    }
-
-    /// <summary>Shows the error icon and sets the accessible description to the error, or else to the hint.</summary>
-    private void Mark(TextBox box, string error, string? hint)
-    {
-        _error.SetError(box, error);
-        box.AccessibleDescription = error.Length > 0 ? error : hint;
+        RulePanelLayout.Mark(_error, _start, _model.StartError, null);
+        RulePanelLayout.Mark(_error, _step, _model.StepError, null);
+        RulePanelLayout.Mark(_error, _pad, _model.PadError, Strings.NumberingPadHint);
+        RulePanelLayout.Mark(_error, _position, _model.InsertPositionError, Strings.NumberingPositionHint);
     }
 }
