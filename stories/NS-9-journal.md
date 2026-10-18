@@ -1,6 +1,6 @@
 # NS-9: Undo journal and Revert
 
-Status: Ready
+Status: In Progress
 Depends on: NS-8
 Area: app
 
@@ -29,3 +29,4 @@ Every batch is logged so it can be undone, even after the app is closed.
 ## Log
 - 2026-10-18: created (po).
 - 2026-10-18: set Ready, first round of the minimal usable slice (po).
+- 2026-10-18: In Progress, branch feature/NS-9-journal (builder).
