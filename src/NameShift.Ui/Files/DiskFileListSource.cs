@@ -40,29 +40,20 @@ public sealed class DiskFileListSource : IFileListSource
 
     internal static RenameItem ToItem(FileSystemInfo info, string folderPath)
     {
-        ItemAttributes attributes = ItemAttributes.None;
-        if ((info.Attributes & FileAttributes.ReadOnly) != 0)
-        {
-            attributes |= ItemAttributes.ReadOnly;
-        }
-
-        if ((info.Attributes & FileAttributes.Hidden) != 0)
-        {
-            attributes |= ItemAttributes.Hidden;
-        }
-
-        if ((info.Attributes & FileAttributes.System) != 0)
-        {
-            attributes |= ItemAttributes.System;
-        }
-
         return new RenameItem(
             info.Name,
             folderPath,
             info is DirectoryInfo ? ItemKind.Folder : ItemKind.File,
-            attributes,
+            ToItemAttributes(info.Attributes),
             info is FileInfo file ? file.Length : 0,
             info.CreationTime,
             info.LastWriteTime);
     }
+
+    private static ItemAttributes ToItemAttributes(FileAttributes attributes) =>
+        (Has(attributes, FileAttributes.ReadOnly) ? ItemAttributes.ReadOnly : ItemAttributes.None)
+        | (Has(attributes, FileAttributes.Hidden) ? ItemAttributes.Hidden : ItemAttributes.None)
+        | (Has(attributes, FileAttributes.System) ? ItemAttributes.System : ItemAttributes.None);
+
+    private static bool Has(FileAttributes attributes, FileAttributes flag) => (attributes & flag) != 0;
 }

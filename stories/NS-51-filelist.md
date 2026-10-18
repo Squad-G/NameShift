@@ -1,6 +1,6 @@
 # NS-51: File list with folders and natural sort
 
-Status: In Review
+Status: Done
 Depends on: NS-10
 Area: app
 
@@ -35,3 +35,4 @@ See the files and folders of the chosen folder, ready for the preview column (NS
 - 2026-10-18: set Ready, first round of the minimal usable slice (po).
 - 2026-10-18: In Progress (builder).
 - 2026-10-18: In Review (builder): virtual-mode list of RenameItems, off-thread listing with stale results discarded.
+- 2026-10-18: Done, reviewer APPROVE; nits folded (icon bitmaps kept and disposed with the control; `StockIcons.Load` returns null on a GDI+ failure; attribute mapping as one helper); merged into dev. David's manual checks 2-8, and the file-icon/KB/date look from check 1, are still pending (tech-lead).

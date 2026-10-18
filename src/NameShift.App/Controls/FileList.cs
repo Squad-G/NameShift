@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
 using System.Runtime.InteropServices;
@@ -21,6 +22,7 @@ internal sealed class FileList : UserControl
     private readonly ListView _list = new ListView();
     private readonly Label _message = new Label();
     private readonly ImageList _icons = new ImageList { ColorDepth = ColorDepth.Depth32Bit };
+    private readonly List<Bitmap> _iconBitmaps = new List<Bitmap>();
     private int _shownCount = -1;
 
     public FileList(FileListModel model, Action<string> showStatus)
@@ -50,6 +52,10 @@ internal sealed class FileList : UserControl
         if (disposing)
         {
             _icons.Dispose();
+            foreach (Bitmap bitmap in _iconBitmaps)
+            {
+                bitmap.Dispose();
+            }
         }
 
         base.Dispose(disposing);
@@ -91,11 +97,12 @@ internal sealed class FileList : UserControl
 
     private void AddStockIcon(int stockIconId)
     {
-        // The ImageList keeps a reference to the bitmap until its handle is created: it owns it from here on
-        // (disposed with the list), so it must not be disposed here.
-        Bitmap? bitmap = StockIcons.Load(stockIconId, _icons.ImageSize);
         // A failed shell call leaves a blank image, so the folder and file indexes stay put.
-        _icons.Images.Add(bitmap ?? new Bitmap(_icons.ImageSize.Width, _icons.ImageSize.Height));
+        Bitmap bitmap = StockIcons.Load(stockIconId, _icons.ImageSize)
+            ?? new Bitmap(_icons.ImageSize.Width, _icons.ImageSize.Height);
+        // Images.Add(Image) only keeps a reference, not ownership: the control keeps the bitmap and disposes it.
+        _iconBitmaps.Add(bitmap);
+        _icons.Images.Add(bitmap);
     }
 
     private void Render()
@@ -162,13 +169,23 @@ internal sealed class FileList : UserControl
                 return null;
             }
 
+            Bitmap? bitmap = null;
             try
             {
                 using Icon icon = Icon.FromHandle(info.hIcon);
-                var bitmap = new Bitmap(size.Width, size.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                using Graphics graphics = Graphics.FromImage(bitmap);
-                graphics.DrawIcon(icon, new Rectangle(Point.Empty, size));
+                bitmap = new Bitmap(size.Width, size.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+                using (Graphics graphics = Graphics.FromImage(bitmap))
+                {
+                    graphics.DrawIcon(icon, new Rectangle(Point.Empty, size));
+                }
+
                 return bitmap;
+            }
+            catch (Exception exception) when (exception is ExternalException or ArgumentException)
+            {
+                // A GDI+ failure must never stop startup: the caller shows a blank image instead.
+                bitmap?.Dispose();
+                return null;
             }
             finally
             {
