@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/NameShift.App/NameShift.App.csproj" />
+    <Project Path="src/NameShift.Core/NameShift.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/NameShift.Core.Tests/NameShift.Core.Tests.csproj" />
+  </Folder>
+</Solution>
