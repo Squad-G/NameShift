@@ -17,7 +17,6 @@ public sealed class RenamePipelineTests
 
         Assert.Equal(["a.txt", "b.txt"], results.Select(r => r.NewName));
         Assert.All(results, r => Assert.Equal(RenameStatus.Unchanged, r.Status));
-        Assert.All(results, r => Assert.False(r.IsChanged));
         Assert.All(results, r => Assert.Null(r.Error));
     }
 

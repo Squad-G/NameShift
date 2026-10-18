@@ -1,6 +1,6 @@
 # NS-1: Rename pipeline and rule contract
 
-Status: In Review
+Status: Done
 Depends on:
 Area: engine
 
@@ -35,3 +35,4 @@ A single engine that takes a list of files and a stack of rules and returns the 
 - 2026-10-18: contract made precise after review: item fields, stage declaration, skeleton replaced (po).
 - 2026-10-18: In Progress, branch feature/NS-1-pipeline (builder).
 - 2026-10-18: In Review, PR opened (builder).
+- 2026-10-18: Done, reviewer approved; nits folded (read-only Rules, IsChanged removed, run-time Enabled comment, stage range from the enum), merged (tech-lead).

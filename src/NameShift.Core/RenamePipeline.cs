@@ -28,12 +28,16 @@ public sealed class RenamePipeline
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(rules),
-                    $"{rule.GetType().Name} has a stage outside 1 to 11.");
+                    $"{rule.GetType().Name} has a stage outside {MinStage} to {MaxStage}.");
             }
         }
 
-        Rules = list.OrderBy(rule => (int)rule.Stage).ToArray();
+        Rules = Array.AsReadOnly(list.OrderBy(rule => (int)rule.Stage).ToArray());
     }
+
+    private static readonly int MinStage = Enum.GetValues(typeof(RuleStage)).Cast<int>().Min();
+
+    private static readonly int MaxStage = Enum.GetValues(typeof(RuleStage)).Cast<int>().Max();
 
     /// <summary>The rules in run order.</summary>
     public IReadOnlyList<IRenameRule> Rules { get; }
@@ -48,6 +52,7 @@ public sealed class RenamePipeline
             throw new ArgumentNullException(nameof(items));
         }
 
+        // Enabled is read once here, at run time: rules must not change while a run is in progress.
         var active = Rules.Where(rule => rule.Enabled).ToArray();
         var results = new RenameResult[items.Count];
         for (var i = 0; i < items.Count; i++)

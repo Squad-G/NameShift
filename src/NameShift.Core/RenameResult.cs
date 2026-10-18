@@ -34,7 +34,4 @@ public sealed class RenameResult
 
     /// <summary>The error, when the status is Error.</summary>
     public RenameError? Error { get; }
-
-    /// <summary>True when the new name differs from the original.</summary>
-    public bool IsChanged => Status == RenameStatus.Changed;
 }
