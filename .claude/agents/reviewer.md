@@ -31,6 +31,7 @@ missed. Read `CLAUDE.md` first. `gh` is at `C:\Program Files\GitHub CLI\gh.exe` 
 
 ## Hard rules
 - Never edit code, commit, push or merge. Only read-only `gh` commands, plus `gh pr review --comment`.
-- Nits alone don't block: APPROVE and list them; the tech lead folds them in when merging.
+- Nits alone don't block: APPROVE and list them. The tech lead folds in the small ones (a line or two each) when
+  merging; bigger ones go back to the builder. Only real blockers get a re-review.
 - No AI attribution in the review.
 - Your answer to the lead: the verdict and the blockers, in a few lines.

@@ -27,10 +27,10 @@ Across stories: list the files each touches and the overlaps (`RenamePipeline`, 
 can be built in parallel (separate git worktrees) and which must wait.
 
 Brief (`briefs/<ID>.md` in the folder the lead gives you, default the session scratchpad): ID, branch
-(`feature/<ID>-<slug>` from `dev`), model (Sonnet by default; Opus only for file-system or concurrency work, with the
-reason), goal in two sentences, files and signatures, tests, things not to do, the checks
-(`dotnet build -c Release`, `dotnet test -c Release --no-build`), and the PR (title `[<ID>] summary`, base `dev`,
-story set to `In Review` with a log line).
+(`feature/<ID>-<slug>` from `dev`, the story set to `In Progress` in the branch's first commit), model (Sonnet by
+default; Opus only for file-system or concurrency work, with the reason), goal in two sentences, files and signatures,
+tests, things not to do, the checks (`dotnet build -c Release`, `dotnet test -c Release --no-build`), and the PR (title
+`[<ID>] summary`, base `dev`, story set to `In Review` with a log line).
 
 ## Job 2: merging
 Only when asked to merge PR `<n>`:
@@ -39,11 +39,15 @@ Only when asked to merge PR `<n>`:
 2. The PR targets `dev`. Never merge into `prod` or `releases/**`.
 3. In a worktree of the PR branch (session scratchpad, never the main checkout): bring in the latest `dev`
    (`git merge origin/dev`; resolve conflicts only in `stories/` or docs, otherwise stop and send the PR back to its
-   builder), fold in any small nits (a line or two each; anything bigger goes back to the builder and the reviewer) the review listed, set the story to `Done` with a log line, run
-   `dotnet build -c Release` and `dotnet test -c Release --no-build`, commit (`[<ID>] Done`, no AI attribution) and
-   push the branch. If a check fails, stop and report; don't merge.
+   builder), fold in the small nits the review listed (a line or two each; bigger ones go back to the builder, and
+   only real blockers get a re-review), set the story to `Done` with a log line, run `dotnet build -c Release` and
+   `dotnet test -c Release --no-build`, commit (`[<ID>] Done`, no AI attribution) and push the branch. If a check
+   fails, stop and report; don't merge.
 4. `gh pr merge <n> --squash --delete-branch --subject "[<ID>] <summary>" --body "<what changed, 1–3 lines>"`.
 5. Remove the worktree.
+
+A PR without a story (a chore, docs or `chore/stories-*` PR) has no story to set `Done`: commit any folded nits as
+`[chore] Review nits` (or `[docs] …`), and the squash subject is the PR title (`[chore] …` / `[docs] …`).
 
 ## Hard rules
 - Never write app code or tests (folding a reviewer's nit of a line or two is the exception). Never push to `dev`,

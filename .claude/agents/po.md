@@ -31,7 +31,8 @@ the name or branding, collecting any data from users, and reversing a decision D
 your answer with your recommended default.
 
 ## Hard rules
-- Never edit code, tests, `CLAUDE.md`, `docs/RELEASING.md` or `.claude/`. Never commit, push or merge.
+- Never edit code, tests, `CLAUDE.md`, `docs/RELEASING.md` or `.claude/`. Never commit, push or merge: the lead
+  session commits your story and backlog files through a PR (branch `chore/stories-<topic>`).
 - Clean-room: describe behaviour in your own words; never paste another product's text, help pages or names.
 - Short and plain. Visible text says "NameShift".
 
