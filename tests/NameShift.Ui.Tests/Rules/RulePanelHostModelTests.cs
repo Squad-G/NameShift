@@ -213,4 +213,79 @@ public sealed class RulePanelHostModelTests
 
         Assert.Equal("x-b_n_n_.txt", results[0].NewName);
     }
+
+    [Fact]
+    public void ResetAll_ResetsEveryPanel_RaisesRulesChangedOnce()
+    {
+        FakeRulePanelModel replace = FakeRulePanelModel.Replace();
+        FakeRulePanelModel add = FakeRulePanelModel.Add();
+        FakeRulePanelModel casePanel = FakeRulePanelModel.Case();
+        var host = new RulePanelHostModel(new IRulePanelModel[] { replace, add, casePanel });
+        replace.Text = "a";
+        replace.Enabled = true;
+        add.Text = "x_";
+        add.Enabled = true;
+        casePanel.Enabled = true;
+        int rulesChanged = 0;
+        int panelChanges = 0;
+        host.RulesChanged += (_, _) => rulesChanged++;
+        foreach (IRulePanelModel panel in host.Panels)
+        {
+            panel.Changed += (_, _) => panelChanges++;
+        }
+
+        host.ResetAll();
+
+        Assert.Equal(1, rulesChanged);
+        Assert.Equal(3, panelChanges);
+        Assert.All(host.Panels, panel =>
+        {
+            Assert.False(panel.Enabled);
+            Assert.True(panel.IsDefault);
+        });
+        Assert.Empty(host.Rules);
+        Assert.False(host.CanResetAny);
+    }
+
+    [Fact]
+    public void ResetAll_NothingToReset_DoesNotRaiseRulesChanged()
+    {
+        var host = new RulePanelHostModel(new IRulePanelModel[] { FakeRulePanelModel.Replace(), FakeRulePanelModel.Add() });
+        int rulesChanged = 0;
+        host.RulesChanged += (_, _) => rulesChanged++;
+
+        host.ResetAll();
+
+        Assert.Equal(0, rulesChanged);
+    }
+
+    [Fact]
+    public void ResetAll_ThenAPanelChange_RaisesRulesChangedAgain()
+    {
+        FakeRulePanelModel replace = FakeRulePanelModel.Replace();
+        var host = new RulePanelHostModel(new IRulePanelModel[] { replace });
+        replace.Enabled = true;
+        host.ResetAll();
+        int rulesChanged = 0;
+        host.RulesChanged += (_, _) => rulesChanged++;
+
+        replace.Enabled = true;
+
+        Assert.Equal(1, rulesChanged);
+    }
+
+    [Fact]
+    public void CanResetAny()
+    {
+        FakeRulePanelModel replace = FakeRulePanelModel.Replace();
+        FakeRulePanelModel add = FakeRulePanelModel.Add();
+        var host = new RulePanelHostModel(new IRulePanelModel[] { replace, add });
+
+        Assert.False(host.CanResetAny);
+        add.Text = "x_";
+        Assert.True(host.CanResetAny);
+        add.Text = "";
+        replace.Enabled = true;
+        Assert.True(host.CanResetAny);
+    }
 }

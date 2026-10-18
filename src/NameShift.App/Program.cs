@@ -1,5 +1,7 @@
 using System;
 using System.Windows.Forms;
+using NameShift.Disk;
+using NameShift.Ui.Actions;
 using NameShift.Ui.Files;
 using NameShift.Ui.Folders;
 
@@ -12,6 +14,8 @@ internal static class Program
     {
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
-        Application.Run(new MainForm(new DiskFolderSource(), new DiskFileListSource()));
+        // The only place the real history folder is named.
+        var renamer = new JournaledBatchRenamer(new JournaledRenamer(JournaledRenamer.DefaultHistoryRoot));
+        Application.Run(new MainForm(new DiskFolderSource(), new DiskFileListSource(), renamer));
     }
 }
