@@ -22,6 +22,12 @@ Change the capitalisation of names.
 ## Decisions
 - Locale-aware casing? **Decision:** no, invariant casing, so the same batch gives the same result on every PC (po, 2026-10-18).
 - Is the extension changed? **Decision:** no, that is the Extension rule's job (po, 2026-10-18).
+- What is a word? **Decision:** a run of letters, digits, combining marks and apostrophes; anything else separates words, so `my_holiday-photo` gives `My_Holiday-Photo` and `don't` gives `Don't` (tech-lead, 2026-10-18).
+- Where does a sentence start? **Decision:** at the start of the name and after a `.` followed by whitespace; the first letter-or-digit of the sentence is capitalised if it is a letter, so `2nd try` stays `2nd try` (tech-lead, 2026-10-18).
+- How are exceptions matched? **Decision:** whole words, ignoring case (ordinal); written as listed; the first listed form wins on duplicates (tech-lead, 2026-10-18).
+- Do exceptions apply outside title mode? **Decision:** no, the exceptions list applies in title mode only (po, 2026-10-18).
+- A listed exception as the first word? **Decision:** an exception that contains at least one upper-case letter (`iPhone`, `USA`) is always written exactly as listed, even as the first word (`iphone photos` with `iPhone` gives `iPhone Photos`); an all-lower-case exception (`the`) is still capitalised as the first word (`the lord of the usa` with `the, of, USA` gives `The Lord of the USA`) (po, 2026-10-18).
+- What ends a sentence in sentence mode? **Decision:** only `. ` (a period followed by whitespace); `!` and `?` do not (po, 2026-10-18).
 
 ## Log
 - 2026-10-18: created (po).
