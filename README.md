@@ -31,3 +31,12 @@ The app is `src/NameShift.App/bin/<Configuration>/net48/NameShift.exe`.
 ## Licence
 
 MIT. NameShift is an independent project, not affiliated with any other renaming tool.
+
+## Branches and releases
+
+- `dev`: where work lands, through pull requests. Contributions welcome.
+- `prod`: the latest release. Only the owner can push it.
+- `releases/vX.Y.Z`: one locked branch per release, kept forever. Only the owner creates them; nobody can change or
+  delete them.
+
+Making a release (owner only): see [docs/RELEASING.md](docs/RELEASING.md).
