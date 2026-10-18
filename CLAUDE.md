@@ -17,7 +17,8 @@ Free, open-source, lightweight bulk file renamer for Windows (MIT). Owner: **Dav
   disk, and it logs every batch for Revert.
 - **Never push to `dev` or `prod` directly; never touch `releases/**`.** Branch from `dev` (`feature/<ID>-<slug>`,
   `fix/…`, `chore/…`) and open a PR to `dev`. Releases are David's only (`docs/RELEASING.md`).
-- **No AI attribution** in commits, PR titles or descriptions.
+- **Commits and PR titles:** `[<ID>] summary` for a story (`[NS-12] Numbering rule`), `[chore]` or `[docs]` otherwise.
+- **No AI attribution** in commits, PR titles, descriptions or reviews.
 - One concern per PR. Measure before optimising.
 
 ## Checks (all must pass; warnings are errors)
@@ -32,6 +33,7 @@ the PR.
 | Role | Who | Decides / does |
 |---|---|---|
 | Owner | David | Releases; can override any decision. |
+| Lead | the main Claude session | Launches the agents, relays questions to David, commits the `po`'s story changes (branch `chore/stories-<topic>`, PR to `dev`, reviewed and merged like any PR). |
 | Product | `po` agent | Product questions and backlog order, from `stories/` and `docs/PLAN.md`; makes stories `Ready`. |
 | Tech | `tech-lead` agent | Technical approach, builder briefs, and **merging** approved PRs into `dev`. |
 | Review | `reviewer` agent | Independent review of every PR; posts `VERDICT: APPROVE` or `VERDICT: CHANGES REQUESTED`. |
@@ -40,7 +42,8 @@ the PR.
 ## Flow
 1. `po` writes or refines stories, answers open questions, orders the backlog, and sets the next stories to `Ready`.
 2. `tech-lead` writes one brief per Ready story.
-3. A builder implements it on its branch, runs the checks, opens the PR, sets the story to `In Review`.
+3. A builder sets the story to `In Progress` in its branch's first commit, implements it, runs the checks, opens the
+   PR and sets the story to `In Review`.
 4. `reviewer` reviews (a fresh context, never the builder's).
 5. On `VERDICT: APPROVE` with green checks, `tech-lead` marks the story `Done` in a last commit on the branch and
    squash-merges into `dev`. On `CHANGES REQUESTED`, the builder fixes and the reviewer re-reviews.

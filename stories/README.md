@@ -26,5 +26,13 @@ One or two sentences: what the user gets.
 - 2026-10-18: created (po).
 ```
 
+`stories/BACKLOG.md` is one ordered table, highest priority first:
+
+```markdown
+| # | Story | Status | Depends on |
+|---|---|---|---|
+| 1 | [NS-3 Replace rule](NS-3-replace-rule.md) | Ready | |
+```
+
 The `po` makes a story `Ready` once it has no open question. The PR that builds a story also updates its file
 (status, log); the tech lead sets `Done` in the last commit before merging.

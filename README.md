@@ -11,7 +11,7 @@ live before anything is touched, then rename in one click, and undo it if needed
 
 ## Build
 
-Requires the .NET SDK (8 or later) on Windows.
+Requires the .NET 10 SDK on Windows (the app itself targets .NET Framework 4.8, built into Windows).
 
 ```
 dotnet build
