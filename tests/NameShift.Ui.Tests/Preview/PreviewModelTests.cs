@@ -167,7 +167,7 @@ public sealed class PreviewModelTests
         {
             var counter = new ApplyCounter();
             FakeRulePanelModel panel = PanelOf(t =>
-                t == "go" ? new CountingRule(RuleStage.Replace, t, counter) : new GateRule(RuleStage.Replace, gate));
+                t == "go" ? new CountingRule(RuleStage.Replace, t, counter) : new GateRule(RuleStage.Replace, gate, "b.txt"));
             PreviewModel preview = Build(panel);
             panel.Enabled = true;
             await _files.LoadAsync(@"C:\A");
@@ -257,7 +257,7 @@ public sealed class PreviewModelTests
         var gate = new ManualResetEventSlim(false);
         try
         {
-            FakeRulePanelModel panel = PanelOf(_ => new GateRule(RuleStage.Replace, gate, "a1.txt"));
+            FakeRulePanelModel panel = PanelOf(_ => new GateRule(RuleStage.Replace, gate, "b.txt"));
             PreviewModel preview = Build(panel);
             panel.Enabled = true;
             await _files.LoadAsync(@"C:\A");
@@ -281,7 +281,7 @@ public sealed class PreviewModelTests
     }
 
     [Fact]
-    public async Task CellForRow_ForAnotherList_IsNone()
+    public async Task CellForRow_OutOfRangeOrCleared_IsNone()
     {
         var gate = new ManualResetEventSlim(false);
         try
@@ -303,6 +303,29 @@ public sealed class PreviewModelTests
         finally
         {
             gate.Set();
+        }
+    }
+
+    [Fact]
+    public async Task FolderLoadStarting_CancelsAPendingDebounce()
+    {
+        FakeRulePanelModel panel = ReplacePanel("a");
+        PreviewModel preview = Build(panel);
+        await _files.LoadAsync(@"C:\A");
+        await preview.Pending;
+        panel.Enabled = true;
+        Assert.Equal(0, _delay.Cancelled);
+        ManualResetEventSlim gate = _source.Gate(@"C:\B");
+        Task<bool> loading = _files.LoadAsync(@"C:\B");
+        try
+        {
+            Assert.Equal(1, _delay.Cancelled);
+        }
+        finally
+        {
+            gate.Set();
+            await loading;
+            await preview.Pending;
         }
     }
 

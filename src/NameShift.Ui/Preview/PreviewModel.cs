@@ -12,6 +12,7 @@ namespace NameShift.Ui.Preview;
 /// Computes the New Name column: runs RenamePipeline over the file list's items off the UI thread, 150 ms after the
 /// last rule change and at once when a folder finishes loading. All state is touched on the calling (UI) thread; only
 /// the pipeline runs on the pool. A newer request cancels and supersedes an older one.
+/// Its lifetime is the window's: it has no Dispose and never unsubscribes (the window's controls guard with IsDisposed).
 /// </summary>
 public sealed class PreviewModel
 {
@@ -53,6 +54,7 @@ public sealed class PreviewModel
     /// <summary>The New Name cell of a list row; None when the snapshot is not for the list's current items or the row is out of range.</summary>
     public PreviewCell CellForRow(int row)
     {
+        // Invariant guard: Clear() keeps this true today; it protects NS-14 changing the input list.
         if (!ReferenceEquals(Snapshot.Items, InputItems()) || row < 0 || row >= Snapshot.Results.Count)
         {
             return PreviewCell.None;
@@ -101,6 +103,8 @@ public sealed class PreviewModel
         var cts = new CancellationTokenSource();
         _current = cts;
         int version = ++_version;
+        IReadOnlyList<RenameItem> items;
+        IReadOnlyList<RenameResult> results;
         try
         {
             if (debounce)
@@ -109,20 +113,9 @@ public sealed class PreviewModel
             }
 
             IReadOnlyList<IRenameRule> rules = _rules.Rules; // read after the delay: the latest settings
-            IReadOnlyList<RenameItem> items = InputItems();
-            IReadOnlyList<RenameResult> results =
-                await Task.Run(() => new RenamePipeline(rules).Run(items, cts.Token), cts.Token);
-
-            // The version check and the state change stay together: nothing awaits between them.
-            if (version != _version)
-            {
-                return false;
-            }
-
-            Snapshot = new PreviewSnapshot(items, results);
-            HasFailed = false;
-            Changed?.Invoke(this, EventArgs.Empty);
-            return true;
+            items = InputItems();
+            IReadOnlyList<RenameItem> input = items;
+            results = await Task.Run(() => new RenamePipeline(rules).Run(input, cts.Token), cts.Token);
         }
         catch (OperationCanceledException) when (cts.IsCancellationRequested)
         {
@@ -141,5 +134,17 @@ public sealed class PreviewModel
             Changed?.Invoke(this, EventArgs.Empty);
             return false;
         }
+
+        // The version check and the state change stay together: nothing awaits between them.
+        // A handler that throws here is not a run failure, so it stays outside the try.
+        if (version != _version)
+        {
+            return false;
+        }
+
+        Snapshot = new PreviewSnapshot(items, results);
+        HasFailed = false;
+        Changed?.Invoke(this, EventArgs.Empty);
+        return true;
     }
 }

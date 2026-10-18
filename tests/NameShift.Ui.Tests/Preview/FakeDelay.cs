@@ -9,12 +9,13 @@ namespace NameShift.Ui.Tests.Preview;
 internal sealed class FakeDelay
 {
     private readonly List<TaskCompletionSource<bool>> _sources = new List<TaskCompletionSource<bool>>();
+    private int _cancelled;
 
     /// <summary>The duration of every call, in order.</summary>
     public List<TimeSpan> Calls { get; } = new List<TimeSpan>();
 
     /// <summary>How many calls were cancelled.</summary>
-    public int Cancelled { get; private set; }
+    public int Cancelled => Volatile.Read(ref _cancelled);
 
     public Task Delay(TimeSpan duration, CancellationToken token)
     {
@@ -25,7 +26,7 @@ internal sealed class FakeDelay
         {
             if (source.TrySetCanceled())
             {
-                Cancelled++;
+                Interlocked.Increment(ref _cancelled);
             }
         });
         return source.Task;
