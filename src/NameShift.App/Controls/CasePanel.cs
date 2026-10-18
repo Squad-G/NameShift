@@ -1,5 +1,6 @@
 using System;
 using System.Windows.Forms;
+using NameShift.Core;
 using NameShift.Ui;
 using NameShift.Ui.Rules;
 
@@ -11,13 +12,14 @@ internal sealed class CasePanel : UserControl
     private readonly CasePanelModel _model;
     private readonly ComboBox _mode = new ComboBox();
     private readonly TextBox _exceptions = new TextBox();
+    private readonly Label _exceptionsLabel;
 
     public CasePanel(CasePanelModel model)
     {
         _model = model;
         AutoSize = true;
         AutoSizeMode = AutoSizeMode.GrowAndShrink;
-        BuildLayout();
+        _exceptionsLabel = BuildLayout();
         Sync();
 
         _mode.SelectedIndexChanged += OnModeSelected;
@@ -35,7 +37,8 @@ internal sealed class CasePanel : UserControl
         base.Dispose(disposing);
     }
 
-    private void BuildLayout()
+    /// <returns>The Exceptions label, greyed with its box.</returns>
+    private Label BuildLayout()
     {
         TableLayoutPanel table = RulePanelLayout.CreateTable();
 
@@ -45,13 +48,12 @@ internal sealed class CasePanel : UserControl
             _mode.Items.Add(CaseModeText.For(mode));
         }
 
-        _mode.AccessibleName = RulePanelText.PlainTitle(Strings.CaseMode);
-        RulePanelLayout.AddTextRow(table, new Label { Text = Strings.CaseMode }, _mode);
+        RulePanelLayout.AddLabeledRow(table, Strings.CaseMode, _mode);
 
-        _exceptions.AccessibleName = RulePanelText.PlainTitle(Strings.CaseExceptions);
         _exceptions.AccessibleDescription = Strings.CaseExceptionsHint;
-        RulePanelLayout.AddTextRow(table, new Label { Text = Strings.CaseExceptions }, _exceptions);
+        Label exceptionsLabel = RulePanelLayout.AddLabeledRow(table, Strings.CaseExceptions, _exceptions);
         Controls.Add(table);
+        return exceptionsLabel;
     }
 
     private void OnModeSelected(object? sender, EventArgs e)
@@ -66,7 +68,7 @@ internal sealed class CasePanel : UserControl
 
     private void Sync()
     {
-        int index = IndexOfMode(_model.Mode);
+        int index = CasePanelModel.IndexOf(_model.Mode);
         if (_mode.SelectedIndex != index)
         {
             _mode.SelectedIndex = index;
@@ -74,18 +76,6 @@ internal sealed class CasePanel : UserControl
 
         RulePanelLayout.SetTextIfDifferent(_exceptions, _model.ExceptionsText);
         _exceptions.Enabled = _model.ExceptionsApply;
-    }
-
-    private static int IndexOfMode(Core.CaseMode mode)
-    {
-        for (int i = 0; i < CasePanelModel.Modes.Count; i++)
-        {
-            if (CasePanelModel.Modes[i] == mode)
-            {
-                return i;
-            }
-        }
-
-        return -1;
+        _exceptionsLabel.Enabled = _model.ExceptionsApply;
     }
 }

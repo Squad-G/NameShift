@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using NameShift.Core;
 
@@ -22,6 +22,9 @@ public sealed class CasePanelModel : RulePanelModel
 
     /// <summary>The list order: Same, Lower, Upper, Title, Sentence.</summary>
     public static IReadOnlyList<CaseMode> Modes => ModeList;
+
+    /// <summary>The mode's position in <see cref="Modes"/>, or -1 when it is not listed.</summary>
+    public static int IndexOf(CaseMode mode) => Array.IndexOf(ModeList, mode);
 
     /// <exception cref="ArgumentOutOfRangeException">The mode is not a defined value (a programmer error).</exception>
     public CaseMode Mode

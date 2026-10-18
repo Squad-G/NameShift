@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Drawing;
 using System.Windows.Forms;
 using NameShift.Ui;
@@ -57,14 +57,13 @@ internal sealed class AddPanel : UserControl
     private void BuildLayout()
     {
         TableLayoutPanel table = RulePanelLayout.CreateTable();
-        AddField(table, Strings.AddPrefix, _prefix);
-        AddField(table, Strings.AddInsert, _insert);
+        RulePanelLayout.AddLabeledRow(table, Strings.AddPrefix, _prefix);
+        RulePanelLayout.AddLabeledRow(table, Strings.AddInsert, _insert);
 
         _positionLabel.AutoSize = true;
         _positionLabel.UseMnemonic = true;
         _positionLabel.Anchor = AnchorStyles.Left;
         _positionLabel.TabIndex = 0;
-        _position.AccessibleName = RulePanelText.PlainTitle(Strings.AddPosition);
         _position.TabIndex = 1;
         _position.Margin = new Padding(3, 3, LogicalToDeviceUnits(20), 3); // room for the error icon
         _fromEnd.Text = Strings.AddFromEnd;
@@ -83,18 +82,12 @@ internal sealed class AddPanel : UserControl
         RulePanelLayout.AddSpanningRow(table, positionRow);
         _error.SetIconPadding(_position, 2);
 
-        AddField(table, Strings.AddSuffix, _suffix);
+        RulePanelLayout.AddLabeledRow(table, Strings.AddSuffix, _suffix);
         _wordSpace.Text = Strings.AddWordSpace;
         _wordSpace.AutoSize = true;
         _wordSpace.AccessibleDescription = Strings.AddWordSpaceHint;
         RulePanelLayout.AddSpanningRow(table, _wordSpace);
         Controls.Add(table);
-    }
-
-    private static void AddField(TableLayoutPanel table, string labelText, TextBox box)
-    {
-        box.AccessibleName = RulePanelText.PlainTitle(labelText);
-        RulePanelLayout.AddTextRow(table, new Label { Text = labelText }, box);
     }
 
     /// <summary>Sizes the position box from its font, so it holds a few digits at any DPI.</summary>
@@ -114,6 +107,7 @@ internal sealed class AddPanel : UserControl
         RulePanelLayout.SetTextIfDifferent(_suffix, _model.Suffix);
         RulePanelLayout.SetCheckedIfDifferent(_wordSpace, _model.WordSpace);
         RulePanelLayout.SetTextIfDifferent(_positionLabel, _model.InsertPositionLabel);
+        _position.AccessibleName = RulePanelText.PlainTitle(_model.InsertPositionLabel);
 
         string message = _model.InsertPositionInvalid ? Strings.AddPositionInvalid : "";
         _error.SetError(_position, message);

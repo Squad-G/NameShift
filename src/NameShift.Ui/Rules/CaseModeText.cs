@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using NameShift.Core;
 
 namespace NameShift.Ui.Rules;

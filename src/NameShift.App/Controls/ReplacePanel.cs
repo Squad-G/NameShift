@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows.Forms;
 using NameShift.Ui;
 using NameShift.Ui.Rules;
@@ -42,8 +42,8 @@ internal sealed class ReplacePanel : UserControl
     private void BuildLayout()
     {
         TableLayoutPanel table = RulePanelLayout.CreateTable();
-        AddField(table, Strings.ReplaceFind, _find);
-        AddField(table, Strings.ReplaceWith, _with);
+        RulePanelLayout.AddLabeledRow(table, Strings.ReplaceFind, _find);
+        RulePanelLayout.AddLabeledRow(table, Strings.ReplaceWith, _with);
         _matchCase.Text = Strings.ReplaceMatchCase;
         _matchCase.AutoSize = true;
         RulePanelLayout.AddSpanningRow(table, _matchCase);
@@ -51,12 +51,6 @@ internal sealed class ReplacePanel : UserControl
         _includeExtension.AutoSize = true;
         RulePanelLayout.AddSpanningRow(table, _includeExtension);
         Controls.Add(table);
-    }
-
-    private static void AddField(TableLayoutPanel table, string labelText, TextBox box)
-    {
-        box.AccessibleName = RulePanelText.PlainTitle(labelText);
-        RulePanelLayout.AddTextRow(table, new Label { Text = labelText }, box);
     }
 
     private void OnModelChanged(object? sender, EventArgs e) => Sync();

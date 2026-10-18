@@ -1,4 +1,6 @@
-﻿using System.Windows.Forms;
+using System;
+using System.Windows.Forms;
+using NameShift.Ui.Rules;
 
 namespace NameShift.App.Controls;
 
@@ -32,6 +34,16 @@ internal static class RulePanelLayout
         field.TabIndex = label.TabIndex + 1;
         table.Controls.Add(label, 0, row);
         table.Controls.Add(field, 1, row);
+    }
+
+    /// <summary>Adds a labelled field row; the field's accessible name is the label without its mnemonic.</summary>
+    /// <returns>The label, for callers that enable or disable it with the field.</returns>
+    public static Label AddLabeledRow(TableLayoutPanel table, string labelText, Control field)
+    {
+        var label = new Label { Text = labelText };
+        field.AccessibleName = RulePanelText.PlainTitle(labelText);
+        AddTextRow(table, label, field);
+        return label;
     }
 
     /// <summary>Adds a control spanning both columns on its own row.</summary>
@@ -72,7 +84,7 @@ internal static class RulePanelLayout
         int next = 0;
         foreach (Control child in table.Controls)
         {
-            next = System.Math.Max(next, child.TabIndex + 1);
+            next = Math.Max(next, child.TabIndex + 1);
         }
 
         return next;
