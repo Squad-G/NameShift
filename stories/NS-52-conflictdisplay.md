@@ -1,6 +1,6 @@
 # NS-52: Conflict display
 
-Status: Ready
+Status: In Progress
 Depends on: NS-13, NS-5, NS-6, NS-7
 Area: app
 
@@ -26,3 +26,4 @@ Know which names cannot be used, and why, before pressing Rename.
 - 2026-10-18: created, split from NS-13 (po).
 - 2026-10-18: set Ready, first round of the minimal usable slice (po).
 - 2026-10-18: criterion 6 added, control characters in a conflict's detail are shown escaped (tech-lead, from the NS-5 review).
+- 2026-10-18: In Progress, branch feature/NS-52-conflicts (builder).
