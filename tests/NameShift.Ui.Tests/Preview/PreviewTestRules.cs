@@ -1,0 +1,115 @@
+using System;
+using System.Collections.Concurrent;
+using System.Threading;
+using NameShift.Core;
+
+namespace NameShift.Ui.Tests.Preview;
+
+/// <summary>A shared, thread-safe record of Apply calls: how many, and the setting each rule ran with.</summary>
+internal sealed class ApplyCounter
+{
+    private readonly ConcurrentQueue<string> _texts = new ConcurrentQueue<string>();
+
+    public int Count => _texts.Count;
+
+    public string[] Texts => _texts.ToArray();
+
+    public void Record(string text) => _texts.Enqueue(text);
+}
+
+/// <summary>Leaves every name unchanged and counts how often it ran.</summary>
+internal sealed class CountingRule : IRenameRule
+{
+    private readonly ApplyCounter _counter;
+
+    public CountingRule(RuleStage stage, string text, ApplyCounter counter)
+    {
+        Stage = stage;
+        Text = text;
+        _counter = counter;
+    }
+
+    /// <summary>The setting the rule was built with.</summary>
+    public string Text { get; }
+
+    public RuleStage Stage { get; }
+
+    public bool Enabled => true;
+
+    public NameParts Apply(NameParts name, ItemContext context)
+    {
+        _counter.Record(Text);
+        return name;
+    }
+}
+
+/// <summary>Blocks in Apply until the gate is set (only for the item named, or for every item), then changes nothing.</summary>
+internal sealed class GateRule : IRenameRule
+{
+    private readonly ManualResetEventSlim _gate;
+    private readonly string? _onlyItemName;
+
+    public GateRule(RuleStage stage, ManualResetEventSlim gate, string? onlyItemName = null)
+    {
+        Stage = stage;
+        _gate = gate;
+        _onlyItemName = onlyItemName;
+    }
+
+    public RuleStage Stage { get; }
+
+    public bool Enabled => true;
+
+    public NameParts Apply(NameParts name, ItemContext context)
+    {
+        if (_onlyItemName == null || _onlyItemName == context.Item.Name)
+        {
+            _gate.Wait();
+        }
+
+        return name;
+    }
+}
+
+/// <summary>Fails for one item index and passes the others.</summary>
+internal sealed class ThrowingRule : IRenameRule
+{
+    private readonly int _failingIndex;
+    private readonly string _message;
+
+    public ThrowingRule(RuleStage stage, int failingIndex, string message)
+    {
+        Stage = stage;
+        _failingIndex = failingIndex;
+        _message = message;
+    }
+
+    public RuleStage Stage { get; }
+
+    public bool Enabled => true;
+
+    public NameParts Apply(NameParts name, ItemContext context)
+    {
+        if (context.Index == _failingIndex)
+        {
+            throw new InvalidOperationException(_message);
+        }
+
+        return name;
+    }
+}
+
+/// <summary>Its Enabled getter throws: the pipeline reads it outside its per-item try, so the whole run fails.</summary>
+internal sealed class BrokenRule : IRenameRule
+{
+    public BrokenRule(RuleStage stage)
+    {
+        Stage = stage;
+    }
+
+    public RuleStage Stage { get; }
+
+    public bool Enabled => throw new InvalidOperationException("broken");
+
+    public NameParts Apply(NameParts name, ItemContext context) => name;
+}

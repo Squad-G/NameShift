@@ -21,7 +21,7 @@ IDs), not the rank: the rank is the row order.
 | 11 | [NS-11 Rule panel host: enable and reset per rule](NS-11-panelhost.md) | Done | NS-10, NS-1 |
 | 12 | [NS-12 Panels for Replace, Case and Add](NS-12-firstpanels.md) | Done | NS-11, NS-2, NS-3, NS-4 |
 | 53 | [NS-53 Numbering panel](NS-53-numberingpanel.md) | Done | NS-11, NS-17 |
-| 13 | [NS-13 Live preview](NS-13-preview.md) | Ready | NS-51, NS-11, NS-1 |
+| 13 | [NS-13 Live preview](NS-13-preview.md) | In Review | NS-51, NS-11, NS-1 |
 | 52 | [NS-52 Conflict display](NS-52-conflictdisplay.md) | Ready | NS-13, NS-5, NS-6, NS-7 |
 | 14 | [NS-14 Choose which files to rename](NS-14-selection.md) | Ready | NS-51, NS-13 |
 | 15 | [NS-15 Rename, Revert and Reset buttons](NS-15-buttons.md) | Ready | NS-13, NS-52, NS-14, NS-9 |

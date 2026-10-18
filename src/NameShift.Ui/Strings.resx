@@ -28,6 +28,7 @@
   <data name="SizeKilobytes" xml:space="preserve"><value>{0} KB</value></data>
   <data name="FolderEmpty" xml:space="preserve"><value>This folder is empty</value></data>
   <data name="FileListName" xml:space="preserve"><value>Files</value></data>
+  <data name="PreviewError" xml:space="preserve"><value>Error: {0}</value></data>
   <data name="RulePanelHeading" xml:space="preserve"><value>{0}. {1}</value></data>
   <data name="RulePanelReset" xml:space="preserve"><value>Reset</value></data>
   <data name="RulePanelResetName" xml:space="preserve"><value>Reset {0}</value></data>

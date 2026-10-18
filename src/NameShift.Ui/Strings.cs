@@ -60,6 +60,9 @@ public static class Strings
 
     public static string FileListName => Get(nameof(FileListName));
 
+    /// <summary>"Error: {0}", a rule's error in the New Name cell.</summary>
+    public static string PreviewError => Get(nameof(PreviewError));
+
     /// <summary>"{0}. {1}": the stage number and the panel title.</summary>
     public static string RulePanelHeading => Get(nameof(RulePanelHeading));
 
