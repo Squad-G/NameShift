@@ -1,6 +1,6 @@
 # NS-10: Window shell: path bar and folder tree
 
-Status: Ready
+Status: In Progress
 Depends on:
 Area: app
 
@@ -26,3 +26,4 @@ A window where I pick a folder. The file list that shows its contents is NS-51.
 - 2026-10-18: created (po).
 - 2026-10-18: set Ready, first round of the minimal usable slice (po).
 - 2026-10-18: file list moved to NS-51 after review (po).
+- 2026-10-18: In Progress (builder).
