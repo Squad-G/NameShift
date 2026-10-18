@@ -22,6 +22,8 @@ Add text to the start, end or inside of a name.
 
 ## Decisions
 - Position counting: from 0 or 1? **Decision:** the user types 1-based positions (position 1 = before the first character), because that is what people count; a position below 1 or not a number means the part is ignored, the same as every other positional rule (Remove, Move/Copy), so the behaviour is one everywhere (po, 2026-10-18).
+- Order inside Add: word space, then insert, then prefix and suffix, so positions count the name as it reaches Add and typed texts are never split by word space (tech-lead default, 2026-10-18; po may overrule).
+- From-the-end value: the characters left after the inserted text; values below 1 are ignored (the suffix covers the very end) (tech-lead default, 2026-10-18; po may overrule).
 
 ## Log
 - 2026-10-18: created (po).
