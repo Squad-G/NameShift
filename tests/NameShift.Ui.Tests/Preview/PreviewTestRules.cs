@@ -17,6 +17,38 @@ internal sealed class ApplyCounter
     public void Record(string text) => _texts.Enqueue(text);
 }
 
+/// <summary>Leaves every name unchanged and records each item's name, index and the item count it was given.</summary>
+internal sealed class ContextRecordingRule : IRenameRule
+{
+    private readonly object _lock = new object();
+    private readonly System.Collections.Generic.List<(string Name, int Index, int Count)> _calls = new System.Collections.Generic.List<(string, int, int)>();
+
+    public RuleStage Stage => RuleStage.Replace;
+
+    public bool Enabled => true;
+
+    public System.Collections.Generic.List<(string Name, int Index, int Count)> Calls
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return new System.Collections.Generic.List<(string, int, int)>(_calls);
+            }
+        }
+    }
+
+    public NameParts Apply(NameParts name, ItemContext context)
+    {
+        lock (_lock)
+        {
+            _calls.Add((context.Item.Name, context.Index, context.Count));
+        }
+
+        return name;
+    }
+}
+
 /// <summary>Leaves every name unchanged and counts how often it ran.</summary>
 internal sealed class CountingRule : IRenameRule
 {

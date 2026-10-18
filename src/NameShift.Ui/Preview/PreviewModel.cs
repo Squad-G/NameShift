@@ -10,9 +10,10 @@ using NameShift.Ui.Rules;
 namespace NameShift.Ui.Preview;
 
 /// <summary>
-/// Computes the New Name column: runs RenamePipeline over the file list's items off the UI thread, 150 ms after the
-/// last rule change and at once when a folder finishes loading. All state is touched on the calling (UI) thread; only
-/// the pipeline runs on the pool. A newer request cancels and supersedes an older one.
+/// Computes the New Name column: runs RenamePipeline over the file list's batch (the selected rows, or every row with no
+/// selection) off the UI thread, 150 ms after the last rule or selection change and at once when a folder finishes
+/// loading. All state is touched on the calling (UI) thread; only the pipeline runs on the pool.
+/// A newer request cancels and supersedes an older one.
 /// Its lifetime is the window's: it has no Dispose and never unsubscribes (the window's controls guard with IsDisposed).
 /// </summary>
 public sealed class PreviewModel
@@ -38,6 +39,7 @@ public sealed class PreviewModel
         _delay = delay ?? throw new ArgumentNullException(nameof(delay));
         _rules.RulesChanged += (_, _) => OnRulesChanged();
         _files.Changed += (_, _) => OnFilesChanged();
+        _files.SelectionChanged += (_, _) => OnSelectionChanged();
     }
 
     /// <summary>The last applied run; Empty when there is no preview (no folder, loading, failed, or after a failure).</summary>
@@ -73,16 +75,12 @@ public sealed class PreviewModel
     /// <summary>"N conflicts" for the line under the list; "" when there are none.</summary>
     public string ConflictSummary => ConflictText.Summary(Snapshot.ConflictCount);
 
-    /// <summary>Maps a list row to its position in the snapshot; false when the snapshot is not for the list's current items or the row is out of range.</summary>
+    /// <summary>Maps a list row to its position in the snapshot; false when the snapshot is not for the list's current items or the row is not in the snapshot's batch.</summary>
     private bool TryGetRow(int row, out int index)
     {
-        // Invariant guard: Clear() keeps this true today; it protects NS-14 changing the input list.
-        index = row;
-        return ReferenceEquals(Snapshot.Items, InputItems()) && row >= 0 && row < Snapshot.Results.Count;
+        index = -1;
+        return ReferenceEquals(Snapshot.Batch.ListItems, _files.Items) && Snapshot.Batch.TryGetIndex(row, out index);
     }
-
-    /// <summary>The items the pipeline runs on (NS-14 will narrow this to the selection).</summary>
-    private IReadOnlyList<RenameItem> InputItems() => _files.Items;
 
     private void OnFilesChanged()
     {
@@ -104,6 +102,14 @@ public sealed class PreviewModel
         }
     }
 
+    private void OnSelectionChanged()
+    {
+        if (_files.State == FileListState.Loaded)
+        {
+            Pending = RecomputeAsync(debounce: true);
+        }
+    }
+
     private void Clear()
     {
         _current?.Cancel();
@@ -116,12 +122,12 @@ public sealed class PreviewModel
     /// <summary>The pipeline and the three conflict checks, in one run on the pool.</summary>
     private static PreviewSnapshot Compute(
         IReadOnlyList<IRenameRule> rules,
-        IReadOnlyList<RenameItem> items,
+        FileBatch batch,
         string folder,
         IReadOnlyList<string> existingNames,
         CancellationToken token)
     {
-        IReadOnlyList<RenameResult> results = new RenamePipeline(rules).Run(items, token);
+        IReadOnlyList<RenameResult> results = new RenamePipeline(rules).Run(batch.Items, token);
         token.ThrowIfCancellationRequested();
         var existing = new Dictionary<string, IReadOnlyCollection<string>>(StringComparer.OrdinalIgnoreCase)
         {
@@ -129,7 +135,7 @@ public sealed class PreviewModel
         };
         IConflictCheck[] checks = { new InvalidNameCheck(), new DuplicateTargetCheck(existing), new PathLengthCheck() };
         ConflictReport conflicts = ConflictChecker.Run(results, checks);
-        return new PreviewSnapshot(items, results, conflicts);
+        return new PreviewSnapshot(batch, results, conflicts);
     }
 
     /// <summary>Runs the pipeline and the conflict checks; true when the result was applied. Never throws.</summary>
@@ -149,10 +155,10 @@ public sealed class PreviewModel
             }
 
             IReadOnlyList<IRenameRule> rules = _rules.Rules; // read after the delay: the latest settings
-            IReadOnlyList<RenameItem> input = InputItems();
+            FileBatch batch = _files.Batch;
             string folder = _files.FolderPath!;
             IReadOnlyList<string> existing = _files.ExistingNames;
-            snapshot = await Task.Run(() => Compute(rules, input, folder, existing, cts.Token), cts.Token);
+            snapshot = await Task.Run(() => Compute(rules, batch, folder, existing, cts.Token), cts.Token);
         }
         catch (OperationCanceledException) when (cts.IsCancellationRequested)
         {

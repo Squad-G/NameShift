@@ -28,8 +28,12 @@ internal sealed class FileList : UserControl
     private readonly ListView _list = new BufferedListView();
     private readonly Label _message = new Label();
     private readonly Label _summary = new Label();
+    private readonly Label _count = new Label();
+    private readonly Panel _strip = new Panel();
     private readonly ImageList _icons = new ImageList { ColorDepth = ColorDepth.Depth32Bit };
     private readonly List<Bitmap> _iconBitmaps = new List<Bitmap>();
+    private IReadOnlyList<RenameItem>? _shownItems;
+    private bool _selectionReadPending;
     private int _shownCount = -1;
     private Font _boldFont;
 
@@ -41,6 +45,7 @@ internal sealed class FileList : UserControl
         _boldFont = new Font(_list.Font, FontStyle.Bold);
         BuildLayout();
         _model.Changed += (_, _) => Render();
+        _model.SelectionChanged += (_, _) => RenderCount();
         _preview.Changed += (_, _) => RenderPreview();
     }
 
@@ -78,6 +83,7 @@ internal sealed class FileList : UserControl
         _list.Dock = DockStyle.Fill;
         _list.View = View.Details;
         _list.VirtualMode = true;
+        _list.MultiSelect = true;
         _list.FullRowSelect = true;
         _list.HideSelection = false;
         _list.HeaderStyle = ColumnHeaderStyle.Nonclickable;
@@ -85,6 +91,9 @@ internal sealed class FileList : UserControl
         _list.HandleCreated += (_, _) => SetWindowTheme(_list.Handle, "explorer", null);
         _list.RetrieveVirtualItem += (_, e) => e.Item = BuildRow(e.ItemIndex);
         _list.FontChanged += (_, _) => RefreshBoldFont();
+        _list.SelectedIndexChanged += (_, _) => ScheduleSelectionRead();
+        _list.VirtualItemsSelectionRangeChanged += (_, _) => ScheduleSelectionRead();
+        _list.KeyDown += OnListKeyDown;
 
         _list.Columns.Add(Strings.ColumnName, LogicalToDeviceUnits(280));
         _list.Columns.Add(Strings.ColumnNewName, LogicalToDeviceUnits(280));
@@ -106,16 +115,27 @@ internal sealed class FileList : UserControl
         _message.Visible = false;
         _list.Controls.Add(_message);
 
-        _summary.Dock = DockStyle.Bottom;
+        _count.Dock = DockStyle.Left;
+        _count.AutoSize = true;
+        _count.TextAlign = ContentAlignment.MiddleLeft;
+        _count.ForeColor = SystemColors.WindowText;
+        _count.Padding = new Padding(LogicalToDeviceUnits(4), 0, 0, 0);
+
+        _summary.Dock = DockStyle.Fill;
         _summary.AutoSize = false;
-        _summary.Height = LogicalToDeviceUnits(22);
         _summary.TextAlign = ContentAlignment.MiddleLeft;
         _summary.Padding = new Padding(LogicalToDeviceUnits(4), 0, 0, 0);
-        _summary.Visible = false;
 
-        // Fill first, then Bottom: docking runs back to front, so the label takes its strip and the list the rest.
+        // Fill first, then Left: docking runs back to front, so the count takes its width and the summary the rest.
+        _strip.Dock = DockStyle.Bottom;
+        _strip.Height = LogicalToDeviceUnits(22);
+        _strip.Visible = false;
+        _strip.Controls.Add(_summary);
+        _strip.Controls.Add(_count);
+
+        // Fill first, then Bottom: docking runs back to front, so the strip takes its row and the list the rest.
         Controls.Add(_list);
-        Controls.Add(_summary);
+        Controls.Add(_strip);
     }
 
     private void AddStockIcon(int stockIconId)
@@ -136,6 +156,17 @@ internal sealed class FileList : UserControl
         }
 
         int count = _model.Items.Count;
+        if (!ReferenceEquals(_shownItems, _model.Items))
+        {
+            // A new list never keeps the old rows selected: the model has reset its selection too.
+            if (_shownCount > 0 && _list.IsHandleCreated)
+            {
+                SetAllRowsSelected(false);
+            }
+
+            _shownItems = _model.Items;
+        }
+
         _list.VirtualListSize = count;
         _list.Invalidate();
         if (count != _shownCount && count > 0)
@@ -149,17 +180,82 @@ internal sealed class FileList : UserControl
         string? text = _model.Message;
         _message.Text = text ?? "";
         _message.Visible = text != null;
+        RenderCount();
         RenderSummary();
     }
 
-    /// <summary>The "N conflicts" line under the list; hidden when there is none.</summary>
+    /// <summary>The "N of M files" count under the list: it reads the model's batch at once, never waiting for the preview.</summary>
+    private void RenderCount()
+    {
+        if (IsDisposed)
+        {
+            return;
+        }
+
+        string text = _model.State == FileListState.Loaded && _model.Items.Count > 0
+            ? FileListText.SelectionCount(_model.Batch.Count, _model.Items.Count, CultureInfo.CurrentCulture)
+            : "";
+        _count.Text = text;
+        _count.AccessibleName = text;
+        UpdateStrip();
+    }
+
+    /// <summary>The "N conflicts" line under the list; empty when there is none.</summary>
     private void RenderSummary()
     {
         string text = _preview.ConflictSummary;
         _summary.Text = text;
         _summary.AccessibleName = text;
         _summary.ForeColor = SystemInformation.HighContrast ? SystemColors.WindowText : ConflictColor;
-        _summary.Visible = text.Length > 0;
+        UpdateStrip();
+    }
+
+    private void UpdateStrip()
+    {
+        _strip.Visible = _count.Text.Length > 0 || _summary.Text.Length > 0;
+    }
+
+    /// <summary>Every selection event only schedules one read; the read takes the list's selection as it is then.</summary>
+    private void ScheduleSelectionRead()
+    {
+        if (_selectionReadPending || !IsHandleCreated)
+        {
+            return;
+        }
+
+        _selectionReadPending = true;
+        BeginInvoke(new Action(ReadSelection));
+    }
+
+    private void ReadSelection()
+    {
+        _selectionReadPending = false;
+        if (IsDisposed)
+        {
+            return;
+        }
+
+        // One O(k) copy: in virtual mode each SelectedIndices[i] walks from the start.
+        var rows = new int[_list.SelectedIndices.Count];
+        _list.SelectedIndices.CopyTo(rows, 0);
+        _model.SetSelection(rows);
+    }
+
+    private void OnListKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.KeyCode == Keys.A && e.Control && !e.Alt && !e.Shift)
+        {
+            SetAllRowsSelected(true);
+            ScheduleSelectionRead();
+            e.Handled = e.SuppressKeyPress = true;
+        }
+    }
+
+    /// <summary>Selects or clears every row with one message: 10 000 SelectedIndices.Add calls would freeze the window.</summary>
+    private void SetAllRowsSelected(bool selected)
+    {
+        var item = new LvItem { stateMask = LvisSelected, state = selected ? LvisSelected : 0 };
+        SendMessage(_list.Handle, LvmSetItemState, (IntPtr)(-1), ref item);
     }
 
     /// <summary>Repaints the visible rows: the virtual list asks for them again. The size and scroll position stay.</summary>
@@ -244,6 +340,33 @@ internal sealed class FileList : UserControl
 
     [DllImport("uxtheme.dll", CharSet = CharSet.Unicode)]
     private static extern int SetWindowTheme(IntPtr hWnd, string pszSubAppName, string? pszSubIdList);
+
+    private const int LvmSetItemState = 0x102B;
+    private const int LvisSelected = 0x2;
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, ref LvItem lParam);
+
+    /// <summary>The Win32 LVITEM (comctl32 version 6 layout).</summary>
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    private struct LvItem
+    {
+        public uint mask;
+        public int iItem;
+        public int iSubItem;
+        public int state;
+        public int stateMask;
+        public IntPtr pszText;
+        public int cchTextMax;
+        public int iImage;
+        public IntPtr lParam;
+        public int iIndent;
+        public int iGroupId;
+        public uint cColumns;
+        public IntPtr puColumns;
+        public IntPtr piColFmt;
+        public int iGroup;
+    }
 
     /// <summary>The shell's two stock icons for the list: folder and generic file.</summary>
     private static class StockIcons

@@ -41,9 +41,9 @@ public sealed class PreviewModelTests
         return panel;
     }
 
-    private static FakeRulePanelModel PanelOf(Func<string, IRenameRule?> build, string text = "")
+    private static FakeRulePanelModel PanelOf(Func<string, IRenameRule?> build, string text = "", RuleStage stage = RuleStage.Replace)
     {
-        var panel = new FakeRulePanelModel(RuleStage.Replace, build, "&Replace");
+        var panel = new FakeRulePanelModel(stage, build, "&Replace");
         panel.Text = text;
         return panel;
     }
@@ -601,5 +601,174 @@ public sealed class PreviewModelTests
         Assert.False(preview.StatusForRow(1).IsConflict);
         Assert.Equal("", preview.StatusForRow(1).Text);
         Assert.Equal(1, preview.Snapshot.ErrorCount);
+    }
+
+    private async Task<PreviewModel> BuildLoaded(FakeRulePanelModel panel)
+    {
+        PreviewModel preview = Build(panel);
+        panel.Enabled = true;
+        await _files.LoadAsync(@"C:\A");
+        await preview.Pending;
+        return preview;
+    }
+
+    [Fact]
+    public async Task NoSelection_EveryRowIsInTheBatch()
+    {
+        PreviewModel preview = await BuildLoaded(ReplacePanel("a"));
+
+        Assert.Equal("_1.txt", preview.CellForRow(0).Text);
+        Assert.Equal("_2.txt", preview.CellForRow(1).Text);
+        Assert.Equal("b.txt", preview.CellForRow(2).Text);
+        Assert.True(preview.Snapshot.Batch.IsWholeList);
+    }
+
+    [Fact]
+    public async Task Selection_OnlySelectedRowsHaveANewName()
+    {
+        PreviewModel preview = await BuildLoaded(ReplacePanel("a"));
+
+        _files.SetSelection(new[] { 0, 2 });
+        _delay.ReleaseAll();
+        await preview.Pending;
+
+        Assert.Equal(new PreviewCell("_1.txt", PreviewCellKind.Changed), preview.CellForRow(0), CellComparer.Instance);
+        Assert.Equal(new PreviewCell("b.txt", PreviewCellKind.Unchanged), preview.CellForRow(2), CellComparer.Instance);
+        Assert.Equal(PreviewCellKind.None, preview.CellForRow(1).Kind);
+        Assert.Equal("", preview.StatusForRow(1).Text);
+        Assert.Equal(2, preview.Snapshot.Results.Count);
+    }
+
+    [Fact]
+    public async Task UnselectedRow_HasNoStatus()
+    {
+        PreviewModel preview = await BuildLoaded(PanelOf(_ => new RenameToRule("x.txt")));
+
+        _files.SetSelection(new[] { 0 });
+        _delay.ReleaseAll();
+        await preview.Pending;
+
+        Assert.False(preview.StatusForRow(0).IsConflict);
+        Assert.Equal("", preview.StatusForRow(1).Text);
+        Assert.False(preview.StatusForRow(1).IsConflict);
+        Assert.Equal("", preview.StatusForRow(2).Text);
+        Assert.Equal("", preview.ConflictSummary);
+    }
+
+    [Fact]
+    public async Task UnselectedFile_StillCausesTargetExists()
+    {
+        PreviewModel preview = await BuildLoaded(PanelOf(_ => new ReplaceRule("a1", "b")));
+
+        _files.SetSelection(new[] { 0 });
+        _delay.ReleaseAll();
+        await preview.Pending;
+
+        Assert.Equal(Message(ConflictCode.TargetExists), preview.StatusForRow(0).Text);
+        Assert.Equal("1 conflict", preview.ConflictSummary);
+    }
+
+    [Fact]
+    public async Task Selection_InClickOrder_RunsInListOrder_IndexesFromZero()
+    {
+        var rule = new ContextRecordingRule();
+        PreviewModel preview = await BuildLoaded(PanelOf(_ => rule));
+        Assert.Equal(3, rule.Calls.Count);
+
+        // Rules run on the pool in order for one run: take only what the selection's run recorded.
+        int skip = rule.Calls.Count;
+        _files.SetSelection(new[] { 2, 0 });
+        _delay.ReleaseAll();
+        await preview.Pending;
+
+        Assert.Equal(
+            new[] { ("a1.txt", 0, 2), ("b.txt", 1, 2) },
+            rule.Calls.Skip(skip).ToArray());
+    }
+
+    [Fact]
+    public async Task Selection_Numbering_FollowsTheList()
+    {
+        PreviewModel preview = await BuildLoaded(
+            PanelOf(_ => new NumberingRule(NumberingMode.Suffix, start: 1, pad: 2, separator: "_"), stage: RuleStage.Numbering));
+
+        _files.SetSelection(new[] { 2, 1 });
+        _delay.ReleaseAll();
+        await preview.Pending;
+
+        Assert.Equal("a2_01.txt", preview.CellForRow(1).Text);
+        Assert.Equal("b_02.txt", preview.CellForRow(2).Text);
+        Assert.Equal(PreviewCellKind.None, preview.CellForRow(0).Kind);
+    }
+
+    [Fact]
+    public async Task SelectionChange_RecomputesAfterTheDebounce()
+    {
+        PreviewModel preview = await BuildLoaded(ReplacePanel("a"));
+        PreviewSnapshot before = preview.Snapshot;
+        int changes = _changes;
+
+        _files.SetSelection(new[] { 1 });
+
+        Assert.Equal(new[] { TimeSpan.FromMilliseconds(150) }, _delay.Calls);
+        Assert.Same(before, preview.Snapshot);
+        Assert.Equal("_1.txt", preview.CellForRow(0).Text);
+        _delay.ReleaseAll();
+        await preview.Pending;
+
+        Assert.Equal(1, preview.Snapshot.Batch.Count);
+        Assert.Equal(changes + 1, _changes);
+        Assert.Equal(PreviewCellKind.None, preview.CellForRow(0).Kind);
+    }
+
+    [Fact]
+    public async Task SelectionChange_WithNoFolderLoaded_DoesNothing()
+    {
+        PreviewModel preview = Build(ReplacePanel("a"));
+
+        _files.SetSelection(Array.Empty<int>());
+
+        Assert.Empty(_delay.Calls);
+        Assert.Same(PreviewSnapshot.Empty, preview.Snapshot);
+        await preview.Pending;
+    }
+
+    [Fact]
+    public async Task RuleChange_KeepsTheSelection()
+    {
+        FakeRulePanelModel panel = ReplacePanel("a");
+        PreviewModel preview = await BuildLoaded(panel);
+        _files.SetSelection(new[] { 0 });
+        _delay.ReleaseAll();
+        await preview.Pending;
+
+        panel.Text = "ab";
+        _delay.ReleaseAll();
+        await preview.Pending;
+
+        Assert.Equal(new[] { 0 }, preview.Snapshot.Batch.Rows);
+        Assert.Equal(PreviewCellKind.None, preview.CellForRow(1).Kind);
+    }
+
+    [Fact]
+    public async Task TenThousandItems_SelectHalf_FollowsTheList()
+    {
+        RenameItem[] items = Enumerable.Range(0, 10000).Select(i => File($"f{i:D5}.txt", folder: @"C:\Big")).ToArray();
+        _source.SetEntries(@"C:\Big", items);
+        PreviewModel preview = Build(PanelOf(_ => new NumberingRule(NumberingMode.Suffix, start: 1, pad: 5, separator: "_"), stage: RuleStage.Numbering));
+        await _files.LoadAsync(@"C:\Big");
+        await preview.Pending;
+
+        _files.SetSelection(Enumerable.Range(0, 5000).Select(i => 9999 - (2 * i)).ToArray());
+        _delay.ReleaseAll();
+        await preview.Pending;
+
+        Assert.Equal(5000, preview.Snapshot.Results.Count);
+        Assert.True(preview.Snapshot.Batch.TryGetIndex(1, out int first));
+        Assert.Equal(0, first);
+        Assert.True(preview.Snapshot.Batch.TryGetIndex(9999, out int last));
+        Assert.Equal(4999, last);
+        Assert.Equal(PreviewCellKind.None, preview.CellForRow(0).Kind);
+        Assert.Equal(PreviewCellKind.None, preview.CellForRow(9998).Kind);
     }
 }
