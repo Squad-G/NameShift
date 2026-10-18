@@ -1,6 +1,6 @@
 # NS-2: Replace rule
 
-Status: Ready
+Status: In Progress
 Depends on: NS-1
 Area: engine
 
@@ -28,3 +28,4 @@ Find text in names and replace it, the most used rename operation.
 ## Log
 - 2026-10-18: created (po).
 - 2026-10-18: set Ready, first round of the minimal usable slice (po).
+- 2026-10-18: In Progress, branch feature/NS-2-replace (builder).
