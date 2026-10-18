@@ -42,8 +42,8 @@ IDs), not the rank: the rank is the row order.
 | 31 | [NS-31 Panels for RegEx, Move/Copy, Auto date and Append folder](NS-31-lastpanels.md) | Draft | NS-11, NS-24, NS-25, NS-26, NS-28 |
 | 32 | [NS-32 Filters: mask, regex, kinds and length](NS-32-filterengine.md) | Draft | NS-1 |
 | 33 | [NS-33 Filters panel and sub-folders option](NS-33-filterui.md) | Draft | NS-32, NS-51 |
-| 34 | [NS-34 Copy or move to another folder (engine and executor)](NS-34-copymove.md) | Draft | NS-8, NS-9 |
-| 35 | [NS-35 Copy/move to location panel](NS-35-copymoveui.md) | Draft | NS-34, NS-15 |
+| 34 | [NS-34 Copy or move to another folder (engine and executor)](NS-34-copymove.md) | Cancelled | NS-8, NS-9 |
+| 35 | [NS-35 Copy/move to location panel](NS-35-copymoveui.md) | Cancelled | NS-34, NS-15 |
 | 36 | [NS-36 Save and load presets](NS-36-presets.md) | Draft | NS-12 |
 | 37 | [NS-37 Remember last settings](NS-37-settings.md) | Draft | NS-36 |
 | 38 | [NS-38 Command line: apply a preset to a folder](NS-38-clicore.md) | Draft | NS-36, NS-8, NS-9 |

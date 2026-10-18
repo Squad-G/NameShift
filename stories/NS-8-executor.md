@@ -19,7 +19,7 @@ Turn a checked plan into real renames without losing a file, even for swaps and 
 9. Given folders in the plan, then they are renamed like files, children are never needed because paths are rebuilt after parents.
 
 ## Out of scope
-- Writing the undo journal (NS-9), copy/move (later).
+- Writing the undo journal (NS-9), copying or moving files to another folder (dropped: NameShift only renames, NS-34).
 
 ## Decisions
 - Never overwrite, whatever the source of a collision. **Decision:** this is the product's core safety rule, enforced here at run time and not only by the preview checks (po, 2026-10-18).

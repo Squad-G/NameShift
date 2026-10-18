@@ -1,6 +1,6 @@
 # NS-34: Copy or move to another folder (engine and executor)
 
-Status: Draft
+Status: Cancelled
 Depends on: NS-8, NS-9
 Area: app
 
@@ -20,8 +20,9 @@ Rename and send the files to another folder in one go.
 - Anything not listed above.
 
 ## Decisions
-- OPEN QUESTION for David (blocks Ready): this story makes NameShift delete files for the first time (the source after a cross-drive move, and the copies on Revert). May it? **Recommended default:** yes, with these safeguards: a file is deleted only after the copy is verified by size and modified time (plus a content hash up to a size limit); a copy is removed on Revert only if it is unchanged; nothing is ever deleted if any check fails; the delete goes to the Recycle Bin when possible; and the same-drive case is a plain rename and deletes nothing. Alternative if David prefers no deletion at all: offer only copy, and move on the same drive only (po, 2026-10-18).
+- Copy or move to another folder, and the file deletion it needs? **Decision (David, 2026-10-18):** dropped: NameShift only renames; it never copies, moves or deletes files.
 - Delete copies on Revert? **Decision:** yes only the ones this batch created and only if their size and date are unchanged (po, 2026-10-18).
 
 ## Log
 - 2026-10-18: created (po).
+- 2026-10-18: cancelled: David decided NameShift is a pure renamer, with no copy or move to another folder (tech-lead).

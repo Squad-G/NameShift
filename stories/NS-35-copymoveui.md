@@ -1,6 +1,6 @@
 # NS-35: Copy/move to location panel
 
-Status: Draft
+Status: Cancelled
 Depends on: NS-34, NS-15
 Area: app
 
@@ -17,7 +17,8 @@ Choose copy or move and a destination in the window.
 - Anything not listed above.
 
 ## Decisions
-- None needed.
+- Copy/move panel? **Decision (David, 2026-10-18):** dropped: NameShift only renames; it never copies, moves or deletes files (NS-34).
 
 ## Log
 - 2026-10-18: created (po).
+- 2026-10-18: cancelled: David decided NameShift is a pure renamer, with no copy or move to another folder (tech-lead).

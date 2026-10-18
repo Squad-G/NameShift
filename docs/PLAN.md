@@ -29,12 +29,12 @@ Goal: a modern, maintained, lightweight replacement for the classic "panel of re
 10. Append folder name: prefix/suffix, levels, separator.
 11. Extension: same, lower, upper, fixed, extra, remove.
 
-Plus filters (mask, regex, folders/files/hidden/subfolders, length limits) and copy/move to another folder.
+Plus filters (mask, regex, folders/files/hidden/subfolders, length limits). NameShift only renames: it never copies, moves or deletes files (David, 2026-10-18).
 
 ## Build order
 
 1. Engine: pipeline + rules 1–11 with tests; conflict detection (duplicate targets, invalid chars, too-long paths).
 2. Window: tree, list, live preview, Rename, undo log.
-3. Filters and copy/move to location.
+3. Filters.
 4. Save/load presets; remember last settings.
 5. Installer (Inno Setup), code signing later, GitHub Releases.

@@ -11,7 +11,7 @@ Know which names cannot be used, and why, before pressing Rename.
 1. Given any conflict flag from NS-5, NS-6 or NS-7 (InvalidCharacter, ReservedName, TrailingDotOrSpace, EmptyName, NameTooLong, DuplicateTarget, TargetExists, PathTooLong), then the row is marked red and a Status column states the reason in plain words.
 2. Given conflicts, then a summary under the list says `N conflicts` (and nothing when there are none).
 3. Given a conflict, then it is also shown by an icon or text, never by colour alone (accessibility).
-4. Given the existing-name check (NS-6), then it reads the folder's real entries including hidden and system files, not the visible list.
+4. Given a `TargetExists` flag, then it is shown as NS-6 computes it (where the existing names come from is defined once, in NS-6:3).
 5. Given a file that is not selected (NS-14), then its Status is empty; it can still cause `TargetExists` on a selected file.
 
 ## Out of scope
