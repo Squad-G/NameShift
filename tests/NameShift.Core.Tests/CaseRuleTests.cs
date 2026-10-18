@@ -121,11 +121,17 @@ public sealed class CaseRuleTests
             "The Lord of the USA.txt",
             RunOne(Title("of, the, USA"), "THE LORD OF THE USA.txt").NewName);
 
+    [Fact]
+    public void Run_Title_AnAllLowercaseExceptionAsFirstWordIsCapitalised() =>
+        Assert.Equal("Of Mice.txt", RunOne(Title("of"), "of mice.txt").NewName);
+
     [Theory]
-    [InlineData("usa trip.txt", "USA", "USA Trip.txt")]
-    [InlineData("of mice.txt", "of", "Of Mice.txt")]
-    public void Run_Title_AListedFirstWordIsStillCapitalised(string name, string exceptions, string expected) =>
-        Assert.Equal(expected, RunOne(Title(exceptions), name).NewName);
+    [InlineData(CaseMode.Lower, "The USA Trip.txt", "the usa trip.txt")]
+    [InlineData(CaseMode.Upper, "the iphone trip.txt", "THE IPHONE TRIP.txt")]
+    public void Run_LowerAndUpper_IgnoreTheExceptions(CaseMode mode, string name, string expected) =>
+        Assert.Equal(
+            expected,
+            RunOne(new CaseRule(mode, CaseRule.ParseExceptions("the, USA, iPhone")), name).NewName);
 
     [Fact]
     public void Run_Title_AnExceptionWithAnUpperCaseLetterIsWrittenAsListedEvenFirst() =>

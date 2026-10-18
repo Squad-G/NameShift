@@ -31,10 +31,11 @@ public sealed class CaseRule : IRenameRule
                 continue;
             }
 
-            normalised.Add(trimmed!);
-            if (!exceptionsByWord.ContainsKey(trimmed!))
+            var word = trimmed!;
+            normalised.Add(word);
+            if (!exceptionsByWord.ContainsKey(word))
             {
-                exceptionsByWord.Add(trimmed!, trimmed!);
+                exceptionsByWord.Add(word, word);
             }
         }
 
@@ -93,6 +94,7 @@ public sealed class CaseRule : IRenameRule
     /// <summary>Upper-cases the first letter-or-digit of <paramref name="word"/> when it is a letter.</summary>
     private static string Capitalise(string word)
     {
+        // A word starting with a surrogate-pair letter (outside the BMP) is not capitalised: rare, out of scope.
         for (var i = 0; i < word.Length; i++)
         {
             if (!char.IsLetterOrDigit(word[i]))
