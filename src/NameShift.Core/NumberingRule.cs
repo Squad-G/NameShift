@@ -78,7 +78,8 @@ public sealed class NumberingRule : IRenameRule
                 return name.WithBaseName(baseName + Separator + number);
             default:
                 var index = TextPosition.ToInsertIndex(InsertPosition!.Value, baseName.Length, fromEnd: false);
-                return name.WithBaseName(baseName.Insert(index, number + Separator));
+                var separator = index < baseName.Length ? Separator : "";
+                return name.WithBaseName(baseName.Insert(index, number + separator));
         }
     }
 

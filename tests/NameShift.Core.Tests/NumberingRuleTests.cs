@@ -37,6 +37,13 @@ public sealed class NumberingRuleTests
             Run(new NumberingRule(NumberingMode.Insert, insertPosition: 10), "ab.txt")[0].NewName);
 
     [Theory]
+    [InlineData(3)]
+    [InlineData(10)]
+    public void Run_InsertAtOrPastTheEnd_AddsNoSeparator(int position) =>
+        Assert.Equal("ab1.txt",
+            Run(new NumberingRule(NumberingMode.Insert, separator: "_", insertPosition: position), "ab.txt")[0].NewName);
+
+    [Theory]
     [InlineData(null)]
     [InlineData(0)]
     [InlineData(-1)]
@@ -117,6 +124,15 @@ public sealed class NumberingRuleTests
         var result = new RenamePipeline([new NumberingRule(pad: 2, separator: "_")]).Run([folder])[0];
 
         Assert.Equal("My.Folder_01", result.NewName);
+    }
+
+    [Fact]
+    public void Run_MaxPad_IsAccepted()
+    {
+        var rule = new NumberingRule(pad: NumberingRule.MaxPad);
+
+        Assert.Equal(255, rule.Pad);
+        Assert.Equal("a" + new string('0', 254) + "1.txt", Run(rule, "a.txt")[0].NewName);
     }
 
     [Fact]

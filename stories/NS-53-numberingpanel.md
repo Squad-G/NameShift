@@ -19,6 +19,7 @@ Use the numbering rule (NS-17) from the window, so the first usable version can 
 
 ## Decisions
 - Default separator? **Decision:** `_`, the most common choice in file names (po, 2026-10-18).
+- Insert counted from the end (as in Add)? **Decision:** it isn't offered for numbering; a later story if asked (tech-lead, from the NS-17 review).
 
 ## Log
 - 2026-10-18: created after review so numbering is in the first round (po).
