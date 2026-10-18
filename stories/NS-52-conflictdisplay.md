@@ -1,6 +1,6 @@
 # NS-52: Conflict display
 
-Status: In Review
+Status: Done
 Depends on: NS-13, NS-5, NS-6, NS-7
 Area: app
 
@@ -34,3 +34,4 @@ Know which names cannot be used, and why, before pressing Rename.
 - 2026-10-18: criterion 6 added, control characters in a conflict's detail are shown escaped (tech-lead, from the NS-5 review).
 - 2026-10-18: In Progress, branch feature/NS-52-conflicts (builder).
 - 2026-10-18: In Review. Checks run in the preview's run (`PreviewModel.Compute`), the snapshot carries the `ConflictReport` (`ConflictCount`, `ErrorCount`); the full listing comes from the same disk pass as the list (`FileListing.ExistingNames`); Status column plus a `N conflicts` summary under the list. Criterion 5's "Status empty for unselected files" half arrives with NS-14 through `PreviewModel.TryGetRow`; the "still causes TargetExists" half is covered now (`NameOutsideTheBatch_IsTargetExists`). Builder.
+- 2026-10-18: Done (tech-lead): merged after VERDICT: APPROVE, with the three review nits folded in (a conflict check that throws ends as `HasFailed`; the 10 000-item test asserts 5 000 conflict rows; `StaleRun_ConflictsAreDiscarded` now waits until the old run is blocked on its last item, so it pins the run's cancellation and version checks). David's manual checks are pending; criterion 5's "Status empty when unselected" half comes with NS-14.

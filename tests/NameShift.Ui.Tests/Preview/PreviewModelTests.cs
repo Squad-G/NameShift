@@ -547,12 +547,15 @@ public sealed class PreviewModelTests
         var gate = new ManualResetEventSlim(false);
         try
         {
-            FakeRulePanelModel panel = PanelOf(t =>
-                t == "none" ? new CountingRule(RuleStage.Replace, t, new ApplyCounter()) : new RenameToRule("x.txt", "a", gate));
+            // The older run renames all three files to x.txt and waits on the last one (b.txt): the pipeline's per-item
+            // cancellation check has already passed, so only the run's own cancellation and version checks discard it.
+            var stale = new RenameToRule("x.txt", gate: gate, gateItemName: "b.txt");
+            FakeRulePanelModel panel = PanelOf(t => t == "none" ? new CountingRule(RuleStage.Replace, t, new ApplyCounter()) : stale);
             PreviewModel preview = Build(panel);
             panel.Enabled = true;
             await _files.LoadAsync(@"C:\A");
             Task firstRun = preview.Pending;
+            Assert.True(stale.Waiting.Wait(TimeSpan.FromSeconds(10)));
 
             panel.Text = "none";
             _delay.ReleaseAll();
@@ -570,6 +573,21 @@ public sealed class PreviewModelTests
         {
             gate.Set();
         }
+    }
+
+    [Fact]
+    public async Task CheckThatThrows_EndsAsAFailure()
+    {
+        // An item whose folder is not the listed folder: DuplicateTargetCheck has no existing names for it and throws.
+        _source.SetEntries(@"C:\C", File("q.txt", folder: @"C:\Elsewhere"));
+        PreviewModel preview = Build(EnabledPanelOf(_ => new RenameToRule("x.txt")));
+
+        await _files.LoadAsync(@"C:\C");
+        await preview.Pending;
+
+        Assert.True(preview.HasFailed);
+        Assert.Same(PreviewSnapshot.Empty, preview.Snapshot);
+        Assert.Equal("", preview.ConflictSummary);
     }
 
     [Fact]

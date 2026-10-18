@@ -130,6 +130,7 @@ public sealed class ConflictCheckerTests
         Assert.Equal(count, report.Count);
         Assert.Equal([new Conflict(ConflictCode.DuplicateTarget)], report.ForItem(0));
         Assert.Empty(report.ForItem(1));
+        Assert.Equal(count / 2, Enumerable.Range(0, count).Count(i => report.ForItem(i).Count > 0));
         Assert.True(watch.Elapsed < TimeSpan.FromSeconds(1), watch.Elapsed.ToString());
     }
 }

@@ -114,19 +114,25 @@ internal sealed class BrokenRule : IRenameRule
     public NameParts Apply(NameParts name, ItemContext context) => name;
 }
 
-/// <summary>Gives every item (or only those whose name starts with the given text) one fixed full name, after waiting for the gate if there is one.</summary>
+/// <summary>Gives every item (or only those whose name starts with the given text) one fixed full name, after waiting
+/// for the gate if there is one (for every renamed item, or only for the item named by gateItemName).</summary>
 internal sealed class RenameToRule : IRenameRule
 {
     private readonly string _fullName;
     private readonly string? _onlyItemNameStart;
     private readonly ManualResetEventSlim? _gate;
+    private readonly string? _gateItemName;
 
-    public RenameToRule(string fullName, string? onlyItemNameStart = null, ManualResetEventSlim? gate = null)
+    public RenameToRule(string fullName, string? onlyItemNameStart = null, ManualResetEventSlim? gate = null, string? gateItemName = null)
     {
         _fullName = fullName;
         _onlyItemNameStart = onlyItemNameStart;
         _gate = gate;
+        _gateItemName = gateItemName;
     }
+
+    /// <summary>Set when Apply starts waiting on the gate.</summary>
+    public ManualResetEventSlim Waiting { get; } = new ManualResetEventSlim(false);
 
     public RuleStage Stage => RuleStage.Replace;
 
@@ -139,7 +145,12 @@ internal sealed class RenameToRule : IRenameRule
             return name;
         }
 
-        _gate?.Wait();
+        if (_gate != null && (_gateItemName == null || _gateItemName == context.Item.Name))
+        {
+            Waiting.Set();
+            _gate.Wait();
+        }
+
         return NameParts.Split(_fullName, context.Item.Kind);
     }
 }
