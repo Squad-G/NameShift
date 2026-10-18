@@ -1,6 +1,6 @@
 # NS-53: Numbering panel
 
-Status: In Progress
+Status: In Review
 Depends on: NS-11, NS-17
 Area: app
 
@@ -35,3 +35,4 @@ Use the numbering rule (NS-17) from the window, so the first usable version can 
 - 2026-10-18: criterion 6 added, BuildRule never throws (tech-lead, from the NS-11 review).
 - 2026-10-18: In Progress (builder).
 - 2026-10-18: criterion 5: NS-36 and NS-40 are Draft: the model's settings are plain properties ready for presets and the command line; nothing to wire yet (builder).
+- 2026-10-18: In Review (builder): Numbering panel model in NameShift.Ui, thin panel in the App registered at stage 9.
