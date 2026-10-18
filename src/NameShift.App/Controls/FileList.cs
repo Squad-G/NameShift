@@ -18,15 +18,16 @@ internal sealed class FileList : UserControl
     private const int FolderImage = 0;
     private const int FileImage = 1;
 
-    // Green and red with at least 4.5:1 contrast on white; bold and the "Error: " prefix are the non-colour cues.
+    // Green and red with at least 4.5:1 contrast on white; bold, the "Error: " prefix and the Status text are the non-colour cues.
     private static readonly Color ChangedColor = Color.FromArgb(0x10, 0x7C, 0x10);
-    private static readonly Color ErrorColor = Color.FromArgb(0xC4, 0x2B, 0x1C);
+    private static readonly Color ConflictColor = Color.FromArgb(0xC4, 0x2B, 0x1C);
 
     private readonly FileListModel _model;
     private readonly PreviewModel _preview;
     private readonly Action<string> _showStatus;
     private readonly ListView _list = new BufferedListView();
     private readonly Label _message = new Label();
+    private readonly Label _summary = new Label();
     private readonly ImageList _icons = new ImageList { ColorDepth = ColorDepth.Depth32Bit };
     private readonly List<Bitmap> _iconBitmaps = new List<Bitmap>();
     private int _shownCount = -1;
@@ -87,6 +88,7 @@ internal sealed class FileList : UserControl
 
         _list.Columns.Add(Strings.ColumnName, LogicalToDeviceUnits(280));
         _list.Columns.Add(Strings.ColumnNewName, LogicalToDeviceUnits(280));
+        _list.Columns.Add(Strings.ColumnStatus, LogicalToDeviceUnits(240));
         _list.Columns.Add(Strings.ColumnSize, LogicalToDeviceUnits(90), HorizontalAlignment.Right);
         _list.Columns.Add(Strings.ColumnModified, LogicalToDeviceUnits(150));
 
@@ -104,7 +106,16 @@ internal sealed class FileList : UserControl
         _message.Visible = false;
         _list.Controls.Add(_message);
 
+        _summary.Dock = DockStyle.Bottom;
+        _summary.AutoSize = false;
+        _summary.Height = LogicalToDeviceUnits(22);
+        _summary.TextAlign = ContentAlignment.MiddleLeft;
+        _summary.Padding = new Padding(LogicalToDeviceUnits(4), 0, 0, 0);
+        _summary.Visible = false;
+
+        // Fill first, then Bottom: docking runs back to front, so the label takes its strip and the list the rest.
         Controls.Add(_list);
+        Controls.Add(_summary);
     }
 
     private void AddStockIcon(int stockIconId)
@@ -138,6 +149,17 @@ internal sealed class FileList : UserControl
         string? text = _model.Message;
         _message.Text = text ?? "";
         _message.Visible = text != null;
+        RenderSummary();
+    }
+
+    /// <summary>The "N conflicts" line under the list; hidden when there is none.</summary>
+    private void RenderSummary()
+    {
+        string text = _preview.ConflictSummary;
+        _summary.Text = text;
+        _summary.AccessibleName = text;
+        _summary.ForeColor = SystemInformation.HighContrast ? SystemColors.WindowText : ConflictColor;
+        _summary.Visible = text.Length > 0;
     }
 
     /// <summary>Repaints the visible rows: the virtual list asks for them again. The size and scroll position stay.</summary>
@@ -149,6 +171,7 @@ internal sealed class FileList : UserControl
         }
 
         _list.Invalidate();
+        RenderSummary();
         if (_preview.HasFailed)
         {
             _showStatus(Strings.SomethingWentWrong);
@@ -169,17 +192,19 @@ internal sealed class FileList : UserControl
         // WinForms can ask for a row while the size changes: answer with an empty row.
         if (index < 0 || index >= _model.Items.Count)
         {
-            return new ListViewItem(new[] { "", "", "", "" });
+            return new ListViewItem(new[] { "", "", "", "", "" });
         }
 
         RenameItem item = _model.Items[index];
         CultureInfo culture = CultureInfo.CurrentCulture;
         PreviewCell cell = _preview.CellForRow(index);
+        StatusCell status = _preview.StatusForRow(index);
         var row = new ListViewItem(
             new[]
             {
                 item.Name,
                 cell.Text,
+                status.Text,
                 FileListText.Size(item, culture),
                 FileListText.Modified(item, culture),
             },
@@ -188,6 +213,13 @@ internal sealed class FileList : UserControl
             UseItemStyleForSubItems = false,
         };
         StyleNewName(row.SubItems[1], cell.Kind);
+        if (status.IsConflict)
+        {
+            Color color = SystemInformation.HighContrast ? SystemColors.WindowText : ConflictColor;
+            row.SubItems[1].ForeColor = color;
+            row.SubItems[2].ForeColor = color;
+        }
+
         return row;
     }
 
@@ -205,7 +237,7 @@ internal sealed class FileList : UserControl
                 subItem.ForeColor = SystemColors.GrayText;
                 break;
             case PreviewCellKind.Error:
-                subItem.ForeColor = highContrast ? SystemColors.WindowText : ErrorColor;
+                subItem.ForeColor = highContrast ? SystemColors.WindowText : ConflictColor;
                 break;
         }
     }

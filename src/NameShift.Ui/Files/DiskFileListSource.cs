@@ -14,18 +14,20 @@ public sealed class DiskFileListSource : IFileListSource
         try
         {
             var items = new List<RenameItem>();
+            var names = new List<string>();
 
             // One pass: on .NET Framework the entries come pre-filled from the find data, so reading
             // attributes, size and times costs no extra disk call per entry.
             foreach (FileSystemInfo info in new DirectoryInfo(folderPath).EnumerateFileSystemInfos())
             {
+                names.Add(info.Name);
                 if (IsShown(info.Attributes))
                 {
                     items.Add(ToItem(info, folderPath));
                 }
             }
 
-            return FileListing.Ok(items);
+            return FileListing.Ok(items, names);
         }
         catch (Exception e)
         {

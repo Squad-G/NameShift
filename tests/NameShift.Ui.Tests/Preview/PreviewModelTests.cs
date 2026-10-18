@@ -390,4 +390,216 @@ public sealed class PreviewModelTests
             new RulePanelHostModel(Enumerable.Empty<IRulePanelModel>()),
             _files));
     }
+
+    private static FakeRulePanelModel EnabledPanelOf(Func<string, IRenameRule?> build)
+    {
+        FakeRulePanelModel panel = PanelOf(build);
+        panel.Enabled = true;
+        return panel;
+    }
+
+    private static string Message(ConflictCode code) => ConflictText.Message(new Conflict(code));
+
+    [Fact]
+    public async Task Duplicates_MarkBothRows_AndCount()
+    {
+        PreviewModel preview = Build(EnabledPanelOf(_ => new RenameToRule("x.txt", "a")));
+
+        await _files.LoadAsync(@"C:\A");
+        await preview.Pending;
+
+        foreach (int row in new[] { 0, 1 })
+        {
+            StatusCell cell = preview.StatusForRow(row);
+            Assert.True(cell.IsConflict);
+            Assert.Equal(Message(ConflictCode.DuplicateTarget), cell.Text);
+        }
+
+        Assert.False(preview.StatusForRow(2).IsConflict);
+        Assert.Equal("", preview.StatusForRow(2).Text);
+        Assert.Equal("2 conflicts", preview.ConflictSummary);
+    }
+
+    [Fact]
+    public async Task HiddenEntry_IsTargetExists()
+    {
+        _source.SetEntries(@"C:\H", new[] { "_.txt" }, File("a.txt", folder: @"C:\H"));
+        PreviewModel preview = Build(EnabledPanelOf(_ => new ReplaceRule("a", "_")));
+
+        await _files.LoadAsync(@"C:\H");
+        await preview.Pending;
+
+        StatusCell cell = preview.StatusForRow(0);
+        Assert.True(cell.IsConflict);
+        Assert.Equal(Message(ConflictCode.TargetExists), cell.Text);
+        Assert.Equal("1 conflict", preview.ConflictSummary);
+    }
+
+    [Fact]
+    public async Task NameOutsideTheBatch_IsTargetExists()
+    {
+        _source.SetListing(
+            @"C:\H",
+            FileListing.Ok(new[] { File("a.txt", folder: @"C:\H"), File("b.txt", folder: @"C:\H") }, new[] { "a.txt", "b.txt", "c.txt" }));
+        PreviewModel preview = Build(EnabledPanelOf(_ => new ReplaceRule("a", "c")));
+
+        await _files.LoadAsync(@"C:\H");
+        await preview.Pending;
+
+        Assert.Equal(Message(ConflictCode.TargetExists), preview.StatusForRow(0).Text);
+    }
+
+    [Fact]
+    public async Task InvalidCharacter_InStatus_IsEscaped()
+    {
+        PreviewModel preview = Build(EnabledPanelOf(_ => new ReplaceRule("b", "\u0001")));
+
+        await _files.LoadAsync(@"C:\A");
+        await preview.Pending;
+
+        StatusCell cell = preview.StatusForRow(2);
+        Assert.True(cell.IsConflict);
+        Assert.Contains("U+0001", cell.Text);
+        Assert.DoesNotContain(cell.Text, char.IsControl);
+    }
+
+    [Fact]
+    public async Task PathTooLong_InStatus()
+    {
+        string folder = @"C:\" + new string('f', 247);
+        _source.SetEntries(folder, File("a.txt", folder: folder));
+        PreviewModel preview = Build(EnabledPanelOf(_ => new ReplaceRule("a", new string('x', 16))));
+
+        await _files.LoadAsync(folder);
+        await preview.Pending;
+
+        Assert.Equal(Message(ConflictCode.PathTooLong), preview.StatusForRow(0).Text);
+    }
+
+    [Fact]
+    public async Task NoConflicts_SummaryIsEmpty()
+    {
+        PreviewModel preview = Build(EnabledPanelOf(_ => new ReplaceRule("a", "_")));
+
+        await _files.LoadAsync(@"C:\A");
+        await preview.Pending;
+
+        Assert.Equal("", preview.ConflictSummary);
+        for (int row = 0; row < 3; row++)
+        {
+            Assert.False(preview.StatusForRow(row).IsConflict);
+            Assert.Equal("", preview.StatusForRow(row).Text);
+        }
+    }
+
+    [Fact]
+    public async Task StatusForRow_OutOfRangeOrCleared_IsNone()
+    {
+        PreviewModel preview = Build(EnabledPanelOf(_ => new RenameToRule("x.txt", "a")));
+        await _files.LoadAsync(@"C:\A");
+        await preview.Pending;
+        Assert.True(preview.StatusForRow(0).IsConflict);
+        Assert.False(preview.StatusForRow(-1).IsConflict);
+        Assert.False(preview.StatusForRow(3).IsConflict);
+
+        ManualResetEventSlim gate = _source.Gate(@"C:\B");
+        Task<bool> loading = _files.LoadAsync(@"C:\B");
+        try
+        {
+            Assert.Equal("", preview.StatusForRow(0).Text);
+            Assert.False(preview.StatusForRow(0).IsConflict);
+            Assert.Equal("", preview.ConflictSummary);
+        }
+        finally
+        {
+            gate.Set();
+            await loading;
+            await preview.Pending;
+        }
+    }
+
+    [Fact]
+    public async Task Checks_RunOffTheCallingThread()
+    {
+        var gate = new ManualResetEventSlim(false);
+        try
+        {
+            PreviewModel preview = Build(EnabledPanelOf(_ => new RenameToRule("x.txt", "a", gate)));
+
+            await _files.LoadAsync(@"C:\A");
+
+            Assert.False(preview.Pending.IsCompleted);
+            Assert.Equal("", preview.ConflictSummary);
+            gate.Set();
+            await preview.Pending;
+            Assert.Equal(preview.Snapshot.Results.Count, preview.Snapshot.Conflicts.Count);
+            Assert.Equal("2 conflicts", preview.ConflictSummary);
+        }
+        finally
+        {
+            gate.Set();
+        }
+    }
+
+    [Fact]
+    public async Task StaleRun_ConflictsAreDiscarded()
+    {
+        var gate = new ManualResetEventSlim(false);
+        try
+        {
+            // The older run renames all three files to x.txt and waits on the last one (b.txt): the pipeline's per-item
+            // cancellation check has already passed, so only the run's own cancellation and version checks discard it.
+            var stale = new RenameToRule("x.txt", gate: gate, gateItemName: "b.txt");
+            FakeRulePanelModel panel = PanelOf(t => t == "none" ? new CountingRule(RuleStage.Replace, t, new ApplyCounter()) : stale);
+            PreviewModel preview = Build(panel);
+            panel.Enabled = true;
+            await _files.LoadAsync(@"C:\A");
+            Task firstRun = preview.Pending;
+            Assert.True(stale.Waiting.Wait(TimeSpan.FromSeconds(10)));
+
+            panel.Text = "none";
+            _delay.ReleaseAll();
+            await preview.Pending;
+            PreviewSnapshot applied = preview.Snapshot;
+            Assert.Equal("", preview.ConflictSummary);
+
+            gate.Set();
+            await firstRun;
+
+            Assert.Same(applied, preview.Snapshot);
+            Assert.Equal("", preview.ConflictSummary);
+        }
+        finally
+        {
+            gate.Set();
+        }
+    }
+
+    [Fact]
+    public async Task CheckThatThrows_EndsAsAFailure()
+    {
+        // An item whose folder is not the listed folder: DuplicateTargetCheck has no existing names for it and throws.
+        _source.SetEntries(@"C:\C", File("q.txt", folder: @"C:\Elsewhere"));
+        PreviewModel preview = Build(EnabledPanelOf(_ => new RenameToRule("x.txt")));
+
+        await _files.LoadAsync(@"C:\C");
+        await preview.Pending;
+
+        Assert.True(preview.HasFailed);
+        Assert.Same(PreviewSnapshot.Empty, preview.Snapshot);
+        Assert.Equal("", preview.ConflictSummary);
+    }
+
+    [Fact]
+    public async Task ErrorRow_HasNoStatus()
+    {
+        PreviewModel preview = Build(EnabledPanelOf(_ => new ThrowingRule(RuleStage.Replace, 1, "boom")));
+
+        await _files.LoadAsync(@"C:\A");
+        await preview.Pending;
+
+        Assert.False(preview.StatusForRow(1).IsConflict);
+        Assert.Equal("", preview.StatusForRow(1).Text);
+        Assert.Equal(1, preview.Snapshot.ErrorCount);
+    }
 }

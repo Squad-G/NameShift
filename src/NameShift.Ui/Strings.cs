@@ -49,6 +49,30 @@ public static class Strings
 
     public static string ColumnNewName => Get(nameof(ColumnNewName));
 
+    public static string ColumnStatus => Get(nameof(ColumnStatus));
+
+    public static string ConflictInvalidCharacter => Get(nameof(ConflictInvalidCharacter));
+
+    public static string ConflictReservedName => Get(nameof(ConflictReservedName));
+
+    public static string ConflictTrailingDotOrSpace => Get(nameof(ConflictTrailingDotOrSpace));
+
+    public static string ConflictEmptyName => Get(nameof(ConflictEmptyName));
+
+    public static string ConflictNameTooLong => Get(nameof(ConflictNameTooLong));
+
+    public static string ConflictDuplicateTarget => Get(nameof(ConflictDuplicateTarget));
+
+    public static string ConflictTargetExists => Get(nameof(ConflictTargetExists));
+
+    public static string ConflictPathTooLong => Get(nameof(ConflictPathTooLong));
+
+    public static string ConflictSeparator => Get(nameof(ConflictSeparator));
+
+    public static string ConflictSummaryOne => Get(nameof(ConflictSummaryOne));
+
+    public static string ConflictSummaryMany => Get(nameof(ConflictSummaryMany));
+
     public static string ColumnSize => Get(nameof(ColumnSize));
 
     public static string ColumnModified => Get(nameof(ColumnModified));

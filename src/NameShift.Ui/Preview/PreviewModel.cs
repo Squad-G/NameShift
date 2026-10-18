@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NameShift.Core;
@@ -54,13 +55,30 @@ public sealed class PreviewModel
     /// <summary>The New Name cell of a list row; None when the snapshot is not for the list's current items or the row is out of range.</summary>
     public PreviewCell CellForRow(int row)
     {
-        // Invariant guard: Clear() keeps this true today; it protects NS-14 changing the input list.
-        if (!ReferenceEquals(Snapshot.Items, InputItems()) || row < 0 || row >= Snapshot.Results.Count)
+        return TryGetRow(row, out int index) ? PreviewText.For(Snapshot.Results[index]) : PreviewCell.None;
+    }
+
+    /// <summary>The Status cell of a list row: the conflicts' text; StatusCell.None when the row is not in the current snapshot or has no conflict.</summary>
+    public StatusCell StatusForRow(int row)
+    {
+        if (!TryGetRow(row, out int index))
         {
-            return PreviewCell.None;
+            return StatusCell.None;
         }
 
-        return PreviewText.For(Snapshot.Results[row]);
+        IReadOnlyList<Conflict> conflicts = Snapshot.Conflicts.ForItem(index);
+        return conflicts.Count == 0 ? StatusCell.None : new StatusCell(ConflictText.For(conflicts), true);
+    }
+
+    /// <summary>"N conflicts" for the line under the list; "" when there are none.</summary>
+    public string ConflictSummary => ConflictText.Summary(Snapshot.ConflictCount);
+
+    /// <summary>Maps a list row to its position in the snapshot; false when the snapshot is not for the list's current items or the row is out of range.</summary>
+    private bool TryGetRow(int row, out int index)
+    {
+        // Invariant guard: Clear() keeps this true today; it protects NS-14 changing the input list.
+        index = row;
+        return ReferenceEquals(Snapshot.Items, InputItems()) && row >= 0 && row < Snapshot.Results.Count;
     }
 
     /// <summary>The items the pipeline runs on (NS-14 will narrow this to the selection).</summary>
@@ -95,7 +113,26 @@ public sealed class PreviewModel
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
-    /// <summary>Runs the pipeline; true when the result was applied. Never throws.</summary>
+    /// <summary>The pipeline and the three conflict checks, in one run on the pool.</summary>
+    private static PreviewSnapshot Compute(
+        IReadOnlyList<IRenameRule> rules,
+        IReadOnlyList<RenameItem> items,
+        string folder,
+        IReadOnlyList<string> existingNames,
+        CancellationToken token)
+    {
+        IReadOnlyList<RenameResult> results = new RenamePipeline(rules).Run(items, token);
+        token.ThrowIfCancellationRequested();
+        var existing = new Dictionary<string, IReadOnlyCollection<string>>(StringComparer.OrdinalIgnoreCase)
+        {
+            [folder] = existingNames as IReadOnlyCollection<string> ?? existingNames.ToArray(),
+        };
+        IConflictCheck[] checks = { new InvalidNameCheck(), new DuplicateTargetCheck(existing), new PathLengthCheck() };
+        ConflictReport conflicts = ConflictChecker.Run(results, checks);
+        return new PreviewSnapshot(items, results, conflicts);
+    }
+
+    /// <summary>Runs the pipeline and the conflict checks; true when the result was applied. Never throws.</summary>
     private async Task<bool> RecomputeAsync(bool debounce)
     {
         // Old sources are not disposed: a running Task.Delay or Task.Run may still hold the token.
@@ -103,8 +140,7 @@ public sealed class PreviewModel
         var cts = new CancellationTokenSource();
         _current = cts;
         int version = ++_version;
-        IReadOnlyList<RenameItem> items;
-        IReadOnlyList<RenameResult> results;
+        PreviewSnapshot snapshot;
         try
         {
             if (debounce)
@@ -113,9 +149,10 @@ public sealed class PreviewModel
             }
 
             IReadOnlyList<IRenameRule> rules = _rules.Rules; // read after the delay: the latest settings
-            items = InputItems();
-            IReadOnlyList<RenameItem> input = items;
-            results = await Task.Run(() => new RenamePipeline(rules).Run(input, cts.Token), cts.Token);
+            IReadOnlyList<RenameItem> input = InputItems();
+            string folder = _files.FolderPath!;
+            IReadOnlyList<string> existing = _files.ExistingNames;
+            snapshot = await Task.Run(() => Compute(rules, input, folder, existing, cts.Token), cts.Token);
         }
         catch (OperationCanceledException) when (cts.IsCancellationRequested)
         {
@@ -142,7 +179,7 @@ public sealed class PreviewModel
             return false;
         }
 
-        Snapshot = new PreviewSnapshot(items, results);
+        Snapshot = snapshot;
         HasFailed = false;
         Changed?.Invoke(this, EventArgs.Empty);
         return true;

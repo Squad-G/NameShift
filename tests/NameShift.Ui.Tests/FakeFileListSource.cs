@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using NameShift.Core;
 using NameShift.Ui.Files;
@@ -20,6 +21,10 @@ internal sealed class FakeFileListSource : IFileListSource
         new RenameItem(name, folder, ItemKind.Folder);
 
     public void SetEntries(string path, params RenameItem[] items) => SetListing(path, FileListing.Ok(items));
+
+    /// <summary>Declares a folder with hidden or system entries: their names are listed but they are not items.</summary>
+    public void SetEntries(string path, string[] hiddenNames, params RenameItem[] items) =>
+        SetListing(path, FileListing.Ok(items, items.Select(i => i.Name).Concat(hiddenNames).ToArray()));
 
     public void SetListing(string path, FileListing listing) => _listings[path] = listing;
 

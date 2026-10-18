@@ -90,6 +90,24 @@ public sealed class DiskFileListSourceTests : IDisposable
         Assert.Equal(new[] { "visible-folder", "visible.txt" }, listing.Items.Select(i => i.Name).OrderBy(n => n, StringComparer.Ordinal));
     }
 
+    [Fact]
+    public void ListEntries_ExistingNames_IncludeHiddenAndSystemEntries()
+    {
+        MakeFile("visible.txt");
+        MakeFolder("visible-folder");
+        MakeFile("hidden.txt", FileAttributes.Hidden);
+        MakeFile("system.sys", FileAttributes.System);
+        MakeFolder("hidden-folder", FileAttributes.Directory | FileAttributes.Hidden);
+        MakeFolder("system-folder", FileAttributes.Directory | FileAttributes.System);
+
+        FileListing listing = _source.ListEntries(_temp);
+
+        Assert.Equal(
+            new[] { "hidden-folder", "hidden.txt", "system-folder", "system.sys", "visible-folder", "visible.txt" },
+            listing.ExistingNames.OrderBy(n => n, StringComparer.Ordinal));
+        Assert.Equal(2, listing.Items.Count);
+    }
+
     [Theory]
     [InlineData(FileAttributes.Normal, true)]
     [InlineData(FileAttributes.ReadOnly, true)]
