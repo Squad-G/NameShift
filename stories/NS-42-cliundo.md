@@ -1,7 +1,7 @@
 # NS-42: Command line: undo the last batch
 
 Status: Draft
-Depends on: NS-38
+Depends on: NS-38, NS-45
 Area: app
 
 ## Why

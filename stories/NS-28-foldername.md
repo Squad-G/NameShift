@@ -12,7 +12,7 @@ Add the name of the parent folder(s).
 2. Given levels 2 suffix with separator `-`, then `a-Photos-Paris.jpg` (outer folder first when reading left to right).
 3. Given levels greater than the depth, then the available ones are used.
 4. Given a file at a drive root, then no folder name is added.
-5. Given a folder name with invalid characters (impossible) or a drive name like `C:`, then the drive is not used.
+5. Given the path `C:\a.jpg` or a deeper path with levels larger than the depth, then the drive name (`C:`) is never used as a folder name.
 
 ## Out of scope
 - Anything not listed above.

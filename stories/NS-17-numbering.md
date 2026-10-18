@@ -1,6 +1,6 @@
 # NS-17: Numbering rule (basic)
 
-Status: Draft
+Status: Ready
 Depends on: NS-1
 Area: engine
 
@@ -14,7 +14,7 @@ Number files in order.
 4. Given pad 0 and 120 files, then numbers are not padded (`1`, `2`, ... `120`).
 5. Given a number wider than the pad (`100` with pad 2), then it is not cut.
 6. Given selected files only, then numbering starts at the start value for the first selected file and follows list order.
-7. Given a negative step, then numbers count down; numbers below 0 are flagged as an invalid result.
+7. Given a negative step, then numbers count down; a number below 0 is not produced: that item gets an error status (NS-1, "number below zero") and keeps its name.
 
 ## Out of scope
 - Hex, letters, roman, per-folder break (NS-29).
@@ -24,3 +24,4 @@ Number files in order.
 
 ## Log
 - 2026-10-18: created (po).
+- 2026-10-18: set Ready and added to the first round after review: numbering is the most common bulk-rename need, so the minimal usable slice includes it (with its panel, NS-53) (po).

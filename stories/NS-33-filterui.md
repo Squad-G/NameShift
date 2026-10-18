@@ -1,7 +1,7 @@
 # NS-33: Filters panel and sub-folders option
 
 Status: Draft
-Depends on: NS-32, NS-10
+Depends on: NS-32, NS-51
 Area: app
 
 ## Why
@@ -11,7 +11,7 @@ Filter the list from the window and include sub-folders.
 1. Given the filter panel, then every filter option is editable and the file list updates live.
 2. Given the sub-folders option on, then files of all sub-folders are listed with their relative folder shown, and renamed in place.
 3. Given the folder is huge, then listing sub-folders stays cancelable and the window responsive (checked by hand).
-4. Given the option is off by default.
+4. Given the app starts or the filter panel is reset, then the sub-folders option is off.
 
 ## Out of scope
 - Anything not listed above.

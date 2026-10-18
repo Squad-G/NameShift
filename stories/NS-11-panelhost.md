@@ -12,7 +12,7 @@ The bottom area where each rule is a panel I can switch on and reset.
 2. Given a panel has any non-default value and is enabled, then its title or border is highlighted so I see at a glance which rules are active; resetting it removes the highlight.
 3. Given a panel is unchecked, then its controls are disabled and it has no effect on the preview.
 4. Given I press a panel's reset button, then only that panel's settings return to their defaults and it is unchecked; other panels are untouched.
-5. Given any panel setting changes, then the rules list is rebuilt and the preview (NS-13) is notified within 200 ms of the last keystroke.
+5. Given any panel setting changes, then the rules list is rebuilt and the preview (NS-13) is notified at once, with no delay of its own: the preview alone debounces (150 ms), so delays never stack.
 6. Given more panels than fit, then the area scrolls; panels keep a minimum readable size (checked by hand).
 7. A panel is a reusable control with an interface (name, enabled, build rule, reset), so later rules add a panel without touching the host.
 

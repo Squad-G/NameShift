@@ -14,6 +14,7 @@ Reuse a set of rules.
 4. Given a preset with unknown or missing fields (older/newer version), then known fields load, others are ignored, no crash.
 5. Given a preset name with invalid file characters, then it is stored under a safe file name but shown with the typed name.
 6. Given a preset overwrites another, then the user is asked.
+7. Given any rule panel exists in the window, then all its settings are in the preset; a story that adds a rule or panel must add its fields to the preset format (and bump nothing unless a field changes meaning).
 
 ## Out of scope
 - Sharing presets online.

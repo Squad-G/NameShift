@@ -13,7 +13,7 @@ Change the capitalisation of names.
 3. Given `the lord of the rings.txt`, mode title, then `The Lord Of The Rings.txt`.
 4. Given `HELLO world. second SENTENCE.txt`, mode sentence, then `Hello world. Second sentence.txt` (only the first letter of the name and the first letter after `. ` are capitalised; the rest is lower-case).
 5. Given mode same, then the name is unchanged.
-6. Given an exceptions list `of, the, USA` and mode title, then `the lord of the usa.txt` becomes `The Lord of the USA.txt` (an exception word is written exactly as listed, except that the first word of the name is still capitalised unless it is listed).
+6. Given an exceptions list `of, the, USA` and mode title, then `the lord of the usa.txt` becomes `The Lord of the USA.txt` (an exception word is written exactly as listed, but the first word of the name is always capitalised, even when it is listed, and a listed word that is already all upper-case such as `USA` is kept as listed).
 7. Given accented letters, `ÉCOLE.txt` lower gives `école.txt` (culture-invariant Unicode casing, never the user's locale, so Turkish `I` does not become `ı`).
 
 ## Out of scope

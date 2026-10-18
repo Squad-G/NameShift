@@ -12,7 +12,7 @@ The app opens as I left it.
 2. Given the last folder no longer exists, then the app opens in Documents.
 3. Given the settings file is damaged, then defaults are used.
 4. Given the window position is on a screen that is gone, then it opens on the primary screen.
-5. Given a setting `start empty`, then the app starts with all rules off (kept simple: a menu item `Reset all`).
+5. Given the app starts and remembered panel values come back, then a menu item `Reset all` clears every panel (and the filters) in one click; there is no separate "start empty" setting.
 
 ## Out of scope
 - Anything not listed above.
