@@ -60,13 +60,17 @@ public sealed class RenameExecutor
             return Refused(new ExecutionFailure(FailureReason.HasRuleErrors));
         }
 
-        var renames = results
+        return Execute(ToPlannedRenames(results));
+    }
+
+    /// <summary>The Changed results as renames, in result Index order: what Execute(results, conflicts) runs (the
+    /// journal's pending.json records the same list).</summary>
+    internal static List<PlannedRename> ToPlannedRenames(IReadOnlyList<RenameResult> results) =>
+        results
             .Where(result => result.Status == RenameStatus.Changed)
             .OrderBy(result => result.Index)
             .Select(result => new PlannedRename(result.Item.FolderPath, result.Item.Name, result.NewName, result.Item.Kind))
             .ToList();
-        return Execute(renames);
-    }
 
     /// <summary>Runs the given renames (NS-9's Revert calls this with CompletedRename.Inverse()). Throws when a rename is
     /// null or two renames in one folder share an old name or a new name (ordinal ignore-case).</summary>

@@ -116,7 +116,7 @@ public sealed class RevertPlannerTests
     }
 
     [Fact]
-    public void Plan_TenThousandRotationBlockedAtTheEnd_IsLinear()
+    public void Plan_TenThousandChainBlockedAtTheEnd_ReadsEachPathAtMostOnce()
     {
         const int Count = 10_000;
         var entries = Enumerable.Range(0, Count).Select(i => E($"f{i}", $"f{i + 1}")).ToList();
@@ -131,6 +131,7 @@ public sealed class RevertPlannerTests
         Assert.Empty(plan.Included);
         Assert.Equal(RevertSkipReason.NameTaken, plan.Skipped[0].Reason);
         Assert.All(plan.Skipped.Skip(1), skip => Assert.Equal(RevertSkipReason.WaitsForSkippedItem, skip.Reason));
-        Assert.True(disk.Reads <= (2 * Count) + 2, $"{disk.Reads} disk reads");
+        // One read per source (f1..f10000) and one for the only target not held by an entry (f0).
+        Assert.Equal(Count + 1, disk.Reads);
     }
 }

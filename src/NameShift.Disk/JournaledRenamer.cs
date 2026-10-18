@@ -88,11 +88,10 @@ public sealed class JournaledRenamer
             return new RenameRunResult(executor.Execute(results, conflicts), null);
         }
 
-        var planned = results
-            .Where(result => result.Status == RenameStatus.Changed)
-            .OrderBy(result => result.Index)
-            .Select(result => new PlannedRename(result.Item.FolderPath, result.Item.Name, result.NewName, result.Item.Kind))
-            .ToList();
+        var planned = RenameExecutor.ToPlannedRenames(results);
+
+        // Read before pending.json is overwritten: an earlier interruption must survive a failed batch.
+        var wasInterrupted = journal.Load().State == LastBatchState.Interrupted;
         var id = newId();
         try
         {
@@ -109,8 +108,11 @@ public sealed class JournaledRenamer
         var execution = executor.Execute(results, conflicts);
         if (execution.Outcome != ExecutionOutcome.Succeeded)
         {
-            // Nothing changed on disk (or the executor lists what needs attention); last-batch.json is untouched (AC4).
-            return new RenameRunResult(execution, DeletePending());
+            // last-batch.json is untouched (AC4). pending.json goes only when the disk is back to what last-batch.json
+            // describes: the batch was refused or rolled back, and the journal was not already Interrupted. After
+            // NeedsAttention (items stranded) or an earlier interruption it stays, so Revert stays disabled.
+            var diskAsJournaled = execution.Outcome != ExecutionOutcome.NeedsAttention && !wasInterrupted;
+            return new RenameRunResult(execution, diskAsJournaled ? DeletePending() : null);
         }
 
         return new RenameRunResult(execution, Commit(id, isReverted: false, clock(), execution.Renamed));

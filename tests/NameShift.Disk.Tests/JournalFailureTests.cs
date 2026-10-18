@@ -82,6 +82,64 @@ public sealed class JournalFailureTests : JournalTestBase
     }
 
     [Fact]
+    public void Rename_FailedBatchAfterAnInterruption_StaysInterrupted()
+    {
+        RenameFiles(("a", "b"));
+        Temp.File("c");
+        Files.FailWrite = Fail(LastBatchFile);
+        Assert.Equal(JournalWritePhase.AfterFinish, Run(Changed(0, "c", "d")).JournalIssue!.Phase);
+        Files.FailWrite = null;
+
+        var result = Run(Changed(0, "removed-since-the-preview", "e"));
+
+        Assert.Equal(ExecutionOutcome.Refused, result.Execution!.Outcome);
+        Assert.Equal(FailureReason.SourceMissing, result.Execution.Failure!.Reason);
+        Assert.Null(result.JournalIssue);
+        Assert.True(File.Exists(PendingPath));
+        Assert.Equal(LastBatchState.Interrupted, Renamer.LoadLastBatch().State);
+        Assert.Equal(RevertOutcome.NothingToRevert, Renamer.Revert().Outcome);
+        Assert.Equal(["b", "d"], Temp.Listing());
+    }
+
+    [Fact]
+    public void Rename_NeedsAttention_LeavesTheJournalInterrupted()
+    {
+        RenameFiles(("a", "b"));
+        Temp.File("f1");
+        Temp.File("f2");
+        Temp.File("f3");
+        Disk.Moves.Clear();
+        FileStream? lockOnG1 = null;
+        Disk.BeforeMove = (call, _, _) =>
+        {
+            if (call == 2)
+            {
+                lockOnG1 = new FileStream(Temp.Full("g1"), FileMode.Open, FileAccess.Read, FileShare.None);
+            }
+        };
+        Disk.FailMove = (from, _) => from == Temp.Full("f2") ? new IOException("f2 failed") : null;
+
+        RenameRunResult result;
+        try
+        {
+            result = Run(Changed(0, "f1", "g1"), Changed(1, "f2", "g2"), Changed(2, "f3", "g3"));
+        }
+        finally
+        {
+            lockOnG1?.Dispose();
+        }
+
+        Assert.Equal(ExecutionOutcome.NeedsAttention, result.Execution!.Outcome);
+        Assert.Null(result.JournalIssue);
+        Assert.True(File.Exists(PendingPath));
+        Assert.Equal(LastBatchState.Interrupted, Renamer.LoadLastBatch().State);
+        Disk.BeforeMove = null;
+        Disk.FailMove = null;
+        Assert.Equal(RevertOutcome.NothingToRevert, Renamer.Revert().Outcome);
+        Assert.Equal(["b", "f2", "f3", "g1"], Temp.Listing());
+    }
+
+    [Fact]
     public void Revert_PendingWriteFails_NotStarted()
     {
         RenameFiles(("a", "b"));
