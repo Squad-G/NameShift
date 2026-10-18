@@ -1,6 +1,6 @@
 # NS-13: Live preview
 
-Status: Ready
+Status: In Progress
 Depends on: NS-51, NS-11, NS-1
 Area: app
 
@@ -26,3 +26,4 @@ See every new name before anything is touched. Conflict marking is NS-52.
 - 2026-10-18: created (po).
 - 2026-10-18: set Ready, first round of the minimal usable slice (po).
 - 2026-10-18: conflict display moved to NS-52 after review (po).
+- 2026-10-18: In Progress (builder).
