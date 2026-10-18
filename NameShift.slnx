@@ -3,9 +3,11 @@
     <Project Path="src/NameShift.App/NameShift.App.csproj" />
     <Project Path="src/NameShift.Core/NameShift.Core.csproj" />
     <Project Path="src/NameShift.Disk/NameShift.Disk.csproj" />
+    <Project Path="src/NameShift.Ui/NameShift.Ui.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/NameShift.Core.Tests/NameShift.Core.Tests.csproj" />
     <Project Path="tests/NameShift.Disk.Tests/NameShift.Disk.Tests.csproj" />
+    <Project Path="tests/NameShift.Ui.Tests/NameShift.Ui.Tests.csproj" />
   </Folder>
 </Solution>

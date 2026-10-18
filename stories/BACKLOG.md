@@ -16,7 +16,7 @@ IDs), not the rank: the rank is the row order.
 | 7 | [NS-7 Path length check](NS-7-pathlength.md) | Done | NS-1 |
 | 8 | [NS-8 Safe rename executor](NS-8-executor.md) | Done | NS-1, NS-5, NS-6, NS-7 |
 | 9 | [NS-9 Undo journal and Revert](NS-9-journal.md) | Done | NS-8 |
-| 10 | [NS-10 Window shell: path bar and folder tree](NS-10-windowshell.md) | Ready | |
+| 10 | [NS-10 Window shell: path bar and folder tree](NS-10-windowshell.md) | Done | |
 | 51 | [NS-51 File list with folders and natural sort](NS-51-filelist.md) | Ready | NS-10 |
 | 11 | [NS-11 Rule panel host: enable and reset per rule](NS-11-panelhost.md) | Ready | NS-10, NS-1 |
 | 12 | [NS-12 Panels for Replace, Case and Add](NS-12-firstpanels.md) | Ready | NS-11, NS-2, NS-3, NS-4 |

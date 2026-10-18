@@ -9,9 +9,11 @@
     <AssemblyName>NameShift</AssemblyName>
     <RootNamespace>NameShift.App</RootNamespace>
     <Version>0.1.0</Version>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\NameShift.Core\NameShift.Core.csproj" />
     <ProjectReference Include="..\NameShift.Disk\NameShift.Disk.csproj" />
+    <ProjectReference Include="..\NameShift.Ui\NameShift.Ui.csproj" />
   </ItemGroup>
 </Project>
