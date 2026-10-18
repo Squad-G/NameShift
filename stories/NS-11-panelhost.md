@@ -1,6 +1,6 @@
 # NS-11: Rule panel host: enable and reset per rule
 
-Status: In Review
+Status: Done
 Depends on: NS-10, NS-1
 Area: app
 
@@ -32,3 +32,4 @@ The bottom area where each rule is a panel I can switch on and reset.
 - 2026-10-18: set Ready, first round of the minimal usable slice (po).
 - 2026-10-18: In Progress (builder).
 - 2026-10-18: In Review (builder): panel contract and host in NameShift.Ui, framed scrolling stack in the App; no panels yet (NS-12).
+- 2026-10-18: Done (tech-lead): merged after VERDICT: APPROVE, review nits folded (focus moves to the check box when Reset disables, the title inherits the frame's font when inactive). David's manual checks M2–M5 (look, scrolling, minimum size, DPI, focus after Reset) come with NS-12's panels.

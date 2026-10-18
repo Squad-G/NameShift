@@ -54,17 +54,14 @@ internal sealed class RulePanelFrame : UserControl
     protected override void OnFontChanged(EventArgs e)
     {
         base.OnFontChanged(e);
-        Font old = _boldFont;
-        _boldFont = new Font(Font, FontStyle.Bold);
-        old.Dispose();
-        Sync();
+        RefreshBoldFont();
     }
 
     protected override void OnDpiChangedAfterParent(EventArgs e)
     {
         base.OnDpiChangedAfterParent(e);
         ApplyLogicalMetrics();
-        Invalidate();
+        RefreshBoldFont();
     }
 
     protected override void Dispose(bool disposing)
@@ -122,6 +119,15 @@ internal sealed class RulePanelFrame : UserControl
 
     private void OnModelChanged(object? sender, EventArgs e) => Sync();
 
+    /// <summary>Recreates the bold title font from the frame's current font, then disposes the old one once unused.</summary>
+    private void RefreshBoldFont()
+    {
+        Font old = _boldFont;
+        _boldFont = new Font(Font, FontStyle.Bold);
+        Sync();
+        old.Dispose();
+    }
+
     private void Sync()
     {
         if (_check.Checked != _model.Enabled)
@@ -130,9 +136,23 @@ internal sealed class RulePanelFrame : UserControl
         }
 
         _content.Enabled = _model.Enabled;
-        _reset.Enabled = RulePanelHostModel.CanReset(_model);
+        bool canReset = RulePanelHostModel.CanReset(_model);
+        if (!canReset && _reset.Focused)
+        {
+            _check.Focus(); // a keyboard Reset disables the focused button: keep focus in the panel
+        }
+
+        _reset.Enabled = canReset;
         bool active = RulePanelHostModel.IsActive(_model);
-        _check.Font = active ? _boldFont : Font;
+        if (active)
+        {
+            _check.Font = _boldFont;
+        }
+        else
+        {
+            _check.ResetFont(); // inherit the frame's font, so the title scales with it
+        }
+
         AccessibleDescription = active ? Strings.RulePanelActive : null;
         Invalidate();
     }

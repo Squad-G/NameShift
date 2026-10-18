@@ -71,6 +71,7 @@ public static class Strings
     public static string RulePanelActive => Get(nameof(RulePanelActive));
 
     public static string RulePanelsName => Get(nameof(RulePanelsName));
+
     private static string Get(string key) =>
         Manager.GetString(key, CultureInfo.CurrentUICulture)
         ?? throw new InvalidOperationException("Missing string resource: " + key);
