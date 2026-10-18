@@ -7,6 +7,8 @@ Free, open-source, lightweight bulk file renamer for Windows (MIT). Owner: **Dav
 - C# (latest language version), **WinForms on .NET Framework 4.8** (ships with Windows 10/11: no runtime to bundle).
 - `src/NameShift.Core` (netstandard2.0): the rename engine, no UI dependency. `src/NameShift.App` (net48): the window.
   `tests/NameShift.Core.Tests` (net10.0, xUnit): engine tests.
+- `src/NameShift.Disk` (netstandard2.0): the rename executor, the app's only code that renames files.
+  `tests/NameShift.Disk.Tests` (net10.0 and net48, xUnit): executor tests against real temp folders.
 - Installer: Inno Setup 6 (`installer/`). Target: a download of a few MB at most.
 - No third-party UI framework. A new NuGet dependency needs a reason in the PR (size, and an MIT-compatible licence).
 

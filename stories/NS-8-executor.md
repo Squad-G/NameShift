@@ -25,6 +25,13 @@ Turn a checked plan into real renames without losing a file, even for swaps and 
 - Never overwrite, whatever the source of a collision. **Decision:** this is the product's core safety rule, enforced here at run time and not only by the preview checks (po, 2026-10-18).
 - On failure: stop or continue? **Decision:** stop and roll back the whole batch, because a half-renamed folder is the worst outcome for numbered sets (po, 2026-10-18).
 - Where does this code live? Technical choice left to the tech lead; it must be testable against a temp folder (po, 2026-10-18).
+- **Where the code lives:** a new library `src/NameShift.Disk` (netstandard2.0, references `NameShift.Core`), referenced by `NameShift.App`. It is the app's disk layer: the engine stays pure, and "only the app touches the disk" holds through this library; a library rather than code in the WinExe so it can be tested (tech-lead, 2026-10-18).
+- **Tests:** a new project `tests/NameShift.Disk.Tests` targeting `net10.0;net48`, because .NET Framework 4.8 (the runtime the app ships on) refuses a case-only `Directory.Move` that .NET 10 accepts; the Core tests stay pure and untouched (tech-lead, 2026-10-18).
+- **Ordering:** per folder, a rename whose target is free goes first; a cycle (swap, rotation, and a case-only change, a cycle of one) is broken by moving one member to a temporary name in the same folder. Deterministic: ties go in plan order (tech-lead, 2026-10-18).
+- **Temporary names:** `~ns-<token>-<n>` (8 lowercase hex chars new for each Execute call; n = 1, 2, … for the whole call), skipping a name that exists on disk or is an old or new name of the batch in that folder (tech-lead, 2026-10-18).
+- **A folder and items inside it in the same batch: allowed.** Deepest folders first, so every rename happens while its folder still has its old name; the output's new paths are rebuilt after parents (tech-lead, 2026-10-18).
+- **Nothing is ever deleted:** the file-system seam has no delete method; the executor never calls `File.Delete` or `Directory.Delete` (tech-lead, 2026-10-18).
+- **Rule errors in the plan:** a plan where any result has `Status == Error` is refused like a conflict (`HasRuleErrors`), because a partial batch breaks sets (numbering gaps) and the user sees the error in the preview first; NS-15 should disable Rename on rule errors too (tech-lead default, 2026-10-18; po may overrule).
 
 ## Log
 - 2026-10-18: created (po).
