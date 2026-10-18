@@ -9,7 +9,7 @@ Run the batch, undo it, or start over, from the window.
 
 ## Acceptance criteria
 1. Given no change in any name, then Rename is disabled.
-2. Given conflicts (NS-52), then Rename is disabled and its hint says to fix the conflicts. This is the only place that rule is written.
+2. Given conflicts (NS-52) or any item with an Error status (a rule error), then Rename is disabled and its hint says to fix them, matching the executor, which refuses such a plan (NS-8). This is the only place that rule is written.
 3. Given I click Rename with valid changes, then the batch runs, the list reloads showing the new names, and a message says `N files renamed`.
 4. Given the batch fails and is rolled back, then a message shows which file failed and why, and the names are as before.
 5. Given a batch was done, then Revert is enabled and one click restores the old names and reloads the list; with no entry, or right after a Revert (NS-9), it is disabled, except after a partial Revert (NS-9:8): it then stays available for the files that could not be reverted.
@@ -27,3 +27,4 @@ Run the batch, undo it, or start over, from the window.
 ## Log
 - 2026-10-18: created (po).
 - 2026-10-18: set Ready, first round of the minimal usable slice (po).
+- 2026-10-18: criterion 2 extended: rule errors (any item with an Error status) also disable Rename (tech-lead, from NS-8's rule-error decision).

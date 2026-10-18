@@ -12,5 +12,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\NameShift.Core\NameShift.Core.csproj" />
+    <ProjectReference Include="..\NameShift.Disk\NameShift.Disk.csproj" />
   </ItemGroup>
 </Project>
