@@ -1,6 +1,6 @@
 # NS-15: Rename, Revert and Reset buttons
 
-Status: Ready
+Status: In Progress
 Depends on: NS-13, NS-52, NS-14, NS-9
 Area: app
 
@@ -28,3 +28,4 @@ Run the batch, undo it, or start over, from the window.
 - 2026-10-18: created (po).
 - 2026-10-18: set Ready, first round of the minimal usable slice (po).
 - 2026-10-18: criterion 2 extended: rule errors (any item with an Error status) also disable Rename (tech-lead, from NS-8's rule-error decision).
+- 2026-10-18: In Progress, branch feature/NS-15-buttons (builder).
