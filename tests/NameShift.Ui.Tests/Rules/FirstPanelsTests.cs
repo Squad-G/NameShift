@@ -25,6 +25,18 @@ public sealed class FirstPanelsTests
     }
 
     [Fact]
+    public void Numbering_RunsAfterAdd_AtStage9()
+    {
+        var add = new AddPanelModel { Enabled = true, Prefix = "x" };
+        var numbering = new NumberingPanelModel { Enabled = true };
+        var host = new RulePanelHostModel(new IRulePanelModel[] { numbering, add });
+
+        Assert.Equal(new[] { RuleStage.Add, RuleStage.Numbering }, host.Rules.Select(r => r.Stage).ToArray());
+        var results = new RenamePipeline(host.Rules).Run(new[] { new RenameItem("a.txt", @"C:\f") });
+        Assert.Equal("xa_1.txt", results[0].NewName);
+    }
+
+    [Fact]
     public void Mnemonics_AreUniqueAcrossPanels()
     {
         string[] texts =
@@ -32,7 +44,9 @@ public sealed class FirstPanelsTests
             Strings.ReplaceTitle, Strings.ReplaceFind, Strings.ReplaceWith, Strings.ReplaceMatchCase,
             Strings.ReplaceIncludeExtension, Strings.CaseTitle, Strings.CaseMode, Strings.CaseExceptions,
             Strings.AddTitle, Strings.AddPrefix, Strings.AddInsert, Strings.AddPosition, Strings.AddFromEnd,
-            Strings.AddSuffix, Strings.AddWordSpace,
+            Strings.AddSuffix, Strings.AddWordSpace, Strings.NumberingTitle, Strings.NumberingMode,
+            Strings.NumberingStart, Strings.NumberingStep, Strings.NumberingPad,
+            Strings.NumberingSeparator, Strings.NumberingPosition,
         };
 
         char[] letters = texts.Select(MnemonicOf).ToArray();

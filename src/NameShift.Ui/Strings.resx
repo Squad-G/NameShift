@@ -57,4 +57,21 @@
   <data name="AddWordSpace" xml:space="preserve"><value>Word spac&amp;e</value></data>
   <data name="AddWordSpaceHint" xml:space="preserve"><value>Puts a space before a capital that follows a lower-case letter or a digit</value></data>
   <data name="AddPositionInvalid" xml:space="preserve"><value>Type a whole number from 1. Until then the insert is skipped.</value></data>
+  <data name="NumberingTitle" xml:space="preserve"><value>&amp;Numbering</value></data>
+  <data name="NumberingMode" xml:space="preserve"><value>P&amp;lace</value></data>
+  <data name="NumberingModePrefix" xml:space="preserve"><value>Before the name</value></data>
+  <data name="NumberingModeSuffix" xml:space="preserve"><value>After the name</value></data>
+  <data name="NumberingModeInsert" xml:space="preserve"><value>At a position</value></data>
+  <data name="NumberingStart" xml:space="preserve"><value>Start &amp;value</value></data>
+  <data name="NumberingStep" xml:space="preserve"><value>Count b&amp;y</value></data>
+  <data name="NumberingPad" xml:space="preserve"><value>Di&amp;gits</value></data>
+  <data name="NumberingPadHint" xml:space="preserve"><value>Minimum number of digits, filled with leading zeros; 0 for none</value></data>
+  <data name="NumberingSeparator" xml:space="preserve"><value>Text &amp;between</value></data>
+  <data name="NumberingSeparatorHint" xml:space="preserve"><value>Text put between the number and the name</value></data>
+  <data name="NumberingPosition" xml:space="preserve"><value>At c&amp;haracter</value></data>
+  <data name="NumberingPositionHint" xml:space="preserve"><value>1 puts the number first; a number past the end puts it last</value></data>
+  <data name="NumberingStartInvalid" xml:space="preserve"><value>Type a whole number from 0. Until then numbering is skipped.</value></data>
+  <data name="NumberingStepInvalid" xml:space="preserve"><value>Type a whole number (0 or negative is fine). Until then numbering is skipped.</value></data>
+  <data name="NumberingPadInvalid" xml:space="preserve"><value>Type a whole number from 0 to {0}. Until then numbering is skipped.</value></data>
+  <data name="NumberingPositionInvalid" xml:space="preserve"><value>Type a whole number from 1. Until then numbering is skipped.</value></data>
 </root>

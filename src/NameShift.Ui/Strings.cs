@@ -120,6 +120,41 @@ public static class Strings
 
     public static string AddPositionInvalid => Get(nameof(AddPositionInvalid));
 
+    public static string NumberingTitle => Get(nameof(NumberingTitle));
+
+    public static string NumberingMode => Get(nameof(NumberingMode));
+
+    public static string NumberingModePrefix => Get(nameof(NumberingModePrefix));
+
+    public static string NumberingModeSuffix => Get(nameof(NumberingModeSuffix));
+
+    public static string NumberingModeInsert => Get(nameof(NumberingModeInsert));
+
+    public static string NumberingStart => Get(nameof(NumberingStart));
+
+    public static string NumberingStep => Get(nameof(NumberingStep));
+
+    public static string NumberingPad => Get(nameof(NumberingPad));
+
+    public static string NumberingPadHint => Get(nameof(NumberingPadHint));
+
+    public static string NumberingSeparator => Get(nameof(NumberingSeparator));
+
+    public static string NumberingSeparatorHint => Get(nameof(NumberingSeparatorHint));
+
+    public static string NumberingPosition => Get(nameof(NumberingPosition));
+
+    public static string NumberingPositionHint => Get(nameof(NumberingPositionHint));
+
+    public static string NumberingStartInvalid => Get(nameof(NumberingStartInvalid));
+
+    public static string NumberingStepInvalid => Get(nameof(NumberingStepInvalid));
+
+    /// <summary>"Type a whole number from 0 to {0}. Until then numbering is skipped.".</summary>
+    public static string NumberingPadInvalid => Get(nameof(NumberingPadInvalid));
+
+    public static string NumberingPositionInvalid => Get(nameof(NumberingPositionInvalid));
+
     private static string Get(string key) =>
         Manager.GetString(key, CultureInfo.CurrentUICulture)
         ?? throw new InvalidOperationException("Missing string resource: " + key);
