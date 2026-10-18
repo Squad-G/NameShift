@@ -20,7 +20,7 @@ public sealed class Conflict : IEquatable<Conflict>
     /// <summary>Why the name cannot be used.</summary>
     public ConflictCode Code { get; }
 
-    /// <summary>Raw data about the conflict (the offending characters, the device name), or null.</summary>
+    /// <summary>Raw data about the conflict (the offending characters; for a reserved name, the text before the first dot, which is a reserved device name), or null.</summary>
     public string? Detail { get; }
 
     /// <summary>Same code and ordinal-equal detail.</summary>

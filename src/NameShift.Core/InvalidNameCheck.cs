@@ -8,7 +8,7 @@ namespace NameShift.Core;
 public sealed class InvalidNameCheck : IConflictCheck
 {
     /// <summary>The longest name NTFS accepts, in UTF-16 units.</summary>
-    public const int MaxNameLength = 255;
+    private const int MaxNameLength = 255;
 
     private static readonly IReadOnlyList<Conflict> None = Array.Empty<Conflict>();
 
@@ -40,13 +40,8 @@ public sealed class InvalidNameCheck : IConflictCheck
     }
 
     /// <summary>Returns the conflicts of one full name, in a fixed order; empty when the name is valid.</summary>
-    public static IReadOnlyList<Conflict> CheckName(string name)
+    private static IReadOnlyList<Conflict> CheckName(string name)
     {
-        if (name == null)
-        {
-            throw new ArgumentNullException(nameof(name));
-        }
-
         if (IsOnlyDotsAndSpaces(name))
         {
             return [new Conflict(ConflictCode.EmptyName)];
@@ -97,9 +92,10 @@ public sealed class InvalidNameCheck : IConflictCheck
     private static string OffendingCharacters(string name)
     {
         var found = new StringBuilder();
+        var seen = new HashSet<char>();
         foreach (var c in name)
         {
-            if ((c < ' ' || Array.IndexOf(ForbiddenCharacters, c) >= 0) && found.ToString().IndexOf(c) < 0)
+            if ((c < ' ' || Array.IndexOf(ForbiddenCharacters, c) >= 0) && seen.Add(c))
             {
                 found.Append(c);
             }

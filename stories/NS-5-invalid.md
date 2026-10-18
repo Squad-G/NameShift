@@ -1,6 +1,6 @@
 # NS-5: Invalid Windows names check
 
-Status: In Review
+Status: Done
 Depends on: NS-1
 Area: engine
 
@@ -32,3 +32,4 @@ Never let a name through that Windows will refuse or silently change.
 - 2026-10-18: set Ready, first round of the minimal usable slice (po).
 - 2026-10-18: In Progress, branch feature/NS-5-invalid-names (builder).
 - 2026-10-18: In Review, PR #9 (builder).
+- 2026-10-18: Done, PR #9 merged; review nits folded in (CheckName and MaxNameLength private, no per-hit allocation in OffendingCharacters, ReservedName and Detail docs, CONIN$ case removed) (tech-lead).

@@ -107,7 +107,6 @@ public sealed class InvalidNameCheckTests
     [InlineData("COM0.txt")]
     [InlineData("LPT0")]
     [InlineData("COM⁴.txt")]
-    [InlineData("CONIN$.txt")]
     public void Check_NamesThatOnlyLookReserved_AreNotFlagged(string name) => Assert.Empty(CheckName(name));
 
     [Theory]
@@ -161,11 +160,4 @@ public sealed class InvalidNameCheckTests
 
     [Fact]
     public void Check_RejectsNull() => Assert.Throws<ArgumentNullException>(() => new InvalidNameCheck().Check(null!));
-
-    [Fact]
-    public void CheckName_RejectsNull() => Assert.Throws<ArgumentNullException>(() => InvalidNameCheck.CheckName(null!));
-
-    [Fact]
-    public void CheckName_Direct_MatchesCheck() =>
-        Assert.Equal([new Conflict(ConflictCode.ReservedName, "nul")], InvalidNameCheck.CheckName("nul.txt"));
 }

@@ -6,7 +6,7 @@ public enum ConflictCode
     /// <summary>The name contains a character Windows forbids.</summary>
     InvalidCharacter,
 
-    /// <summary>The name starts with a device name such as CON or NUL.</summary>
+    /// <summary>The text before the first dot is a reserved device name such as CON or NUL.</summary>
     ReservedName,
 
     /// <summary>The name ends with a dot or a space.</summary>
