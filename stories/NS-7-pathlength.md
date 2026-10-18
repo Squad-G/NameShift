@@ -1,6 +1,6 @@
 # NS-7: Path length check
 
-Status: In Review
+Status: Done
 Depends on: NS-1
 Area: engine
 
@@ -27,3 +27,4 @@ Warn before a rename would produce a path Windows cannot handle.
 - 2026-10-18: set Ready, first round of the minimal usable slice (po).
 - 2026-10-18: In Progress, branch feature/NS-7-path-length (builder).
 - 2026-10-18: In Review, PR #11 (builder).
+- 2026-10-18: Done, reviewer APPROVE; nits folded (empty-folder test: an empty `FolderPath` counts one separator, as the decision above says; trailing newlines); merged into dev (tech-lead).

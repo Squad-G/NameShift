@@ -61,6 +61,11 @@ public sealed class PathLengthCheckTests
     public void Check_DriveRoot_CountsNoExtraSeparator(int nameLength, bool flagged) =>
         AssertFlag(flagged, CheckOne(Changed(@"C:\", Name(nameLength))));
 
+    // An empty folder does not end with a separator, so one is counted: 0 + 1 + 259 = 260 (and no index error).
+    [Fact]
+    public void Check_EmptyFolder_CountsOneSeparator() =>
+        Assert.Equal([TooLong], CheckOne(Changed(string.Empty, Name(259))));
+
     [Fact]
     public void Check_UnchangedOverLongPath_IsNotFlagged() =>
         Assert.Empty(CheckOne(UnchangedLong()));
