@@ -6,6 +6,9 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\NameShift.Core\NameShift.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <InternalsVisibleTo Include="NameShift.Ui.Tests" />
   </ItemGroup>
 </Project>

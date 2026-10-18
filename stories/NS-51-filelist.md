@@ -1,6 +1,6 @@
 # NS-51: File list with folders and natural sort
 
-Status: Ready
+Status: Done
 Depends on: NS-10
 Area: app
 
@@ -21,7 +21,18 @@ See the files and folders of the chosen folder, ready for the preview column (NS
 
 ## Decisions
 - List order? **Decision:** folders first, then files, natural sort, because that is what Explorer shows and numbering will follow it (po, 2026-10-18).
+- Rows are `RenameItem`s in display order; index and count are not stored, row i is pipeline index i (tech-lead, 2026-10-18).
+- `NameShift.Ui` references `NameShift.Core`; the file list has its own source interface `IFileListSource`, so the tree's source stays untouched (tech-lead, 2026-10-18).
+- The list hides entries that are Hidden or System; the tree (NS-10) still hides only Hidden folders; NS-33 reveals both (tech-lead default, 2026-10-18; po may overrule).
+- Order: folders first, then files, natural order, ties broken ordinally; the sort lives in `FileListOrder` and runs off the UI thread (tech-lead, 2026-10-18).
+- While a folder loads, the old rows are cleared and "Loading..." shows; a newer load always wins (tech-lead, 2026-10-18).
+- A virtual-mode list, so 10 000 rows cost nothing to show and NS-13 can refresh with `Invalidate()` (tech-lead, 2026-10-18).
+- Size: whole KB rounded up, empty for folders; Modified: short date and time in the current culture, empty when unknown (tech-lead default, 2026-10-18; po may overrule).
+- Icons: the shell's two stock icons (folder, generic file) only; per-extension icons are left for later (tech-lead, 2026-10-18).
 
 ## Log
 - 2026-10-18: created, split from NS-10 (po).
 - 2026-10-18: set Ready, first round of the minimal usable slice (po).
+- 2026-10-18: In Progress (builder).
+- 2026-10-18: In Review (builder): virtual-mode list of RenameItems, off-thread listing with stale results discarded.
+- 2026-10-18: Done, reviewer APPROVE; nits folded (icon bitmaps kept and disposed with the control; `StockIcons.Load` returns null on a GDI+ failure; attribute mapping as one helper); merged into dev. David's manual checks 2-8, and the file-icon/KB/date look from check 1, are still pending (tech-lead).
