@@ -65,7 +65,8 @@ internal sealed class AddPanel : UserControl
         _positionLabel.Anchor = AnchorStyles.Left;
         _positionLabel.TabIndex = 0;
         _position.TabIndex = 1;
-        _position.Margin = new Padding(3, 3, LogicalToDeviceUnits(20), 3); // room for the error icon
+        int small = LogicalToDeviceUnits(Spacing.Small);
+        _position.Margin = new Padding(small, small, LogicalToDeviceUnits(Spacing.Large + Spacing.Medium), small); // room for the error icon
         _fromEnd.Text = Strings.AddFromEnd;
         _fromEnd.AutoSize = true;
         _fromEnd.TabIndex = 2;

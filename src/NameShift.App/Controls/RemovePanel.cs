@@ -80,7 +80,8 @@ internal sealed class RemovePanel : UserControl
         RulePanelLayout.AddLabeledRow(position, Strings.RemoveTo, _to);
         foreach (TextBox box in new[] { _first, _last, _from, _to })
         {
-            box.Margin = new Padding(3, 3, LogicalToDeviceUnits(20), 3); // room for the error icon, same right edge for all
+            int small = LogicalToDeviceUnits(Spacing.Small);
+            box.Margin = new Padding(small, small, LogicalToDeviceUnits(Spacing.Large + Spacing.Medium), small); // room for the error icon, same right edge for all
             _error.SetIconPadding(box, 2);
         }
 

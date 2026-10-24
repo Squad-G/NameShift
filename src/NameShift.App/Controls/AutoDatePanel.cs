@@ -89,7 +89,8 @@ internal sealed class AutoDatePanel : UserControl
 
         foreach (Control field in new Control[] { _source, _format, _place, _separator })
         {
-            field.Margin = new Padding(3, 3, LogicalToDeviceUnits(20), 3); // room for the error icon, same right edge for all
+            int small = LogicalToDeviceUnits(Spacing.Small);
+            field.Margin = new Padding(small, small, LogicalToDeviceUnits(Spacing.Large + Spacing.Medium), small); // room for the error icon, same right edge for all
         }
 
         _error.SetIconPadding(_format, 2);

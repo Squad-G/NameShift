@@ -38,7 +38,7 @@ internal sealed class PathBar : UserControl
             Text = Strings.PathBarLabel,
             AutoSize = true,
             Anchor = AnchorStyles.Left,
-            Margin = new Padding(0, 0, 8, 0),
+            Margin = new Padding(0, 0, LogicalToDeviceUnits(Spacing.Medium), 0),
         };
         _box.Dock = DockStyle.Fill;
         _box.AccessibleName = Strings.PathBarLabel;
