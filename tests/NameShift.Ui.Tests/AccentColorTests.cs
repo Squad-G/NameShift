@@ -15,6 +15,22 @@ public sealed class AccentColorTests
         Assert.Equal(21.0, AccentColor.ContrastRatio(White, Black), 2);
     }
 
+    [Theory]
+    [InlineData(unchecked((int)0xFFFF0000), 4.00)]
+    [InlineData(unchecked((int)0xFF0000FF), 8.59)]
+    [InlineData(unchecked((int)0xFF00FF00), 1.37)]
+    [InlineData(unchecked((int)0xFF767676), 4.54)]
+    public void ContrastRatio_KnownWcagValuesAgainstWhite(int colour, double expected)
+    {
+        Assert.Equal(expected, AccentColor.ContrastRatio(colour, White), 2);
+    }
+
+    [Fact]
+    public void MinimumContrast_Is45()
+    {
+        Assert.Equal(4.5, AccentColor.MinimumContrast);
+    }
+
     [Fact]
     public void ContrastRatio_SameColour_Is1()
     {

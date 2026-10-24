@@ -76,9 +76,22 @@ internal sealed class ActionButtons : UserControl
         int size = LogicalToDeviceUnits(IconLogicalSize);
         bool highContrast = SystemInformation.HighContrast;
         Color text = SystemColors.ControlText;
-        Bitmap newReset = ButtonIcons.Create(ButtonIcon.Reset, size, text);
-        Bitmap newRevert = ButtonIcons.Create(ButtonIcon.Revert, size, text);
-        Bitmap newRename = ButtonIcons.Create(ButtonIcon.Rename, size, highContrast ? text : Palette.Accent);
+        Bitmap? newReset = null;
+        Bitmap? newRevert = null;
+        Bitmap newRename;
+        try
+        {
+            newReset = ButtonIcons.Create(ButtonIcon.Reset, size, text);
+            newRevert = ButtonIcons.Create(ButtonIcon.Revert, size, text);
+            newRename = ButtonIcons.Create(ButtonIcon.Rename, size, highContrast ? text : Palette.Accent);
+        }
+        catch
+        {
+            newReset?.Dispose();
+            newRevert?.Dispose();
+            throw;
+        }
+
         Bitmap? oldReset = _resetIcon;
         Bitmap? oldRevert = _revertIcon;
         Bitmap? oldRename = _renameIcon;

@@ -24,6 +24,8 @@ public sealed class AppStyleScanTests
     [InlineData("var p = new Padding(0, 0, LogicalToDeviceUnits(Spacing.Medium), 0);", 0)]
     [InlineData("var p = new Padding(LogicalToDeviceUnits(Spacing.Large + Spacing.Medium));", 0)]
     [InlineData("var p = new Padding(x2);", 0)]
+    [InlineData("var p = new Padding(0x10);", 1)]
+    [InlineData("var p = new System.Windows.Forms.Padding(3);", 1)]
     [InlineData("var p = Padding.Empty;", 0)]
     [InlineData("_error.SetIconPadding(field, 2);", 0)]
     public void PaddingScanner_Flags(string source, int expectedFlags)
@@ -43,6 +45,8 @@ public sealed class AppStyleScanTests
     [InlineData("var f = new Font(\"Arial\", 9);", 1)]
     [InlineData("var f = new Font(@\"Arial\", 9);", 1)]
     [InlineData("var f = new FontFamily(\"Segoe UI\");", 1)]
+    [InlineData("var f = new System.Drawing.Font(\"Arial\", 9);", 1)]
+    [InlineData("var f = new System.Drawing.FontFamily(\"Arial\");", 1)]
     [InlineData("var f = new Font(_list.Font, FontStyle.Bold);", 0)]
     public void FontScanner_Flags(string source, int expectedFlags)
     {
@@ -53,6 +57,9 @@ public sealed class AppStyleScanTests
     [InlineData("var c = Color.Red;", 1)]
     [InlineData("var c = Color.FromArgb(1, 2, 3);", 1)]
     [InlineData("var c = ColorTranslator.FromHtml(x);", 1)]
+    [InlineData("var b = Brushes.Red;", 1)]
+    [InlineData("var p = Pens.Black;", 1)]
+    [InlineData("var k = KnownColor.Red;", 1)]
     [InlineData("var c = SystemColors.Highlight;", 0)]
     [InlineData("var c = Color.Empty;", 0)]
     [InlineData("var c = Color.Transparent;", 0)]
@@ -121,6 +128,12 @@ public sealed class AppStyleScanTests
         }
 
         Assert.False(Regex.IsMatch(text, @"OpenSubKey\([^)]*,\s*true"), "OpenSubKey must open read only");
+
+        // The one key and the one value, nothing else.
+        Assert.Single(Regex.Matches(text, @"OpenSubKey\("));
+        Assert.Contains(@"OpenSubKey(@""Software\Microsoft\Windows\DWM"")", text);
+        Assert.Single(Regex.Matches(text, @"GetValue\("));
+        Assert.Contains(@"GetValue(""ColorizationColor"")", text);
     }
 
     // --- helpers ---

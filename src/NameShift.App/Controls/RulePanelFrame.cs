@@ -158,7 +158,8 @@ internal sealed class RulePanelFrame : UserControl
         if (active)
         {
             _check.Font = _boldFont;
-            _check.ForeColor = _accent;
+            // In a contrast theme the selection colour is a background colour: the bold title uses the text colour there.
+            _check.ForeColor = SystemInformation.HighContrast ? SystemColors.ControlText : _accent;
         }
         else
         {

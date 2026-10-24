@@ -7,15 +7,16 @@ namespace NameShift.Ui.Tests;
 /// <summary>The source-scan rules of the window style (spacing, fonts, colours): text in, a list of (line, message) out.</summary>
 internal static class StyleScanner
 {
-    private static readonly Regex PaddingStart = new Regex(@"new\s+Padding\s*\(");
-    private static readonly Regex NumberLiteral = new Regex(@"(?<![\w.])\d+(\.\d+)?[fFdDmMuUlL]*");
-    private static readonly Regex NamedFont = new Regex(@"new\s+Font\s*\(\s*[@$]*""");
-    private static readonly Regex FontFamily = new Regex(@"new\s+FontFamily\s*\(");
+    private static readonly Regex PaddingStart = new Regex(@"new\s+(?:[\w.]+\.)?Padding\s*\(");
+    private static readonly Regex NumberLiteral = new Regex(@"(?<![\w.])(?:0[xX][0-9a-fA-F]+|\d+(?:\.\d+)?)[fFdDmMuUlL]*");
+    private static readonly Regex NamedFont = new Regex(@"new\s+(?:[\w.]+\.)?Font\s*\(\s*[@$]*""");
+    private static readonly Regex FontFamily = new Regex(@"new\s+(?:[\w.]+\.)?FontFamily\s*\(");
     private static readonly Regex ColourName = new Regex(@"\bColor\.(?!Empty\b|Transparent\b)[A-Z]\w*");
-    private static readonly Regex ColourTranslator = new Regex(@"\bColorTranslator\b");
+    private static readonly Regex ColourTranslator = new Regex(@"\b(?:ColorTranslator|Brushes|Pens|KnownColor)\b");
 
     /// <summary>Every numeric literal other than a lone 0 inside the argument list of a <c>new Padding(</c>; reported on the
-    /// line where that expression starts.</summary>
+    /// line where that expression starts. Not caught: a target-typed <c>new(3)</c> (C# 9), because a regex cannot tell which type
+    /// it creates; the App does not use it for a Padding, and a review would see it.</summary>
     public static List<(int Line, string Message)> FindPaddingLiterals(string text)
     {
         text = Normalise(text);
@@ -83,7 +84,7 @@ internal static class StyleScanner
 
         foreach (Match m in ColourTranslator.Matches(text))
         {
-            found.Add((LineOf(text, m.Index), "ColorTranslator is not allowed; add the colour to Palette"));
+            found.Add((LineOf(text, m.Index), m.Value + " is not allowed; add the colour to Palette"));
         }
 
         return found;
