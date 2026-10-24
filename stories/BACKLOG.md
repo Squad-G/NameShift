@@ -43,7 +43,7 @@ IDs), not the rank: the rank is the row order.
 | 63 | [NS-63 Run the engine tests on .NET Framework 4.8 too](NS-63-coretestsnet48.md) | Done | NS-1, NS-28 |
 | 25 | [NS-25 Move or copy parts of the name](NS-25-moveparts.md) | Done | NS-1 |
 | 26 | [NS-26 Auto date rule (file dates)](NS-26-autodate.md) | Done | NS-1 |
-| 31 | [NS-31 Panels for RegEx and Move/Copy](NS-31-lastpanels.md) | In Review | NS-11, NS-24, NS-25 |
+| 31 | [NS-31 Panels for RegEx and Move/Copy](NS-31-lastpanels.md) | Done | NS-11, NS-24, NS-25 |
 | 59 | [NS-59 Panels for Auto date and Append folder name](NS-59-datefolderpanels.md) | Ready | NS-11, NS-26, NS-28, NS-31 |
 | 29 | [NS-29 Numbering rule: hex, letters and roman numerals](NS-29-numberingadv.md) | Ready | NS-17 |
 | 27 | [NS-27 Read the photo (EXIF) date from a JPEG](NS-27-exifdate.md) | Ready | NS-1 |
