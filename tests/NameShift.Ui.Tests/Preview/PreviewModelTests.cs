@@ -903,4 +903,56 @@ public sealed class PreviewModelTests
             gate.Set();
         }
     }
+
+    [Fact]
+    public async Task Sort_RecomputesOnce_WithoutDebounce()
+    {
+        var counter = new ApplyCounter();
+        PreviewModel preview = await BuildLoaded(PanelOf(t => new CountingRule(RuleStage.Replace, t, counter), "x"));
+        int delays = _delay.Calls.Count;
+        int before = counter.Count;
+
+        _files.SortBy(FileListColumn.Name);
+        Assert.Equal(delays, _delay.Calls.Count);
+        await preview.Pending;
+
+        Assert.Equal(before + 3, counter.Count);
+        Assert.True(preview.IsCurrent);
+        Assert.Equal("b.txt", preview.CellForRow(0).Text);
+        Assert.Equal("a1.txt", preview.CellForRow(2).Text);
+    }
+
+    [Fact]
+    public async Task Sort_OldSnapshotStopsAnsweringAtOnce()
+    {
+        PreviewModel preview = await BuildLoaded(ReplacePanel("a"));
+        Assert.True(preview.IsCurrent);
+
+        _files.SortBy(FileListColumn.Name);
+
+        Assert.False(preview.IsCurrent);
+        Assert.Equal(PreviewCellKind.None, preview.CellForRow(0).Kind);
+        _delay.ReleaseAll();
+        await preview.Pending;
+        Assert.True(preview.IsCurrent);
+    }
+
+    [Fact]
+    public async Task Numbering_FollowsSizeDescending()
+    {
+        _source.SetEntries(@"C:\A", File("a.txt", 1), File("b.txt", 3), File("c.txt", 2));
+        PreviewModel preview = await BuildLoaded(
+            PanelOf(_ => new NumberingRule(NumberingMode.Suffix, start: 1, pad: 2, separator: "_"), stage: RuleStage.Numbering));
+
+        _files.SortBy(FileListColumn.Size);
+        Assert.Empty(_delay.Calls);
+        await preview.Pending;
+        _files.SortBy(FileListColumn.Size);
+        Assert.Empty(_delay.Calls);
+        await preview.Pending;
+
+        Assert.Equal("b_01.txt", preview.CellForRow(0).Text);
+        Assert.Equal("c_02.txt", preview.CellForRow(1).Text);
+        Assert.Equal("a_03.txt", preview.CellForRow(2).Text);
+    }
 }

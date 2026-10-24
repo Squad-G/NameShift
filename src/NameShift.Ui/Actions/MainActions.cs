@@ -29,8 +29,8 @@ public sealed class MainActions
     private int _journalVersion;
 
     /// <summary>Set after a Rename that renamed something (or left items stranded, or failed unexpectedly) in the
-    /// folder still shown; cleared by a rule edit, a selection change, a folder load outside an action, or a Revert
-    /// that ran. While set, Rename is off.</summary>
+    /// folder still shown; cleared by a rule edit, a selection change, a sort, a folder load outside an action, or a
+    /// Revert that ran. While set, Rename is off.</summary>
     private bool _renameLocked;
 
     public MainActions(PreviewModel preview, FileListModel files, RulePanelHostModel rules, IBatchRenamer renamer)
@@ -50,6 +50,16 @@ public sealed class MainActions
         _files.SelectionChanged += (_, _) =>
         {
             // Not while busy: a FolderContentsChanged handler may change the selection after the lock was set.
+            if (!IsBusy)
+            {
+                ClearLock();
+            }
+
+            RaiseChanged();
+        };
+        _files.OrderChanged += (_, _) =>
+        {
+            // Not while busy, for the same reason as the selection: the new order changes the numbering preview.
             if (!IsBusy)
             {
                 ClearLock();

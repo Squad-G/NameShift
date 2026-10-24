@@ -1275,6 +1275,20 @@ public sealed class MainActionsTests
         Assert.Equal(LockText, actions.RenameHint);
     }
 
+    [Fact]
+    public async Task SortByFolderContentsHandler_WhileBusy_KeepsLock()
+    {
+        MainActions actions = await BuildLoaded(Prefix());
+        ReloadAsRenamed();
+        actions.FolderContentsChanged += (_, _) => _files.SortBy(FileListColumn.Name);
+
+        await Rename();
+        await ApplyPreview();
+
+        Assert.False(actions.CanRename);
+        Assert.Equal(LockText, actions.RenameHint);
+    }
+
     // AC 7
 
     [Fact]
@@ -1385,5 +1399,29 @@ public sealed class MainActionsTests
 
         public NameParts Apply(NameParts name, ItemContext context) =>
             NameParts.Split(Collide ? "same.txt" : "x_" + context.Item.Name, context.Item.Kind);
+    }
+
+    [Fact]
+    public async Task Locked_Sort_Unlocks()
+    {
+        (MainActions actions, _) = await RenamedAndLocked();
+        Assert.False(actions.CanRename);
+
+        _files.SortBy(FileListColumn.Name);
+        await ApplyPreview();
+
+        Assert.True(actions.CanRename);
+        Assert.Equal("", actions.RenameHint);
+    }
+
+    [Fact]
+    public async Task Locked_NoSort_StaysLocked()
+    {
+        (MainActions actions, _) = await RenamedAndLocked();
+
+        await ApplyPreview();
+
+        Assert.False(actions.CanRename);
+        Assert.Equal(LockText, actions.RenameHint);
     }
 }

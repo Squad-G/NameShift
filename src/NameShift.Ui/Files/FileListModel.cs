@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using NameShift.Core;
 using NameShift.Ui.Folders;
@@ -37,6 +38,17 @@ public sealed class FileListModel
     /// Rebuilt on every selection change and every load (a load resets the selection to none).</summary>
     public FileBatch Batch { get; private set; } = FileBatch.Empty;
 
+    /// <summary>The order of <see cref="Items"/>. Default (Name, ascending) until the user sorts; kept when the same
+    /// folder reloads, reset when another folder loads.</summary>
+    public FileListSort Sort { get; private set; } = FileListSort.Default;
+
+    /// <summary>False until the user sorts the folder shown: the window draws the sort arrow only when true.</summary>
+    public bool IsSortChosen { get; private set; }
+
+    /// <summary>The selected rows, distinct and ascending: empty for none, every row for all (a whole-list batch alone
+    /// cannot tell the two apart). Empty after every load.</summary>
+    public IReadOnlyList<int> SelectedRows { get; private set; } = Array.Empty<int>();
+
     /// <summary>Set only when the state is Failed.</summary>
     public FolderProblem? Problem { get; private set; }
 
@@ -65,6 +77,11 @@ public sealed class FileListModel
 
     /// <summary>Raised on the calling thread when <see cref="Batch"/> changes through <see cref="SetSelection"/>.</summary>
     public event EventHandler? SelectionChanged;
+
+    /// <summary>Raised on the calling thread once per <see cref="SortBy"/> that ran, after <see cref="Items"/>,
+    /// <see cref="Batch"/>, <see cref="SelectedRows"/> and <see cref="Sort"/> are updated. Not <see cref="Changed"/>
+    /// and not <see cref="SelectionChanged"/>: the same items stay selected.</summary>
+    public event EventHandler? OrderChanged;
 
     /// <summary>The row of the listed item named <paramref name="name"/> (ordinal, ignoring case), or -1: also before
     /// the folder is loaded, when it failed, and for a hidden entry (not in <see cref="Items"/>).</summary>
@@ -115,6 +132,17 @@ public sealed class FileListModel
             }
         }
 
+        var selectedRows = new int[count];
+        int at = 0;
+        for (int row = 0; row < selected.Length; row++)
+        {
+            if (selected[row])
+            {
+                selectedRows[at++] = row;
+            }
+        }
+
+        SelectedRows = selectedRows;
         FileBatch batch = count == 0 || count == selected.Length ? FileBatch.WholeList(listItems) : BatchOf(listItems, selected, count);
         if (SameRows(Batch, batch))
         {
@@ -123,6 +151,57 @@ public sealed class FileListModel
 
         Batch = batch;
         SelectionChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>Sorts by the column: a new column ascending, the current column in the other direction. The same items
+    /// stay selected. Does nothing unless a non-empty list is loaded. Runs on the calling thread (in memory only).</summary>
+    /// <exception cref="ArgumentOutOfRangeException">When the column is not a defined value.</exception>
+    public void SortBy(FileListColumn column)
+    {
+        if (!Enum.IsDefined(typeof(FileListColumn), column))
+        {
+            throw new ArgumentOutOfRangeException(nameof(column), column, "The column is not sortable.");
+        }
+
+        if (State != FileListState.Loaded || Items.Count == 0)
+        {
+            return;
+        }
+
+        FileListSort next = column == Sort.Column ? Sort.Toggled() : new FileListSort(column, false);
+        IReadOnlyList<RenameItem> oldItems = Items;
+        IReadOnlyList<int> oldRows = SelectedRows;
+        IReadOnlyList<RenameItem> sorted = FileListOrder.Sort(oldItems, next);
+        IReadOnlyList<int> newRows = oldRows;
+        FileBatch batch;
+        if (oldRows.Count == 0 || oldRows.Count == sorted.Count)
+        {
+            batch = FileBatch.WholeList(sorted);
+        }
+        else
+        {
+            var rowOfItem = new Dictionary<RenameItem, int>(sorted.Count, ReferenceComparer.Instance);
+            for (int row = 0; row < sorted.Count; row++)
+            {
+                rowOfItem[sorted[row]] = row;
+            }
+
+            var selected = new bool[sorted.Count];
+            foreach (int oldRow in oldRows)
+            {
+                selected[rowOfItem[oldItems[oldRow]]] = true;
+            }
+
+            batch = BatchOf(sorted, selected, oldRows.Count);
+            newRows = batch.Rows;
+        }
+
+        Items = sorted;
+        Batch = batch;
+        SelectedRows = newRows;
+        Sort = next;
+        IsSortChosen = true;
+        OrderChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private static FileBatch BatchOf(IReadOnlyList<RenameItem> listItems, bool[] selected, int count)
@@ -160,10 +239,19 @@ public sealed class FileListModel
     public async Task<bool> LoadAsync(string folderPath)
     {
         int version = ++_version;
+        bool sameFolder = FolderPath != null && PathInput.SameFolder(FolderPath, folderPath);
+        if (!sameFolder)
+        {
+            Sort = FileListSort.Default;
+            IsSortChosen = false;
+        }
+
+        FileListSort sort = Sort;
         FolderPath = folderPath;
         State = FileListState.Loading;
         Items = Array.Empty<RenameItem>();
         Batch = FileBatch.Empty;
+        SelectedRows = Array.Empty<int>();
         ExistingNames = Array.Empty<string>();
         Problem = null;
         Changed?.Invoke(this, EventArgs.Empty);
@@ -174,7 +262,7 @@ public sealed class FileListModel
             listing = await Task.Run(() =>
             {
                 FileListing found = _source.ListEntries(folderPath);
-                return found.Problem is null ? FileListing.Ok(FileListOrder.Sort(found.Items), found.ExistingNames) : found;
+                return found.Problem is null ? FileListing.Ok(FileListOrder.Sort(found.Items, sort), found.ExistingNames) : found;
             });
         }
         catch (Exception)
@@ -191,10 +279,21 @@ public sealed class FileListModel
 
         Items = listing.Items;
         Batch = FileBatch.WholeList(Items);
+        SelectedRows = Array.Empty<int>();
         ExistingNames = listing.ExistingNames;
         Problem = listing.Problem;
         State = listing.Problem is null ? FileListState.Loaded : FileListState.Failed;
         Changed?.Invoke(this, EventArgs.Empty);
         return true;
+    }
+
+    /// <summary>Items are equal only when they are the same instance (the list holds each item once).</summary>
+    private sealed class ReferenceComparer : IEqualityComparer<RenameItem>
+    {
+        public static readonly ReferenceComparer Instance = new ReferenceComparer();
+
+        public bool Equals(RenameItem? x, RenameItem? y) => ReferenceEquals(x, y);
+
+        public int GetHashCode(RenameItem obj) => RuntimeHelpers.GetHashCode(obj);
     }
 }

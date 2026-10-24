@@ -18,6 +18,13 @@ internal sealed class FileList : UserControl
     private const int FolderImage = 0;
     private const int FileImage = 1;
 
+    // The column indexes, in the order the columns are added.
+    private const int NameColumn = 0;
+    private const int NewNameColumn = 1;
+    private const int StatusColumn = 2;
+    private const int SizeColumn = 3;
+    private const int ModifiedColumn = 4;
+
     // Green and red with at least 4.5:1 contrast on white; bold, the "Error: " prefix and the Status text are the non-colour cues.
     private static readonly Color ChangedColor = Color.FromArgb(0x10, 0x7C, 0x10);
     private static readonly Color ConflictColor = Color.FromArgb(0xC4, 0x2B, 0x1C);
@@ -46,6 +53,7 @@ internal sealed class FileList : UserControl
         BuildLayout();
         _model.Changed += (_, _) => Render();
         _model.SelectionChanged += (_, _) => RenderCount();
+        _model.OrderChanged += (_, _) => RenderOrder();
         _preview.Changed += (_, _) => RenderPreview();
     }
 
@@ -103,15 +111,21 @@ internal sealed class FileList : UserControl
         _list.MultiSelect = true;
         _list.FullRowSelect = true;
         _list.HideSelection = false;
-        _list.HeaderStyle = ColumnHeaderStyle.Nonclickable;
+        _list.HeaderStyle = ColumnHeaderStyle.Clickable;
         _list.AccessibleName = Strings.FileListName;
-        _list.HandleCreated += (_, _) => SetWindowTheme(_list.Handle, "explorer", null);
+        _list.HandleCreated += (_, _) =>
+        {
+            SetWindowTheme(_list.Handle, "explorer", null);
+            UpdateSortArrow();
+        };
+        _list.ColumnClick += OnColumnClick;
         _list.RetrieveVirtualItem += (_, e) => e.Item = BuildRow(e.ItemIndex);
         _list.FontChanged += (_, _) => RefreshBoldFont();
         _list.SelectedIndexChanged += (_, _) => ScheduleSelectionRead();
         _list.VirtualItemsSelectionRangeChanged += (_, _) => ScheduleSelectionRead();
         _list.KeyDown += OnListKeyDown;
 
+        // Added in the order of the column index constants.
         _list.Columns.Add(Strings.ColumnName, LogicalToDeviceUnits(280));
         _list.Columns.Add(Strings.ColumnNewName, LogicalToDeviceUnits(280));
         _list.Columns.Add(Strings.ColumnStatus, LogicalToDeviceUnits(420));
@@ -199,6 +213,112 @@ internal sealed class FileList : UserControl
         _message.Visible = text != null;
         RenderCount();
         RenderSummary();
+        UpdateSortArrow();
+    }
+
+    /// <summary>A header click sorts by Name, Size or Modified; New Name and Status are not sortable.</summary>
+    private void OnColumnClick(object? sender, ColumnClickEventArgs e)
+    {
+        switch (e.Column)
+        {
+            case NameColumn:
+                _model.SortBy(FileListColumn.Name);
+                break;
+            case SizeColumn:
+                _model.SortBy(FileListColumn.Size);
+                break;
+            case ModifiedColumn:
+                _model.SortBy(FileListColumn.Modified);
+                break;
+        }
+    }
+
+    /// <summary>After a sort: selects the model's selected rows again (the same items, at their new rows), scrolls the
+    /// first into view and moves the sort arrow. The rows repaint from the new order.</summary>
+    private void RenderOrder()
+    {
+        if (IsDisposed)
+        {
+            return;
+        }
+
+        // Render must not clear the selection again for this list.
+        _shownItems = _model.Items;
+        if (_list.IsHandleCreated)
+        {
+            IReadOnlyList<int> rows = _model.SelectedRows;
+            SetAllRowsSelected(false);
+            if (rows.Count > 0 && rows.Count == _model.Items.Count)
+            {
+                SetAllRowsSelected(true);
+            }
+            else
+            {
+                foreach (int row in rows)
+                {
+                    SetRowSelected(row);
+                }
+            }
+
+            if (rows.Count > 0)
+            {
+                _list.FocusedItem = _list.Items[rows[0]];
+                _list.EnsureVisible(rows[0]);
+            }
+        }
+
+        _list.Invalidate();
+        RenderCount();
+        UpdateSortArrow();
+    }
+
+    /// <summary>Draws the system's sort arrow on the sorted column's header, and on no other; none until the user sorts.</summary>
+    private void UpdateSortArrow()
+    {
+        if (IsDisposed || !_list.IsHandleCreated)
+        {
+            return;
+        }
+
+        IntPtr header = SendMessage(_list.Handle, LvmGetHeader, IntPtr.Zero, IntPtr.Zero);
+        if (header == IntPtr.Zero)
+        {
+            return;
+        }
+
+        int sorted = -1;
+        if (_model.IsSortChosen)
+        {
+            switch (_model.Sort.Column)
+            {
+                case FileListColumn.Name:
+                    sorted = NameColumn;
+                    break;
+                case FileListColumn.Size:
+                    sorted = SizeColumn;
+                    break;
+                case FileListColumn.Modified:
+                    sorted = ModifiedColumn;
+                    break;
+            }
+        }
+
+        for (int column = 0; column < _list.Columns.Count; column++)
+        {
+            var item = new HdItem { mask = HdiFormat };
+            if (SendMessage(header, HdmGetItem, (IntPtr)column, ref item) == IntPtr.Zero)
+            {
+                continue;
+            }
+
+            item.fmt &= ~(HdfSortUp | HdfSortDown);
+            if (column == sorted)
+            {
+                item.fmt |= _model.Sort.Descending ? HdfSortDown : HdfSortUp;
+            }
+
+            SendMessage(header, HdmSetItem, (IntPtr)column, ref item);
+        }
     }
 
     /// <summary>The "N of M files" count under the list: it reads the model's batch at once, never waiting for the preview.</summary>
@@ -273,6 +393,13 @@ internal sealed class FileList : UserControl
     {
         var item = new LvItem { stateMask = LvisSelected, state = selected ? LvisSelected : 0 };
         SendMessage(_list.Handle, LvmSetItemState, (IntPtr)(-1), ref item);
+    }
+
+    /// <summary>Selects one row with one message (never SelectedIndices.Add in a loop: it is slow on thousands of rows).</summary>
+    private void SetRowSelected(int row)
+    {
+        var item = new LvItem { stateMask = LvisSelected, state = LvisSelected };
+        SendMessage(_list.Handle, LvmSetItemState, (IntPtr)row, ref item);
     }
 
     /// <summary>Repaints the visible rows: the virtual list asks for them again. The size and scroll position stay.</summary>
@@ -360,9 +487,39 @@ internal sealed class FileList : UserControl
 
     private const int LvmSetItemState = 0x102B;
     private const int LvisSelected = 0x2;
+    private const int LvmGetHeader = 0x101F;
+    private const int HdmGetItem = 0x120B;
+    private const int HdmSetItem = 0x120C;
+    private const int HdiFormat = 0x4;
+    private const int HdfSortUp = 0x400;
+    private const int HdfSortDown = 0x200;
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, ref LvItem lParam);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, ref HdItem lParam);
+
+    /// <summary>The Win32 HDITEMW (the header control's column record).</summary>
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    private struct HdItem
+    {
+        public uint mask;
+        public int cxy;
+        public IntPtr pszText;
+        public IntPtr hbm;
+        public int cchTextMax;
+        public int fmt;
+        public IntPtr lParam;
+        public int iImage;
+        public int iOrder;
+        public uint type;
+        public IntPtr pvFilter;
+        public uint state;
+    }
 
     /// <summary>The Win32 LVITEM (comctl32 version 6 layout).</summary>
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]

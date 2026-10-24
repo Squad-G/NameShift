@@ -1,6 +1,6 @@
 # NS-66: Column sorting
 
-Status: Ready
+Status: Done
 Depends on: NS-51, NS-14, NS-13
 Area: app
 
@@ -83,3 +83,6 @@ Window (by hand, listed in the PR):
 - 2026-10-24: split out of NS-46 (po).
 - 2026-10-24: criteria made testable; set Ready (po).
 - 2026-10-24: after review: `OrderChanged` consumers named (`PreviewModel`, `MainActions` clears the NS-57 Rename lock) and a test added (po).
+- 2026-10-24: In Progress (builder).
+- 2026-10-24: In Review (builder), PR #56.
+- 2026-10-24: Done (tech-lead), PR #56 merged; hand checks for David: criteria 13 to 16, and Rename enabled again after a real Rename followed by a sort (8b, 15).
