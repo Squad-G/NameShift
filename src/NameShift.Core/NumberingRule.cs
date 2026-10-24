@@ -2,7 +2,8 @@ using System;
 
 namespace NameShift.Core;
 
-/// <summary>Numbers items in the order of the list given to the pipeline (the extension is never touched).</summary>
+/// <summary>Numbers items in the order of the list given to the pipeline, or within each folder when BreakPerFolder is set
+/// (the extension is never touched).</summary>
 /// <remarks>The engine does not sort: the app passes the list in the order it wants, and only the items to number.
 /// The number is written in decimal, hexadecimal, letters or Roman numerals (<see cref="NumeralSystem"/>).</remarks>
 public sealed class NumberingRule : IRenameRule
@@ -15,7 +16,7 @@ public sealed class NumberingRule : IRenameRule
     /// <exception cref="ArgumentNullException">separator is null.</exception>
     public NumberingRule(NumberingMode mode = NumberingMode.Suffix, int start = 1, int step = 1, int pad = 0,
         string separator = "", int? insertPosition = null, NumeralSystem numerals = NumeralSystem.Decimal,
-        bool? upperCase = null)
+        bool? upperCase = null, bool breakPerFolder = false)
     {
         if (!Enum.IsDefined(typeof(NumberingMode), mode))
         {
@@ -40,6 +41,7 @@ public sealed class NumberingRule : IRenameRule
         InsertPosition = insertPosition;
         Numerals = numerals;
         UpperCase = upperCase ?? (numerals == NumeralSystem.Hexadecimal || numerals == NumeralSystem.Roman);
+        BreakPerFolder = breakPerFolder;
     }
 
     /// <summary>Where the number goes.</summary>
@@ -65,6 +67,10 @@ public sealed class NumberingRule : IRenameRule
 
     /// <summary>Upper case letters (Hexadecimal, Letters, Roman); the system's own default unless given, no effect in Decimal.</summary>
     public bool UpperCase { get; }
+
+    /// <summary>True: the number restarts at Start in each folder (it counts the item's position in its folder,
+    /// ItemContext.FolderIndex, instead of its position in the list).</summary>
+    public bool BreakPerFolder { get; }
 
     /// <inheritdoc />
     public RuleStage Stage => RuleStage.Numbering;
@@ -97,5 +103,5 @@ public sealed class NumberingRule : IRenameRule
         }
     }
 
-    private long ValueFor(ItemContext context) => Start + (long)context.Index * Step;
+    private long ValueFor(ItemContext context) => Start + (long)(BreakPerFolder ? context.FolderIndex : context.Index) * Step;
 }
