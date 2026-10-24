@@ -19,7 +19,7 @@ standard format (so `d` gives the day of the month, `9`). Prefix gives `date + s
 `AutoDateRule.FormatDate(DateTime date, string format)` (the text the rule would add; an empty format gives `""`, not
 .NET's general date text; throws `FormatException` for a format .NET refuses or one holding a time-zone letter, and
 `ArgumentNullException` for null) and `AutoDateRule.Validate(string format)` (null when the format is empty or usable,
-else a non-empty message; throws `ArgumentNullException` for null). The time-zone specifiers `K`, `z`, `zz` and `zzz`
+else a non-empty message; throws `ArgumentNullException` for null). The time-zone specifiers `K` and every run of `z` (`z`, `zz`, `zzz`, `zzzz` and longer)
 are refused when they are not inside quotes (`'...'` or `"..."`) or escaped by a backslash: they give the PC's own zone
 (`-05:00`, and `zzz` holds a colon), so they would make names depend on the PC. Unless a criterion says otherwise, the item is `a.txt`,
 modified 2024-03-09 14:05:07.
@@ -38,7 +38,7 @@ modified 2024-03-09 14:05:07.
    gets a rename `Error` (`The item has no date to use.`, thrown as `InvalidOperationException`) and keeps its name;
    the other items of the run still get theirs.
 8. Given the format `'abc` or `yyyy\` (a quote or backslash left open), then `Validate` returns a non-empty message and
-   the constructor throws `ArgumentException`; `yyyy-MM-dd` and `""` give null. The same for `K`, `z`, `zz`, `zzz`, and
+   the constructor throws `ArgumentException`; `yyyy-MM-dd` and `""` give null. The same for `K`, `z`, `zz`, `zzz`, `zzzz`, `zzzzzzz`, and
    `yyyy-MM-dd zzz`; but `yyyy'z'` (quoted), `yyyy\z` (escaped) and `yyyy-MM-dd` are accepted (`yyyy'z'` gives `2024z`).
    `FormatDate(date, "")` gives `""`; `FormatDate(date, "zzz")` throws `FormatException`. Given a null format, the constructor and
    `Validate` throw `ArgumentNullException`. The message wording is .NET's and may differ between runtimes: tests check
@@ -65,7 +65,7 @@ modified 2024-03-09 14:05:07.
   (po, 2026-10-18).
 - Culture? **Decision:** always the invariant culture, so a batch gives the same names on every PC and a user can share a
   preset (po, 2026-10-18; the `th-TH` case added 2026-10-24).
-- Time-zone letters (`K`, `z`, `zz`, `zzz`)? **Decision:** refused by `Validate`, so the claim above is true: app dates
+- Time-zone letters (`K` and any run of `z`)? **Decision:** refused by `Validate`, so the claim above is true: app dates
   are local, and these letters would print the PC's zone (po, 2026-10-24, from the PR #39 review).
 - Format language? **Decision:** the .NET custom format, because it is built in and well known. Letters that are not
   format letters must be quoted by the user (`'x'`); the panel shows a live example so the user sees the result

@@ -36,7 +36,7 @@ How it reads (the rules the tests below check):
   checked in `long` arithmetic so `0xFFFFFFFF` cannot wrap): the byte order is `II` or `MM`, else null; the next 2
   bytes are 42, else null; the IFD0 offset is at least 8 and the IFD it names (a 2-byte entry count, then 12 bytes per
   entry) fits in the TIFF data, else null. The reader visits only IFD0 and the one Exif IFD named by the pointer; it never
-  follows a next-IFD link; it reads at most `entry count` entries (up to 65,535), each inside the TIFF data. The Exif
+  follows a next-IFD link; when a tag appears twice in an IFD the first entry wins; it reads at most `entry count` entries (up to 65,535), each inside the TIFF data. The Exif
   pointer is tag 0x8769 of type LONG (4) with count 1; its offset is at least 8, differs from the IFD0 offset, and the Exif
   IFD fits in the TIFF data. DateTimeOriginal is tag 0x9003 of type ASCII (2) with a count of at least 19; its value is an
   offset (a count above 4 is never stored in the entry) with offset at least 8 and offset + count within the TIFF data.
@@ -60,7 +60,8 @@ How it reads (the rules the tests below check):
    first byte other than `FF` where a marker must start; the marker code `00`; a segment whose length runs past the end
    of the stream; then each gives null at once.
 6. Given the TIFF header: a bad byte order (`XX`), a magic other than 42, an IFD0 offset of 0, 4, 7 or past the TIFF data,
-   an APP1 payload shorter than 6 bytes, and `Exif\0` cut short, then each gives null.
+   an Exif pointer count of 0 or 2, an Exif IFD offset of 0, 4 or 7, an APP1 payload shorter than 6 bytes as the
+   only APP1 segment, and `Exif\0` cut short, then each gives null.
 7. Given 32-bit values: the DateTimeOriginal count `0xFFFFFFFF`, `0x80000000` and 18; its offset `0xFFFFFFFF` and
    `0xFFFFFFF0`; an offset plus count that lies one byte past the TIFF data; the Exif pointer value `0xFFFFFFFF`; a
    0x9003 entry of type SHORT (3) or with count 0; a 0x8769 entry of type ASCII; then each gives null, with no exception
@@ -87,6 +88,14 @@ How it reads (the rules the tests below check):
 16. Given a valid file (both byte orders), then for every byte position, replacing that byte with `00`, with `FF` and
     with `80` gives null or a date with no exception (fixed list, no randomness); and 5,000 mutations of 1 to 4 random bytes
     with a fixed seed do the same. The loops finish in a few seconds.
+
+17. Given duplicate entries, the first one in the IFD wins and later ones are ignored: two 0x8769 entries, the first
+    pointing at an Exif IFD with the date `2023:07:01 10:00:00` and the second at one with another date, then the first date;
+    two 0x9003 entries with two dates, then the first; a first 0x9003 entry that is invalid (type SHORT) followed by a valid
+    one, then null (the reader does not search on).
+18. Given the promises of the preamble: a null stream throws `ArgumentNullException`; the returned date has
+    `Kind == DateTimeKind.Unspecified` and the exact clock values stored; a stream whose `Read` throws an `IOException`
+    makes `Read` throw that same exception (it is not caught, and not turned into null).
 
 ## Out of scope
 - Using the date in a rule (NS-62), reading it from the disk in the window, any cache.
