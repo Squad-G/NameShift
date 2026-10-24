@@ -179,13 +179,13 @@ public sealed class PresetStore
         string.Equals(Path.GetDirectoryName(path), Folder, StringComparison.OrdinalIgnoreCase)
         && path.EndsWith(".json", StringComparison.OrdinalIgnoreCase);
 
-    /// <summary>The first of name.json, name (2).json, ... that no file has (any file, readable or not).</summary>
+    /// <summary>The first of name.json, name (2).json, ... that nothing has (any file, readable or not, or a folder).</summary>
     private string FreePath(string name)
     {
         for (int copy = 1; ; copy++)
         {
             string path = Path.Combine(Folder, PresetFileName.For(name, copy));
-            if (!_files.FileExists(path))
+            if (!_files.EntryExists(path))
             {
                 return path;
             }
@@ -193,7 +193,8 @@ public sealed class PresetStore
     }
 
     /// <summary>Reads every ".json" file of the folder in ordinal path order; nothing (and nothing created) when the
-    /// folder is missing. A file that cannot be read or parsed counts as unusable.</summary>
+    /// folder is missing. A file that cannot be read or parsed, or is larger than a preset can be (checked before
+    /// reading), counts as unusable.</summary>
     private Scan ScanFolder()
     {
         var presets = new List<Found>();
@@ -208,7 +209,9 @@ public sealed class PresetStore
             PresetRead read;
             try
             {
-                read = PresetJson.Read(_files.ReadAll(path));
+                read = _files.FileLength(path) > PresetJson.MaxContentLength
+                    ? PresetRead.Unreadable()
+                    : PresetJson.Read(_files.ReadAll(path));
             }
             catch (Exception)
             {

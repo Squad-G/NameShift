@@ -28,6 +28,15 @@ public sealed class PresetFileNameTests
     [InlineData("CONSOLE", "CONSOLE.json")]
     [InlineData("COM10", "COM10.json")]
     [InlineData("acon", "acon.json")]
+    [InlineData("con .txt", "con_ .txt.json")]
+    [InlineData("NUL  .a.b", "NUL_  .a.b.json")]
+    [InlineData("COM\u00B9", "COM\u00B9_.json")]
+    [InlineData("com\u00B2", "com\u00B2_.json")]
+    [InlineData("COM\u00B3.txt", "COM\u00B3_.txt.json")]
+    [InlineData("LPT\u00B9", "LPT\u00B9_.json")]
+    [InlineData("lpt\u00B2", "lpt\u00B2_.json")]
+    [InlineData("LPT\u00B3", "LPT\u00B3_.json")]
+    [InlineData("COM\u2074", "COM\u2074.json")]
     public void Reserved(string name, string expected)
     {
         CultureInfo before = CultureInfo.CurrentCulture;

@@ -23,6 +23,9 @@ internal static class PresetFileName
         "CON", "PRN", "AUX", "NUL",
         "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
         "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9",
+
+        // Windows also counts the superscript digits 1, 2 and 3 as COM and LPT digits.
+        "COM\u00B9", "COM\u00B2", "COM\u00B3", "LPT\u00B9", "LPT\u00B2", "LPT\u00B3",
     };
 
     /// <summary>The file name for a preset name; <paramref name="copy"/> 1 has no suffix, 2 and up add " (n)".</summary>
@@ -53,11 +56,12 @@ internal static class PresetFileName
             safe = Tidy(safe.Substring(0, cut));
         }
 
-        int stemLength = StemLength(safe);
-        if (IsReserved(safe.Substring(0, stemLength)))
+        // Spaces before the first dot do not count ("con .txt" is the device on Windows 10).
+        string stem = safe.Substring(0, StemLength(safe)).TrimEnd(' ');
+        if (IsReserved(stem))
         {
             // After the stem, so the part before the first dot is no longer a device name: "con.txt" is "con_.txt".
-            safe = safe.Insert(stemLength, "_");
+            safe = safe.Insert(stem.Length, "_");
         }
 
         string suffix = copy > 1 ? " (" + copy.ToString(CultureInfo.InvariantCulture) + ")" : "";

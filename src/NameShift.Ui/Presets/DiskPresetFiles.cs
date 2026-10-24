@@ -18,13 +18,13 @@ internal sealed class DiskPresetFiles : IPresetFiles
 
     /// <inheritdoc />
     public IReadOnlyList<string> ListJsonFiles(string folder) =>
-        Directory.GetFiles(folder, "*.json", SearchOption.TopDirectoryOnly)
-            // The pattern also matches longer extensions with 8.3 names ("*.json" can match "x.jsonx"): filter again.
-            .Where(path => path.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
-            .ToList();
+        OnlyJson(Directory.GetFiles(folder, "*.json", SearchOption.TopDirectoryOnly));
 
     /// <inheritdoc />
-    public bool FileExists(string path) => File.Exists(path);
+    public bool EntryExists(string path) => File.Exists(path) || Directory.Exists(path);
+
+    /// <inheritdoc />
+    public long FileLength(string path) => new FileInfo(path).Length;
 
     /// <inheritdoc />
     public byte[] ReadAll(string path) => File.ReadAllBytes(path);
@@ -62,6 +62,11 @@ internal sealed class DiskPresetFiles : IPresetFiles
 
     /// <inheritdoc />
     public void Delete(string path) => File.Delete(path);
+
+    /// <summary>The paths whose names end in ".json", ignoring case. The "*.json" pattern can also match a longer
+    /// extension through an 8.3 short name ("x.jsonx"), so the listing is filtered again.</summary>
+    internal static IReadOnlyList<string> OnlyJson(IEnumerable<string> paths) =>
+        paths.Where(path => path.EndsWith(".json", StringComparison.OrdinalIgnoreCase)).ToList();
 
     private static void DeleteTempQuietly(string tempPath)
     {

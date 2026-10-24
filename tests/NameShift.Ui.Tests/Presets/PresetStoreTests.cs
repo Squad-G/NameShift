@@ -173,6 +173,19 @@ public sealed class PresetStoreTests : IDisposable
     }
 
     [Fact]
+    public void Save_FolderNamedLikeTheFile_TakesTheNextName()
+    {
+        string blocking = Path.Combine(_folder, "Photos.json");
+        Directory.CreateDirectory(blocking);
+
+        PresetSaveResult result = Store().Save(PresetNamed("Photos"), overwrite: false);
+
+        Assert.Equal(PresetSaveStatus.Saved, result.Status);
+        Assert.Equal(Path.Combine(_folder, "Photos (2).json"), result.FilePath);
+        Assert.True(Directory.Exists(blocking));
+    }
+
+    [Fact]
     public void Save_LeftoverTemp_Tolerated()
     {
         string temp = WriteRaw("Photos.0123456789abcdef0123456789abcdef.tmp", "{ half");
@@ -409,6 +422,52 @@ public sealed class PresetStoreTests : IDisposable
     }
 
     [Fact]
+    public void Delete_ListedPathOutsideFolderOrNotJson_NotFound_NothingDeleted()
+    {
+        // Defence in depth: a listing (here a fake) that ever returned such a path must not make Delete act on it.
+        var files = new FakePresetFiles(_folder);
+        string outside = Path.Combine(_folder, "..", "outside", "victim.json");
+        string notJson = Path.Combine(_folder, "other.txt");
+        string elsewhere = Path.Combine(_root, "victim2.json");
+        files.Add(outside, PresetJson.Serialize(PresetNamed("victim")));
+        files.Add(notJson, PresetJson.Serialize(PresetNamed("other")));
+        files.Add(elsewhere, PresetJson.Serialize(PresetNamed("victim2")));
+        var store = new PresetStore(_folder, files);
+
+        Assert.Equal(PresetDeleteStatus.NotFound, store.Delete("victim").Status);
+        Assert.Equal(PresetDeleteStatus.NotFound, store.Delete("other").Status);
+        Assert.Equal(PresetDeleteStatus.NotFound, store.Delete("victim2").Status);
+        Assert.Empty(files.Deleted);
+    }
+
+    [Fact]
+    public void Scan_FileOverOneMiB_NotRead_Unusable()
+    {
+        var files = new FakePresetFiles(_folder);
+        string large = Path.Combine(_folder, "large.json");
+        string limit = Path.Combine(_folder, "limit.json");
+        files.Add(large, PresetJson.Serialize(PresetNamed("Large")), length: 300L * 1024 * 1024);
+        files.Add(limit, PresetJson.Serialize(PresetNamed("Limit")), length: PresetJson.MaxContentLength);
+        var store = new PresetStore(_folder, files);
+
+        PresetListing listing = store.List();
+
+        Assert.Equal(1, listing.UnusableCount);
+        Assert.Equal("Limit", Assert.Single(listing.Presets).Name);
+        Assert.DoesNotContain(large, files.Read);
+        Assert.Contains(limit, files.Read);
+    }
+
+    [Fact]
+    public void DiskListing_KeepsOnlyJsonNames()
+    {
+        string[] names = { "a.json", "b.JSON", "c.jsonx", "d.json.0123.tmp", "e.txt", "json" };
+        string[] paths = names.Select(n => Path.Combine(_folder, n)).ToArray();
+
+        Assert.Equal(new[] { paths[0], paths[1] }, DiskPresetFiles.OnlyJson(paths));
+    }
+
+    [Fact]
     public void List_200Presets_UnderOneSecond()
     {
         PresetStore store = Store();
@@ -474,6 +533,48 @@ public sealed class PresetStoreTests : IDisposable
         Assert.True(scanned > 20, "Only " + scanned + " files were scanned under " + root);
         string only = Assert.Single(found);
         Assert.StartsWith(nameof(PresetStoreTests) + ".cs:", only);
+    }
+
+    /// <summary>An in-memory IPresetFiles: lists every file added, whatever its folder or name, and records reads and
+    /// deletes.</summary>
+    private sealed class FakePresetFiles : IPresetFiles
+    {
+        private readonly string _folder;
+        private readonly Dictionary<string, (byte[] Content, long Length)> _files =
+            new Dictionary<string, (byte[] Content, long Length)>(StringComparer.OrdinalIgnoreCase);
+
+        public FakePresetFiles(string folder)
+        {
+            _folder = folder;
+        }
+
+        public List<string> Read { get; } = new List<string>();
+
+        public List<string> Deleted { get; } = new List<string>();
+
+        public void Add(string path, byte[] content, long? length = null) => _files[path] = (content, length ?? content.Length);
+
+        public bool FolderExists(string folder) => string.Equals(folder, _folder, StringComparison.OrdinalIgnoreCase);
+
+        public IReadOnlyList<string> ListJsonFiles(string folder) => _files.Keys.ToList();
+
+        public bool EntryExists(string path) => _files.ContainsKey(path);
+
+        public long FileLength(string path) => _files[path].Length;
+
+        public byte[] ReadAll(string path)
+        {
+            Read.Add(path);
+            return _files[path].Content;
+        }
+
+        public void WriteAtomic(string path, byte[] content) => _files[path] = (content, content.Length);
+
+        public void Delete(string path)
+        {
+            Deleted.Add(path);
+            _files.Remove(path);
+        }
     }
 
     private static string FindRoot()

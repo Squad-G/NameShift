@@ -11,8 +11,11 @@ internal interface IPresetFiles
     /// <summary>The full paths of the files directly in the folder whose names end in ".json" (ignoring case).</summary>
     IReadOnlyList<string> ListJsonFiles(string folder);
 
-    /// <summary>True when a file (any file) has that path.</summary>
-    bool FileExists(string path);
+    /// <summary>True when anything (a file of any kind, or a folder) has that path.</summary>
+    bool EntryExists(string path);
+
+    /// <summary>The file's length in bytes, so a file too large to be a preset is never read.</summary>
+    long FileLength(string path);
 
     /// <summary>The file's bytes.</summary>
     byte[] ReadAll(string path);

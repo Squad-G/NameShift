@@ -72,7 +72,7 @@ public sealed class PresetJsonTests
         try
         {
             CultureInfo.CurrentCulture = culture.Length == 0 ? CultureInfo.InvariantCulture : new CultureInfo(culture);
-            var original = new Preset("Fotos İ 📷", Sample().Panels);
+            var original = new Preset("Fotos \u0130 \uD83D\uDCF7", Sample().Panels);
 
             PresetRead read = PresetJson.Read(PresetJson.Serialize(original));
 

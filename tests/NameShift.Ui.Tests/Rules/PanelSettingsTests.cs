@@ -334,7 +334,9 @@ public sealed class PanelSettingsTests
 
     private static IRulePanelModel NewModel(Type type) => (IRulePanelModel)Activator.CreateInstance(type)!;
 
-    /// <summary>A new model with every setting set to a sample built by type (or from the override table).</summary>
+    /// <summary>A new model with every setting set to a sample built by type (or from the override table). Each setting
+    /// must end up different from a new model's, so a setter that rewrites another setting cannot hide a missing
+    /// line.</summary>
     private static IRulePanelModel Sampled(Type type)
     {
         IRulePanelModel model = NewModel(type);
@@ -351,6 +353,14 @@ public sealed class PanelSettingsTests
             {
                 Assert.Fail($"{type.Name}.{property.Name} refused the sample {sample}: add a sample. {e.InnerException?.Message}");
             }
+        }
+
+        IRulePanelModel fresh = NewModel(type);
+        foreach (PropertyInfo property in SettingProperties(type))
+        {
+            Assert.False(
+                Equals(property.GetValue(fresh), property.GetValue(model)),
+                $"{type.Name}.{property.Name} is back at its default after sampling: add a sample.");
         }
 
         return model;
