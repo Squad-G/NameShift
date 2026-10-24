@@ -151,4 +151,16 @@ public sealed class FolderNavigatorTests
         Assert.Equal(new[] { @"D:\B" }, _events);
         Assert.Equal(@"D:\B", _navigator.CurrentFolder);
     }
+
+    [Fact]
+    public void SelectFromTree_FallbackAfterRefresh_RaisesOnce_ThenSamePathDoesNot()
+    {
+        _navigator.SelectFromTree(@"C:\T\y");
+        _events.Clear();
+
+        _navigator.SelectFromTree(@"C:\T");
+        _navigator.SelectFromTree(@"C:\T");
+
+        Assert.Equal(new[] { @"C:\T" }, _events);
+    }
 }

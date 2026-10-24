@@ -25,6 +25,7 @@ internal sealed class MainForm : Form
 
     private readonly FolderNavigator _navigator;
     private readonly PathBar _pathBar = new PathBar();
+    private readonly FolderTreeModel _folderModel;
     private readonly FolderTree _folderTree;
     private readonly FileList _fileList;
     private readonly SplitContainer _mainSplit = new SplitContainer();
@@ -36,7 +37,8 @@ internal sealed class MainForm : Form
     public MainForm(IFolderSource source, IFileListSource fileListSource, IBatchRenamer renamer)
     {
         _navigator = new FolderNavigator(source);
-        _folderTree = new FolderTree(new FolderTreeModel(source), ShowStatus);
+        _folderModel = new FolderTreeModel(source);
+        _folderTree = new FolderTree(_folderModel, ShowStatus);
         FileListModel = new FileListModel(fileListSource);
 
         IReadOnlyList<RulePanelEntry> entries = RulePanels.Create();
@@ -60,6 +62,7 @@ internal sealed class MainForm : Form
         _pathBar.PathSubmitted += OnPathSubmitted;
         _navigator.FolderChanged += OnFolderChanged;
         Actions.Changed += (_, _) => OnActionsChanged();
+        Actions.FolderContentsChanged += OnFolderContentsChanged;
     }
 
     /// <summary>The current folder and its change event.</summary>
@@ -244,6 +247,48 @@ internal sealed class MainForm : Form
         ShowStatus("");
         _ = _folderTree.RevealAsync(e.Path);
         _ = _fileList.ShowFolderAsync(e.Path);
+    }
+
+    private async void OnFolderContentsChanged(object? sender, FolderContentsChangedEventArgs e)
+    {
+        try
+        {
+            await _folderTree.RefreshAsync(e.Folders);
+            if (IsDisposed)
+            {
+                return;
+            }
+
+            // The shown folder is gone when the tree no longer lists it and the disk agrees (the tree leaves out hidden
+            // folders). The user may move during the check, so the folder is read again after it.
+            string? shown = _navigator.CurrentFolder;
+            if (shown is null)
+            {
+                return;
+            }
+
+            string? fallback = await _folderModel.FindFallbackAsync(shown);
+            if (IsDisposed || !string.Equals(_navigator.CurrentFolder, shown, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            if (fallback != null)
+            {
+                _navigator.SelectFromTree(fallback); // FolderChanged clears the status bar, so say it after.
+                ShowStatus(string.Format(Strings.ShownFolderGone, shown));
+            }
+            else
+            {
+                // A replaced tree node (a case-only rename) makes the TreeView highlight a sibling: select the shown one again.
+                await _folderTree.RevealAsync(shown);
+            }
+        }
+        catch (Exception)
+        {
+            // An exception escaping an async void handler would end the process.
+            ShowStatus(Strings.SomethingWentWrong);
+        }
     }
 
     private async void OnPathSubmitted(object? sender, string text)
