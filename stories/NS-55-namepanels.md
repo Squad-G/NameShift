@@ -1,6 +1,6 @@
 # NS-55: Panels for Name and Extension
 
-Status: In Review
+Status: Done
 Depends on: NS-11, NS-18, NS-19, NS-16
 Area: app
 
@@ -61,3 +61,4 @@ Same pattern as NS-12: a model in `NameShift.Ui.Rules` (extends `RulePanelModel`
 - 2026-10-23: David chose per-panel mnemonics; letters set, depends on NS-16 for the test; set Ready (po).
 - 2026-10-23: In Progress (builder).
 - 2026-10-23: In Review (builder), PR #30.
+- 2026-10-24: Done (tech-lead), PR #30 merged into dev. AC 11 and the note wrap at 100 % and 200 % still to be checked by hand by David.

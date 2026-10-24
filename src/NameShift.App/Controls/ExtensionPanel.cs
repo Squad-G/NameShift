@@ -10,11 +10,11 @@ namespace NameShift.App.Controls;
 /// <summary>The content of the Extension panel: the mode list, the text (Fixed and Extra only) and a note that the content is not converted.</summary>
 internal sealed class ExtensionPanel : UserControl
 {
+    private const int NoteLogicalWidth = 220;
+
     private readonly ExtensionPanelModel _model;
     private readonly ComboBox _mode = new ComboBox();
     private readonly TextBox _text = new TextBox();
-    private const int NoteLogicalWidth = 220;
-
     private readonly Label _textLabel;
     private readonly Label _note = new Label();
 
