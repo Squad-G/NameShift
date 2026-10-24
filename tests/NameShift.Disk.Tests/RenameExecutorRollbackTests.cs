@@ -37,7 +37,7 @@ public sealed class RenameExecutorRollbackTests : ExecutorTestBase
         }
 
         Assert.Equal(ExecutionOutcome.RolledBack, result.Outcome);
-        Assert.Equal(FailureReason.RenameFailed, result.Failure!.Reason);
+        Assert.Equal(FailureReason.ItemInUse, result.Failure!.Reason);
         Assert.Equal(Temp.Full("f3"), result.Failure.ItemPath);
         Assert.NotNull(result.Failure.SystemMessage);
         Assert.NotNull(result.Failure.HResult);

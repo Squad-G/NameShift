@@ -93,7 +93,28 @@ public sealed class PartialRevertTests : JournalTestBase
         Assert.Equal(RevertSkipReason.RenameFailed, skipped.Reason);
         Assert.NotNull(skipped.SystemMessage);
         Assert.NotNull(skipped.HResult);
+        Assert.Equal(32, skipped.HResult!.Value & 0xFFFF);
         Assert.Equal(["a", "c", "y"], Temp.Listing());
+        Assert.Equal([(Temp.Full("b"), Temp.Full("y"))], Pairs(Renamer.LoadLastBatch().Renames));
+        Assert.False(File.Exists(PendingPath));
+    }
+
+    [Fact]
+    public void Revert_LockViolation_SkippedNotThrown()
+    {
+        RenameFiles(("a", "x"), ("b", "y"));
+        const int LockViolation = unchecked((int)0x80070021);
+        Disk.FailMove = (from, _) => from == Temp.Full("y") ? new IOException("locked", LockViolation) : null;
+
+        var result = Renamer.Revert();
+
+        Assert.Equal(RevertOutcome.PartlyReverted, result.Outcome);
+        var skipped = Assert.Single(result.NotReverted);
+        Assert.Equal((Temp.Full("b"), Temp.Full("y")), (skipped.Entry.OldPath, skipped.Entry.NewPath));
+        Assert.Equal(RevertSkipReason.RenameFailed, skipped.Reason);
+        Assert.Equal("locked", skipped.SystemMessage);
+        Assert.Equal(LockViolation, skipped.HResult);
+        Assert.Equal(["a", "y"], Temp.Listing());
         Assert.Equal([(Temp.Full("b"), Temp.Full("y"))], Pairs(Renamer.LoadLastBatch().Renames));
         Assert.False(File.Exists(PendingPath));
     }
