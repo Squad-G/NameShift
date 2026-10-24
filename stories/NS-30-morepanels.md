@@ -1,6 +1,6 @@
 # NS-30: Panel for Remove
 
-Status: In Review
+Status: Done
 Depends on: NS-11, NS-20, NS-21, NS-22, NS-23
 Area: app
 
@@ -102,3 +102,4 @@ In the window (by hand, listed in the PR):
 - 2026-10-23: criteria made testable (group rule, order, validation, letters), set Ready; build after NS-20 to NS-23 are merged (po).
 - 2026-10-24: In Progress (builder).
 - 2026-10-24: In Review (builder), PR #37.
+- 2026-10-24: Done (tech-lead), PR #37 merged into dev. Hand checks pending for David: GroupBox fit at 100 % and 200 %, screen reader, tab order on screen.
