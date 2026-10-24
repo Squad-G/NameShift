@@ -68,7 +68,7 @@ IDs), not the rank: the rank is the row order.
 | 74 | [NS-74 Sub-folders: recursive, cancellable listing](NS-74-subfolderlisting.md) | Ready | NS-33, NS-66, NS-73 |
 | 70 | [NS-70 Filter row above the file list](NS-70-filterrow.md) | Ready | NS-33 |
 | 37 | [NS-37 Remember last settings](NS-37-settings.md) | Ready | NS-36, NS-72 |
-| 42 | [NS-42 Command line: undo the last batch](NS-42-cliundo.md) | In Progress | NS-38, NS-9, NS-43 |
+| 42 | [NS-42 Command line: undo the last batch](NS-42-cliundo.md) | In Review | NS-38, NS-9, NS-43 |
 | 39 | [NS-39 Command line: quiet and verbose output](NS-39-clidry.md) | Ready | NS-38, NS-43, NS-42 |
 | 40 | [NS-40 Command line: Add and Numbering options](NS-40-clirules.md) | Ready | NS-38, NS-12, NS-53, NS-61, NS-43, NS-42, NS-39 |
 | 69 | [NS-69 Command line: use a saved preset](NS-69-clipreset.md) | Ready | NS-38, NS-36, NS-43, NS-72, NS-42, NS-39, NS-40 |

@@ -1,6 +1,6 @@
 # NS-42: Command line: undo the last batch
 
-Status: In Progress
+Status: In Review
 Depends on: NS-38, NS-9, NS-43
 Area: app
 
@@ -157,3 +157,4 @@ them apart). `CmdSourceScanTests` passes unchanged (no `Delete(` or `Move(` in t
   the exception string chosen, journal-first call order and the fake's defaults added; set Ready, first of the CLI
   build order NS-42, NS-39, NS-40, NS-69 (po).
 - 2026-10-24: In Progress (builder).
+- 2026-10-24: In Review (builder), PR #71.
