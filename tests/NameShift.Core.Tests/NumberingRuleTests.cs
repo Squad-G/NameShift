@@ -295,4 +295,92 @@ public sealed class NumberingRuleTests
         Assert.Equal(["a-x_I.txt", "b-x_II.txt"],
             pipeline.Run(Items.Files("a.txt", "b.txt")).Select(r => r.NewName).ToArray());
     }
+
+    private static RenameItem F(string folder, string name) => new(name, folder);
+
+    private static RenameItem[] InFolder(string folder, int count) =>
+        Enumerable.Range(1, count).Select(i => F(folder, "f.txt")).ToArray();
+
+    private static RenameResult[] RunItems(NumberingRule rule, params RenameItem[] items) =>
+        new RenamePipeline([rule]).Run(items).ToArray();
+
+    private static RenameItem[] TwoFolders() =>
+        [F(@"C:\x", "a.txt"), F(@"C:\x", "b.txt"), F(@"C:\y", "a.txt"), F(@"C:\y", "b.txt")];
+
+    [Fact]
+    public void BreakPerFolder_RestartsInEachFolder() =>
+        Assert.Equal(["a_1.txt", "b_2.txt", "a_1.txt", "b_2.txt"],
+            Names(RunItems(new NumberingRule(separator: "_", breakPerFolder: true), TwoFolders())));
+
+    [Fact]
+    public void BreakPerFolder_DefaultOff_NumbersTheWholeList()
+    {
+        Assert.Equal(["a_1.txt", "b_2.txt", "a_3.txt", "b_4.txt"],
+            Names(RunItems(new NumberingRule(separator: "_"), TwoFolders())));
+        Assert.False(new NumberingRule().BreakPerFolder);
+    }
+
+    [Fact]
+    public void BreakPerFolder_Property() => Assert.True(new NumberingRule(breakPerFolder: true).BreakPerFolder);
+
+    [Fact]
+    public void BreakPerFolder_StartAndStep()
+    {
+        var items = InFolder(@"C:\x", 3).Concat(InFolder(@"C:\y", 3)).ToArray();
+
+        Assert.Equal(["f_10.txt", "f_15.txt", "f_20.txt", "f_10.txt", "f_15.txt", "f_20.txt"],
+            Names(RunItems(new NumberingRule(start: 10, step: 5, separator: "_", breakPerFolder: true), items)));
+    }
+
+    [Fact]
+    public void BreakPerFolder_NegativeStep_OnlyTheLongFolderFails()
+    {
+        var items = InFolder(@"C:\x", 3).Concat(InFolder(@"C:\y", 2)).ToArray();
+
+        var results = RunItems(new NumberingRule(start: 1, step: -1, separator: "_", breakPerFolder: true), items);
+
+        Assert.Equal("f_1.txt", results[0].NewName);
+        Assert.Equal("f_0.txt", results[1].NewName);
+        Assert.Equal(RenameStatus.Error, results[2].Status);
+        Assert.Equal(RuleStage.Numbering, results[2].Error!.Stage);
+        Assert.Contains("below zero", results[2].Error!.Message);
+        Assert.Equal("f_1.txt", results[3].NewName);
+        Assert.Equal(RenameStatus.Changed, results[3].Status);
+        Assert.Equal("f_0.txt", results[4].NewName);
+        Assert.Equal(RenameStatus.Changed, results[4].Status);
+    }
+
+    [Fact]
+    public void BreakPerFolder_OneFolder_SameAsOff()
+    {
+        var items = InFolder(@"C:\x", 4);
+
+        var on = Names(RunItems(new NumberingRule(pad: 2, separator: "_", breakPerFolder: true), items));
+        var off = Names(RunItems(new NumberingRule(pad: 2, separator: "_"), items));
+
+        Assert.Equal(off, on, StringComparer.Ordinal);
+    }
+
+    [Fact]
+    public void BreakPerFolder_Hexadecimal()
+    {
+        var items = InFolder(@"C:\x", 11).Concat(InFolder(@"C:\y", 1)).ToArray();
+
+        var names = Names(RunItems(
+            new NumberingRule(start: 9, separator: "_", numerals: NumeralSystem.Hexadecimal, breakPerFolder: true), items));
+
+        Assert.Equal("f_9.txt", names[0]);
+        Assert.Equal("f_A.txt", names[1]);
+        Assert.Equal("f_13.txt", names[10]);
+        Assert.Equal("f_9.txt", names[11]);
+    }
+
+    [Fact]
+    public void BreakPerFolder_Roman()
+    {
+        var items = InFolder(@"C:\x", 2).Concat(InFolder(@"C:\y", 2)).ToArray();
+
+        Assert.Equal(["f_I.txt", "f_II.txt", "f_I.txt", "f_II.txt"],
+            Names(RunItems(new NumberingRule(separator: "_", numerals: NumeralSystem.Roman, breakPerFolder: true), items)));
+    }
 }

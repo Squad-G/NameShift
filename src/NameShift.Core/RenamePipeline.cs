@@ -42,7 +42,7 @@ public sealed class RenamePipeline
     /// <summary>The rules in run order.</summary>
     public IReadOnlyList<IRenameRule> Rules { get; }
 
-    /// <summary>Computes one result per item, in input order.</summary>
+    /// <summary>Computes one result per item, in input order; each item's context carries its folder index.</summary>
     public IReadOnlyList<RenameResult> Run(
         IReadOnlyList<RenameItem> items,
         CancellationToken cancellationToken = default)
@@ -55,6 +55,7 @@ public sealed class RenamePipeline
         // Enabled is read once here, at run time: rules must not change while a run is in progress.
         var active = Rules.Where(rule => rule.Enabled).ToArray();
         var results = new RenameResult[items.Count];
+        var perFolder = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         for (var i = 0; i < items.Count; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -64,7 +65,10 @@ public sealed class RenamePipeline
                 throw new ArgumentException("An item is null.", nameof(items));
             }
 
-            results[i] = Compute(active, item, new ItemContext(item, i, items.Count));
+            var key = item.FolderPath.TrimEnd('\\', '/');
+            perFolder.TryGetValue(key, out var folderIndex);
+            perFolder[key] = folderIndex + 1;
+            results[i] = Compute(active, item, new ItemContext(item, i, items.Count, folderIndex));
         }
 
         return results;
