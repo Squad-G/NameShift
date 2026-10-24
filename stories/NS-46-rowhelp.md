@@ -2,7 +2,7 @@
 
 Status: Ready
 Depends on: NS-52
-Area: app (with two constants made public in Core)
+Area: app
 
 ## Why
 Understand why a row has a problem and what to change. Today the Status text names the problem (`Reserved by Windows:

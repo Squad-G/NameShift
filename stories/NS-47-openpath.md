@@ -22,9 +22,9 @@ The logic is in two small `NameShift.Ui` pieces with tests: `OpenTarget` (a stat
 Tests use `FakeFolderSource` (its `Folders` and `Files`). The steps, in this order:
 (a) null gives the "nothing" result of criterion 2. (b) Trim. If the text starts and ends with `"` (length 2 or more),
 remove that pair and trim again. (c) Cut the text at the first `"` still in it and trim. (d) An empty result is
-"nothing". (e) The forbidden-character check of `PathInput` (control characters, `< > " | ? *`, a `:` anywhere but second),
+"nothing". (e) Change `/` to `\` first (so `//./C/x` is caught as a `\\.\` prefix), then the forbidden-character check of `PathInput` (control characters, `< > " | ? *`, a `:` anywhere but second),
 and the `\\?\` and `\\.\` prefixes, give the invalid message. This runs before anything is joined to `currentDirectory`,
-because `Path.Combine` throws on `|` and `"` on .NET Framework. (f) Change `/` to `\`. (g) A text that is fully qualified
+because `Path.Combine` throws on `|` and `"` on .NET Framework. (f) Nothing more for slashes (done at the start of e). (g) A text that is fully qualified
 (`X:\...`, `X:` alone, or `\\server\share...`) is normalised as the path bar does, but without expanding `%VAR%`: a real
 folder named `C:\%TEMP%` stays as it is (`PathInput.TryNormalize` gets an optional `expandVariables` parameter, default
 true, so the path bar is unchanged). (h) Any other text is relative: if it starts with `\` (`\Pics`, the root of the
@@ -48,8 +48,11 @@ is joined; any other relative text (`Pics`, `.`, `..\Pics`) is joined to `curren
    `FakeFolderSource.Files`).
 6. Given a path that does not exist, then `Folder` and `FileName` are null and `Message` is `Folder not found: {0}` with the
    normalised full path, on purpose (`Strings.PathNotFound`; `d:/pics/` shows `d:\pics`, while the path bar shows what the
-   user typed). Given a path with a character Windows forbids (`D:\Pics?`, `a|b`, `a"b`), then `Message` is `That is not a valid
-   folder path.` (`Strings.PathInvalid`). Neither throws, on both runtimes.
+   user typed). Given a path with a character Windows forbids (`D:\Pics?`, `a|b`), then `Message` is `That is not a valid
+   folder path.` (`Strings.PathInvalid`). (`a"b` never reaches that check: step c cuts it to `a`, a relative folder, so
+   it gives `Folder not found` when the fake doesn't know it.) Neither throws, on both runtimes. A path over 259
+   characters makes `GetFullPath` throw on .NET Framework but not on .NET 10, so any long-path test only asserts that
+   `Resolve` does not throw, never the exact message.
 7. Given `currentDirectory` `C:\Work`: `Pics` gives `C:\Work\Pics`, `.` gives `C:\Work`, `..\Pics` gives `C:\Pics`, each
    when the fake knows that folder. `\Pics` and `D:Pics` give the invalid message (step h). Given a `currentDirectory` that is
    empty or `Work`, then `Pics` gives the invalid message and does not throw.
