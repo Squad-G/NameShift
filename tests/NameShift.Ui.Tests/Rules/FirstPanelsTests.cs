@@ -63,7 +63,8 @@ public sealed class FirstPanelsTests
             (Strings.NumberingTitle, new[]
             {
                 Strings.NumberingMode, Strings.NumberingStart, Strings.NumberingStep, Strings.NumberingPad,
-                Strings.NumberingSeparator, Strings.NumberingPosition,
+                Strings.NumberingSeparator, Strings.NumberingPosition, Strings.NumberingSystem,
+                Strings.NumberingCase,
             }),
             (Strings.NameTitle, new[] { Strings.NameMode, Strings.NameText }),
             (Strings.ExtensionTitle, new[] { Strings.ExtensionMode, Strings.ExtensionText }),
@@ -109,6 +110,21 @@ public sealed class FirstPanelsTests
                 Strings.NumberingTitle, Strings.NameTitle, Strings.ExtensionTitle, Strings.RegexTitle,
                 Strings.MoveCopyTitle, Strings.AutoDateTitle, Strings.FolderNameTitle,
             }.Select(MnemonicCheck.LetterOf).ToArray());
+    }
+
+    [Fact]
+    public void NumberingSystemAndCase_UseTheStoryLetters()
+    {
+        Assert.Equal(
+            new[] { 'S', 'C' },
+            new[] { Strings.NumberingSystem, Strings.NumberingCase }.Select(MnemonicCheck.LetterOf).ToArray());
+        Assert.All(
+            new[]
+            {
+                Strings.NumberingSystemDecimal, Strings.NumberingSystemHexadecimal, Strings.NumberingSystemLetters,
+                Strings.NumberingSystemRoman, Strings.NumberingCaseUpper, Strings.NumberingCaseLower,
+            },
+            word => Assert.DoesNotContain("&", word));
     }
 
     [Fact]
@@ -479,6 +495,8 @@ public sealed class FirstPanelsTests
         Change(new FolderNamePanelModel(), m => m.Placement = FolderNamePlacement.Suffix),
         Change(new FolderNamePanelModel(), m => m.LevelsText = "2"),
         Change(new FolderNamePanelModel(), m => m.Separator = "x"),
+        Change(new NumberingPanelModel(), m => m.Numerals = NumeralSystem.Hexadecimal),
+        Change(new NumberingPanelModel(), m => m.UpperCase = false),
     };
 
     [Theory]
