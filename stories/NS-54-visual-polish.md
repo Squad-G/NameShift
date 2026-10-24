@@ -1,6 +1,6 @@
 # NS-54: Visual polish
 
-Status: In Progress
+Status: In Review
 Depends on: NS-15, NS-55, NS-30
 Area: app
 
@@ -107,3 +107,4 @@ No change in behaviour:
   3/6/8/20 values, accent rule made a scan, size files defined (po).
 - 2026-10-24: David chose the default look; criteria rewritten to be testable (Ui `Spacing`, `AccentColor`, source scans) and the rest by hand; set Ready (po).
 - 2026-10-24: In Progress (builder).
+- 2026-10-24: In Review (builder), PR #61.
