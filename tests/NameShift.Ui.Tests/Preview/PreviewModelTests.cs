@@ -7,9 +7,11 @@ using NameShift.Core;
 using NameShift.Ui.Files;
 using NameShift.Ui.Preview;
 using NameShift.Ui.Rules;
+using NameShift.Ui.Tests.Files;
 using NameShift.Ui.Tests.Rules;
 using Xunit;
 using static NameShift.Ui.Tests.FakeFileListSource;
+using static NameShift.Ui.Tests.Files.TestWait;
 
 namespace NameShift.Ui.Tests.Preview;
 
@@ -439,9 +441,7 @@ public sealed class PreviewModelTests
     [Fact]
     public async Task NameOutsideTheBatch_IsTargetExists()
     {
-        _source.SetListing(
-            @"C:\H",
-            FileListing.Ok(new[] { File("a.txt", folder: @"C:\H"), File("b.txt", folder: @"C:\H") }, new[] { "a.txt", "b.txt", "c.txt" }));
+        _source.SetEntries(@"C:\H", new[] { "c.txt" }, File("a.txt", folder: @"C:\H"), File("b.txt", folder: @"C:\H"));
         PreviewModel preview = Build(EnabledPanelOf(_ => new ReplaceRule("a", "c")));
 
         await _files.LoadAsync(@"C:\H");
@@ -577,18 +577,20 @@ public sealed class PreviewModelTests
     }
 
     [Fact]
-    public async Task CheckThatThrows_EndsAsAFailure()
+    public async Task ItemOfAnotherFolder_HasItsOwnExistingNames()
     {
-        // An item whose folder is not the listed folder: DuplicateTargetCheck has no existing names for it and throws.
-        _source.SetEntries(@"C:\C", File("q.txt", folder: @"C:\Elsewhere"));
+        // NS-33: the names are grouped by each item's own folder, so DuplicateTargetCheck always finds its folder
+        // (before, an item whose folder was not the listed folder made the check throw).
+        _source.SetEntries(@"C:\C", File("q.txt", folder: @"C:\Elsewhere"), Hidden("x.txt", @"C:\Elsewhere"));
         PreviewModel preview = Build(EnabledPanelOf(_ => new RenameToRule("x.txt")));
 
         await _files.LoadAsync(@"C:\C");
         await preview.Pending;
 
-        Assert.True(preview.HasFailed);
-        Assert.Same(PreviewSnapshot.Empty, preview.Snapshot);
-        Assert.Equal("", preview.ConflictSummary);
+        Assert.False(preview.HasFailed);
+        Assert.Single(preview.Snapshot.Results);
+        Assert.Equal(Message(ConflictCode.TargetExists), preview.StatusForRow(0).Text);
+        Assert.Equal("1 conflict", preview.ConflictSummary);
     }
 
     [Fact]
@@ -969,11 +971,7 @@ public sealed class PreviewModelTests
         await preview.Pending;
 
         PreviewSnapshot snapshot = preview.Snapshot;
-        var existing = new Dictionary<string, IReadOnlyCollection<string>>
-        {
-            [@"C:\A"] = _files.ExistingNames,
-        };
-        RenamePlan expected = RenamePlanner.Plan(host.Rules, snapshot.Items, existing, CancellationToken.None);
+        RenamePlan expected = RenamePlanner.Plan(host.Rules, snapshot.Items, _files.ExistingNamesByFolder, CancellationToken.None);
         Assert.Equal(3, snapshot.Results.Count);
         Assert.Equal(expected.Results.Select(r => r.NewName).ToArray(), snapshot.Results.Select(r => r.NewName).ToArray());
         Assert.Equal(expected.Results.Select(r => r.Status).ToArray(), snapshot.Results.Select(r => r.Status).ToArray());
@@ -985,5 +983,148 @@ public sealed class PreviewModelTests
         }
 
         Assert.Equal(expected.Blocker, snapshot.Blocker);
+    }
+
+    // NS-33: the filtered list
+
+    private static FakeRulePanelModel ExtensionPanel(string extension)
+    {
+        FakeRulePanelModel panel = PanelOf(_ => new ExtensionRule(ExtensionMode.Fixed, extension), stage: RuleStage.Extension);
+        panel.Enabled = true;
+        return panel;
+    }
+
+    [Fact]
+    public async Task HiddenByFilter_StillOccupiesItsName()
+    {
+        _source.SetEntries(@"C:\H", File("a.png", folder: @"C:\H"), File("a.jpg", folder: @"C:\H"));
+        PreviewModel preview = Build(ExtensionPanel("png"));
+        await _files.LoadAsync(@"C:\H");
+        await Within(preview.Pending);
+
+        Assert.True(await Within(_files.SetFilterAsync(new ItemFilter(mask: "*.jpg"))));
+        await Within(preview.Pending);
+
+        Assert.Equal(new[] { "a.jpg" }, _files.Items.Select(i => i.Name));
+        Assert.Equal(new PreviewCell("a.png", PreviewCellKind.Changed), preview.CellForRow(0), CellComparer.Instance);
+        Assert.Equal(Message(ConflictCode.TargetExists), preview.StatusForRow(0).Text);
+    }
+
+    [Fact]
+    public async Task HiddenFile_StillOccupiesItsName()
+    {
+        _source.SetEntries(@"C:\H", Hidden("a.png", @"C:\H"), File("a.jpg", folder: @"C:\H"));
+        PreviewModel preview = Build(ExtensionPanel("png"));
+
+        await _files.LoadAsync(@"C:\H");
+        await Within(preview.Pending);
+
+        Assert.Equal(new[] { "a.jpg" }, _files.Items.Select(i => i.Name));
+        Assert.True(_files.IsFilterDefault);
+        Assert.Equal(Message(ConflictCode.TargetExists), preview.StatusForRow(0).Text);
+    }
+
+    [Fact]
+    public async Task FilterApplied_RecomputesOnce_WithoutDebounce()
+    {
+        var counter = new ApplyCounter();
+        PreviewModel preview = await BuildLoaded(PanelOf(t => new CountingRule(RuleStage.Replace, t, counter), "x"));
+        int delays = _delay.Calls.Count;
+        int before = counter.Count;
+
+        Assert.True(await Within(_files.SetFilterAsync(new ItemFilter(mask: "a*"))));
+        await Within(preview.Pending);
+
+        Assert.Equal(before + 2, counter.Count);
+        Assert.Equal(delays, _delay.Calls.Count);
+        Assert.True(preview.IsCurrent);
+        Assert.Equal("a1.txt", preview.CellForRow(0).Text);
+        Assert.Equal("a2.txt", preview.CellForRow(1).Text);
+        Assert.Equal(PreviewCellKind.None, preview.CellForRow(2).Kind);
+    }
+
+    [Fact]
+    public async Task FilterPending_PreviewUnchanged()
+    {
+        var seam = new FilterSeam();
+        var files = new FileListModel(_source, seam.Includes);
+        FakeRulePanelModel panel = ReplacePanel("a");
+        panel.Enabled = true;
+        var preview = new PreviewModel(new RulePanelHostModel(new IRulePanelModel[] { panel }), files, _delay.Delay);
+        await files.LoadAsync(@"C:\A");
+        await Within(preview.Pending);
+        PreviewSnapshot snapshot = preview.Snapshot;
+        PreviewCell first = preview.CellForRow(0);
+        var slow = new ItemFilter(mask: "b*");
+        using var gate = new TestGate();
+        seam.Use(slow, item =>
+        {
+            gate.Block();
+            return slow.Includes(item);
+        });
+
+        Task<bool> run = files.SetFilterAsync(slow);
+        gate.WaitUntilReached();
+
+        Assert.True(files.IsFilterPending);
+        Assert.True(preview.IsCurrent);
+        Assert.Same(snapshot, preview.Snapshot);
+        Assert.Equal(new PreviewCell("_1.txt", PreviewCellKind.Changed), first, CellComparer.Instance);
+        Assert.Equal(first, preview.CellForRow(0), CellComparer.Instance);
+        gate.Release();
+        Assert.True(await Within(run));
+        await Within(preview.Pending);
+        Assert.Equal(new PreviewCell("b.txt", PreviewCellKind.Unchanged), preview.CellForRow(0), CellComparer.Instance);
+    }
+
+    [Fact]
+    public async Task FilterApplied_OldSnapshotStopsAnsweringAtOnce()
+    {
+        using var gate = new TestGate();
+        var rule = new HoldRule(gate);
+        PreviewModel preview = await BuildLoaded(PanelOf(_ => rule, "x"));
+        Assert.True(preview.IsCurrent);
+        rule.Armed = true;
+
+        Assert.True(await Within(_files.SetFilterAsync(new ItemFilter(mask: "a*"))));
+
+        Assert.False(preview.IsCurrent);
+        Assert.Equal(PreviewCellKind.None, preview.CellForRow(0).Kind);
+        gate.Release();
+        await Within(preview.Pending);
+        Assert.True(preview.IsCurrent);
+        Assert.Equal("a1.txt", preview.CellForRow(0).Text);
+    }
+
+    /// <summary>Changes nothing; once armed, holds every Apply at the gate (which has a timeout).</summary>
+    private sealed class HoldRule : IRenameRule
+    {
+        private readonly TestGate _gate;
+        private volatile bool _armed;
+
+        public HoldRule(TestGate gate)
+        {
+            _gate = gate;
+        }
+
+        public bool Armed
+        {
+            get => _armed;
+            set => _armed = value;
+        }
+
+        public RuleStage Stage => RuleStage.Replace;
+
+        public bool Enabled => true;
+
+        public NameParts Apply(NameParts name, ItemContext context)
+        {
+            if (_armed)
+            {
+                _gate.Block();
+            }
+
+            return name;
+        }
     }
 }

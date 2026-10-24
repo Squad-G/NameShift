@@ -104,15 +104,12 @@ public sealed class CommandRunner
             return Fail(Format(Strings.CannotList, folder, FolderProblemText.For(listing.Problem.Value)), ExitCode.InputError);
         }
 
-        // The window's default order, then files only (hidden and system out); every entry name still counts.
+        // The window's default order, then files only (hidden and system out by the filter's default); every entry
+        // name still counts. No UI thread here, so the filter runs in place.
         var filter = new ItemFilter(includeFolders: false);
         RenameItem[] items = FileListOrder.Sort(listing.Items).Where(filter.Includes).ToArray();
-        var existingNames = new Dictionary<string, IReadOnlyCollection<string>>(StringComparer.OrdinalIgnoreCase)
-        {
-            [folder] = listing.ExistingNames.ToArray(),
-        };
 
-        RenamePlan plan = RenamePlanner.Plan(BuildRules(options), items, existingNames, CancellationToken.None);
+        RenamePlan plan = RenamePlanner.Plan(BuildRules(options), items, listing.ExistingNamesByFolder, CancellationToken.None);
         switch (plan.Blocker)
         {
             case RenameBlocker.Conflicts:

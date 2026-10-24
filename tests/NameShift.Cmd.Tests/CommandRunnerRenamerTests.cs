@@ -37,11 +37,8 @@ public sealed class CommandRunnerRenamerTests : IDisposable
         Assert.Equal(1, renamer.RenameCalls);
         FileListing listing = new DiskFileListSource().ListEntries(_temp.Files);
         RenameItem[] items = FileListOrder.Sort(listing.Items).Where(new ItemFilter(includeFolders: false).Includes).ToArray();
-        var existing = new Dictionary<string, IReadOnlyCollection<string>>(StringComparer.OrdinalIgnoreCase)
-        {
-            [_temp.Files] = listing.ExistingNames.ToArray(),
-        };
-        RenamePlan expected = RenamePlanner.Plan(new IRenameRule[] { new ReplaceRule("IMG", "Trip") }, items, existing, CancellationToken.None);
+        RenamePlan expected = RenamePlanner.Plan(
+            new IRenameRule[] { new ReplaceRule("IMG", "Trip") }, items, listing.ExistingNamesByFolder, CancellationToken.None);
 
         Assert.Equal(
             expected.Results.Select(r => (r.Item.Name, r.Item.FolderPath, r.NewName, r.Status)).ToArray(),

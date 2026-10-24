@@ -82,8 +82,7 @@ public sealed class DiskFileListSourceTests : IDisposable
         Assert.Equal("", parts.Extension);
     }
 
-    [Fact]
-    public void ListEntries_SkipsHiddenAndSystemEntries()
+    private void MakeSixEntries()
     {
         MakeFile("visible.txt");
         MakeFolder("visible-folder");
@@ -91,40 +90,40 @@ public sealed class DiskFileListSourceTests : IDisposable
         MakeFile("system.sys", FileAttributes.System);
         MakeFolder("hidden-folder", FileAttributes.Directory | FileAttributes.Hidden);
         MakeFolder("system-folder", FileAttributes.Directory | FileAttributes.System);
-
-        FileListing listing = _source.ListEntries(_temp);
-
-        Assert.Equal(new[] { "visible-folder", "visible.txt" }, listing.Items.Select(i => i.Name).OrderBy(n => n, StringComparer.Ordinal));
     }
 
     [Fact]
-    public void ListEntries_ExistingNames_IncludeHiddenAndSystemEntries()
+    public void ListEntries_ReturnsHiddenAndSystemEntries_WithTheirAttributes()
     {
-        MakeFile("visible.txt");
-        MakeFolder("visible-folder");
-        MakeFile("hidden.txt", FileAttributes.Hidden);
-        MakeFile("system.sys", FileAttributes.System);
-        MakeFolder("hidden-folder", FileAttributes.Directory | FileAttributes.Hidden);
-        MakeFolder("system-folder", FileAttributes.Directory | FileAttributes.System);
+        MakeSixEntries();
 
         FileListing listing = _source.ListEntries(_temp);
 
+        Assert.Null(listing.Problem);
+        Assert.Equal(6, listing.Items.Count);
+        ItemAttributes AttributesOf(string name) => listing.Items.Single(i => i.Name == name).Attributes;
+        Assert.Equal(ItemAttributes.None, AttributesOf("visible.txt"));
+        Assert.Equal(ItemAttributes.None, AttributesOf("visible-folder"));
+        Assert.Equal(ItemAttributes.Hidden, AttributesOf("hidden.txt"));
+        Assert.Equal(ItemAttributes.System, AttributesOf("system.sys"));
+        Assert.Equal(ItemAttributes.Hidden, AttributesOf("hidden-folder"));
+        Assert.Equal(ItemAttributes.System, AttributesOf("system-folder"));
+        Assert.Equal(ItemKind.Folder, listing.Items.Single(i => i.Name == "hidden-folder").Kind);
+        Assert.Equal(ItemKind.File, listing.Items.Single(i => i.Name == "system.sys").Kind);
+        Assert.All(listing.Items, item => Assert.Equal(_temp, item.FolderPath));
+    }
+
+    [Fact]
+    public void ListEntries_ExistingNamesByFolder_EveryEntry()
+    {
+        MakeSixEntries();
+
+        FileListing listing = _source.ListEntries(_temp);
+
+        Assert.Equal(new[] { _temp }, listing.ExistingNamesByFolder.Keys);
         Assert.Equal(
             new[] { "hidden-folder", "hidden.txt", "system-folder", "system.sys", "visible-folder", "visible.txt" },
-            listing.ExistingNames.OrderBy(n => n, StringComparer.Ordinal));
-        Assert.Equal(2, listing.Items.Count);
-    }
-
-    [Theory]
-    [InlineData(FileAttributes.Normal, true)]
-    [InlineData(FileAttributes.ReadOnly, true)]
-    [InlineData(FileAttributes.Archive, true)]
-    [InlineData(FileAttributes.Hidden, false)]
-    [InlineData(FileAttributes.System, false)]
-    [InlineData(FileAttributes.Hidden | FileAttributes.System, false)]
-    public void IsShown_HiddenOrSystem_IsFalse(FileAttributes attributes, bool expected)
-    {
-        Assert.Equal(expected, DiskFileListSource.IsShown(attributes));
+            listing.ExistingNamesByFolder[_temp].OrderBy(n => n, StringComparer.Ordinal));
     }
 
     [Fact]
