@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using NameShift.Core;
@@ -380,5 +381,294 @@ public sealed class FileListModelTests
         Assert.Throws<ArgumentOutOfRangeException>(() => _model.SetSelection(new[] { 0 }));
         gate.Set();
         await loading;
+    }
+
+    private async Task LoadSized()
+    {
+        _source.SetEntries(@"C:\A", Folder("d"), File("a.txt", 30), File("b.txt", 10), File("c.txt", 20), File("e.txt", 40));
+        await _model.LoadAsync(@"C:\A");
+    }
+
+    private static string[] NamesOf(IEnumerable<RenameItem> items) => items.Select(i => i.Name).ToArray();
+
+    [Fact]
+    public async Task SortBy_NewColumnAscending_SameColumnToggles()
+    {
+        await LoadSized();
+        Assert.False(_model.IsSortChosen);
+
+        _model.SortBy(FileListColumn.Size);
+        Assert.Equal(new FileListSort(FileListColumn.Size, false), _model.Sort);
+        Assert.True(_model.IsSortChosen);
+        Assert.Equal(new[] { "d", "b.txt", "c.txt", "a.txt", "e.txt" }, NamesOf(_model.Items));
+
+        _model.SortBy(FileListColumn.Size);
+        Assert.Equal(new FileListSort(FileListColumn.Size, true), _model.Sort);
+        Assert.Equal(new[] { "d", "e.txt", "a.txt", "c.txt", "b.txt" }, NamesOf(_model.Items));
+
+        _model.SortBy(FileListColumn.Size);
+        Assert.Equal(new FileListSort(FileListColumn.Size, false), _model.Sort);
+
+        _model.SortBy(FileListColumn.Modified);
+        Assert.Equal(new FileListSort(FileListColumn.Modified, false), _model.Sort);
+    }
+
+    [Fact]
+    public async Task SortBy_NameFromDefault_IsDescending()
+    {
+        await LoadSized();
+
+        _model.SortBy(FileListColumn.Name);
+
+        Assert.Equal(new FileListSort(FileListColumn.Name, true), _model.Sort);
+        Assert.Equal(new[] { "d", "e.txt", "c.txt", "b.txt", "a.txt" }, NamesOf(_model.Items));
+    }
+
+    [Fact]
+    public async Task SortBy_NewItemsInstance_ExistingNamesAndFolderUnchanged()
+    {
+        await LoadSized();
+        var oldItems = _model.Items;
+        var names = _model.ExistingNames;
+
+        _model.SortBy(FileListColumn.Size);
+
+        Assert.NotSame(oldItems, _model.Items);
+        Assert.Same(names, _model.ExistingNames);
+        Assert.Equal(@"C:\A", _model.FolderPath);
+        Assert.Equal(FileListState.Loaded, _model.State);
+    }
+
+    [Fact]
+    public async Task SortBy_KeepsSelectedItems()
+    {
+        await LoadSized();
+        RenameItem first = _model.Items[0];
+        RenameItem third = _model.Items[2];
+        _model.SetSelection(new[] { 0, 2 });
+
+        _model.SortBy(FileListColumn.Size);
+
+        int rowFirst = _model.Items.ToList().IndexOf(first);
+        int rowThird = _model.Items.ToList().IndexOf(third);
+        Assert.True(rowFirst < rowThird);
+        Assert.False(_model.Batch.IsWholeList);
+        Assert.Equal(new[] { first, third }, _model.Batch.Items);
+        Assert.Equal(new[] { rowFirst, rowThird }, _model.Batch.Rows);
+        Assert.Equal(new[] { rowFirst, rowThird }, _model.SelectedRows);
+        Assert.Same(_model.Items, _model.Batch.ListItems);
+    }
+
+    [Fact]
+    public async Task SortBy_SelectionMovesWithItsItems()
+    {
+        await LoadSized();
+        RenameItem a = _model.Items[1];
+        RenameItem e = _model.Items[4];
+        _model.SetSelection(new[] { 1, 4 });
+
+        _model.SortBy(FileListColumn.Name);
+
+        Assert.Equal(new[] { 1, 4 }, _model.SelectedRows);
+        Assert.Equal(new[] { e, a }, _model.Batch.Items);
+        Assert.Equal(new[] { 1, 4 }, _model.Batch.Rows);
+        Assert.Same(e, _model.Items[1]);
+        Assert.Same(a, _model.Items[4]);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task SortBy_NoneOrAllSelected_WholeListInNewOrder(bool all)
+    {
+        await LoadSized();
+        if (all)
+        {
+            _model.SetSelection(new[] { 0, 1, 2, 3, 4 });
+        }
+
+        _model.SortBy(FileListColumn.Size);
+
+        Assert.True(_model.Batch.IsWholeList);
+        Assert.Same(_model.Items, _model.Batch.Items);
+        Assert.Equal(all ? new[] { 0, 1, 2, 3, 4 } : new int[0], _model.SelectedRows);
+    }
+
+    [Fact]
+    public async Task SortBy_RaisesOnlyOrderChanged_Once()
+    {
+        await LoadSized();
+        int order = 0;
+        int selection = 0;
+        _model.OrderChanged += (_, _) => order++;
+        _model.SelectionChanged += (_, _) => selection++;
+        _model.SetSelection(new[] { 1 });
+        selection = 0;
+        int changes = _changes;
+
+        _model.SortBy(FileListColumn.Size);
+
+        Assert.Equal(1, order);
+        Assert.Equal(changes, _changes);
+        Assert.Equal(0, selection);
+    }
+
+    [Fact]
+    public async Task SortBy_OrderChanged_SeesTheNewState()
+    {
+        await LoadSized();
+        FileListSort? seen = null;
+        bool? chosen = null;
+        string? second = null;
+        _model.OrderChanged += (_, _) =>
+        {
+            seen = _model.Sort;
+            chosen = _model.IsSortChosen;
+            second = _model.Items[1].Name;
+        };
+
+        _model.SortBy(FileListColumn.Size);
+
+        Assert.Equal(new FileListSort(FileListColumn.Size, false), seen);
+        Assert.True(chosen);
+        Assert.Equal("b.txt", second);
+    }
+
+    [Fact]
+    public async Task SortBy_SameOrder_StillRaisesOrderChanged()
+    {
+        _source.SetEntries(@"C:\A", File("a.txt", 5), File("b.txt", 5));
+        await _model.LoadAsync(@"C:\A");
+        int order = 0;
+        _model.OrderChanged += (_, _) => order++;
+
+        _model.SortBy(FileListColumn.Size);
+
+        Assert.Equal(1, order);
+        Assert.Equal(new[] { "a.txt", "b.txt" }, NamesOf(_model.Items));
+    }
+
+    [Fact]
+    public async Task SelectedRows_TracksSetSelection()
+    {
+        await LoadSized();
+        Assert.Empty(_model.SelectedRows);
+
+        _model.SetSelection(new[] { 2, 0, 2 });
+        Assert.Equal(new[] { 0, 2 }, _model.SelectedRows);
+
+        _model.SetSelection(new[] { 4, 3, 2, 1, 0 });
+        Assert.Equal(new[] { 0, 1, 2, 3, 4 }, _model.SelectedRows);
+
+        _model.SetSelection(new int[0]);
+        Assert.Empty(_model.SelectedRows);
+
+        int selection = 0;
+        _model.SelectionChanged += (_, _) => selection++;
+        _model.SetSelection(new[] { 0, 1, 2, 3, 4 });
+        Assert.Equal(new[] { 0, 1, 2, 3, 4 }, _model.SelectedRows);
+        Assert.Equal(0, selection);
+    }
+
+    [Fact]
+    public async Task SelectedRows_EmptyAfterEveryLoad()
+    {
+        await LoadSized();
+        _model.SetSelection(new[] { 1 });
+
+        await _model.LoadAsync(@"C:\A");
+
+        Assert.Empty(_model.SelectedRows);
+    }
+
+    [Fact]
+    public async Task Load_OtherFolder_ResetsSort()
+    {
+        await LoadSized();
+        _source.SetEntries(@"C:\B", File("z.txt", 1, @"C:\B"), File("y.txt", 9, @"C:\B"));
+        _model.SortBy(FileListColumn.Size);
+        _model.SortBy(FileListColumn.Size);
+
+        await _model.LoadAsync(@"C:\B");
+
+        Assert.Equal(FileListSort.Default, _model.Sort);
+        Assert.False(_model.IsSortChosen);
+        Assert.Equal(new[] { "y.txt", "z.txt" }, NamesOf(_model.Items));
+    }
+
+    [Theory]
+    [InlineData(@"C:\A")]
+    [InlineData(@"c:\a\")]
+    public async Task Load_SameFolder_KeepsSort(string reload)
+    {
+        await LoadSized();
+        _source.SetEntries(reload, Folder("d"), File("a.txt", 30), File("b.txt", 10), File("c.txt", 20), File("e.txt", 40));
+        _model.SortBy(FileListColumn.Size);
+        _model.SortBy(FileListColumn.Size);
+        _model.SetSelection(new[] { 1 });
+
+        await _model.LoadAsync(reload);
+
+        Assert.Equal(new[] { "d", "e.txt", "a.txt", "c.txt", "b.txt" }, NamesOf(_model.Items));
+        Assert.Equal(new FileListSort(FileListColumn.Size, true), _model.Sort);
+        Assert.True(_model.IsSortChosen);
+        Assert.Empty(_model.SelectedRows);
+    }
+
+    [Theory]
+    [InlineData("before")]
+    [InlineData("loading")]
+    [InlineData("failed")]
+    [InlineData("empty")]
+    public async Task SortBy_NotLoadedOrEmpty_DoesNothing(string situation)
+    {
+        System.Threading.ManualResetEventSlim? gate = null;
+        Task<bool>? loading = null;
+        try
+        {
+            switch (situation)
+            {
+                case "loading":
+                    gate = _source.Gate(@"C:\A");
+                    loading = _model.LoadAsync(@"C:\A");
+                    break;
+                case "failed":
+                    _source.SetListing(@"C:\A", FileListing.Failed(FolderProblem.NotFound));
+                    await _model.LoadAsync(@"C:\A");
+                    break;
+                case "empty":
+                    await _model.LoadAsync(@"C:\A");
+                    break;
+            }
+
+            int events = 0;
+            _model.OrderChanged += (_, _) => events++;
+            _model.Changed += (_, _) => events++;
+            _model.SelectionChanged += (_, _) => events++;
+            FileListState state = _model.State;
+
+            _model.SortBy(FileListColumn.Size);
+
+            Assert.Equal(FileListSort.Default, _model.Sort);
+            Assert.False(_model.IsSortChosen);
+            Assert.Equal(state, _model.State);
+            Assert.Equal(0, events);
+        }
+        finally
+        {
+            gate?.Set();
+            if (loading != null)
+            {
+                await loading;
+            }
+        }
+    }
+
+    [Fact]
+    public async Task SortBy_UndefinedColumn_Throws()
+    {
+        await LoadSized();
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => _model.SortBy((FileListColumn)9));
     }
 }

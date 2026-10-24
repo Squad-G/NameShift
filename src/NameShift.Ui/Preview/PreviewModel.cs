@@ -12,7 +12,7 @@ namespace NameShift.Ui.Preview;
 /// <summary>
 /// Computes the New Name column: runs RenamePipeline over the file list's batch (the selected rows, or every row with no
 /// selection) off the UI thread, 150 ms after the last rule or selection change and at once when a folder finishes
-/// loading. All state is touched on the calling (UI) thread; only the pipeline runs on the pool.
+/// loading or the list is sorted. All state is touched on the calling (UI) thread; only the pipeline runs on the pool.
 /// A newer request cancels and supersedes an older one.
 /// Its lifetime is the window's: it has no Dispose and never unsubscribes (the window's controls guard with IsDisposed).
 /// </summary>
@@ -41,6 +41,7 @@ public sealed class PreviewModel
         _rules.RulesChanged += (_, _) => OnRulesChanged();
         _files.Changed += (_, _) => OnFilesChanged();
         _files.SelectionChanged += (_, _) => OnSelectionChanged();
+        _files.OrderChanged += (_, _) => OnOrderChanged();
     }
 
     /// <summary>The last applied run; Empty when there is no preview (no folder, loading, failed, or after a failure).</summary>
@@ -116,6 +117,15 @@ public sealed class PreviewModel
         if (_files.State == FileListState.Loaded)
         {
             Pending = RecomputeAsync(debounce: true);
+        }
+    }
+
+    private void OnOrderChanged()
+    {
+        // The numbering follows the list order: run again at once, as no rule text is being typed.
+        if (_files.State == FileListState.Loaded)
+        {
+            Pending = RecomputeAsync(debounce: false);
         }
     }
 
