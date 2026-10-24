@@ -95,6 +95,19 @@ In the window (by hand, listed in the PR):
   keep their value, the same pattern as the Case exceptions box (po, 2026-10-23).
 - Alt letters? **Decision:** unique inside the panel, repeats across panels allowed, panel titles distinct (David,
   2026-10-23); letters in criterion 13.
+- Which exception for a bad group? **Decision:** `RemoveGroupRule` throws `ArgumentNullException` for a null list and
+  `ArgumentException` for a null part or a part whose stage is not Remove (criterion 1 left the pairing of names open;
+  the built code and its tests do this) (po, 2026-10-24).
+- Which options build a rule alone? **Decision:** Whole word, Match case and Keep the marker never build a rule by
+  themselves: they only change how a typed text, character list or crop marker is read (po, 2026-10-24).
+- Error messages? **Decision:** a bad First or Last text shows `Type a whole number from 1. Until then this part is
+  skipped.`; a bad range shows `Type two whole numbers from 1, From not after To. Until then the range is skipped.`
+  (po, 2026-10-24).
+- What does "typed" mean? **Decision:** it differs on purpose. For the four position boxes, typed means not empty and not
+  white space (a stray space is not an error, so it is not marked), while the options greyed for lack of a text
+  (Whole word, Match case, Keep the marker) switch on when the text boxes are not empty, because a space is a real
+  thing to remove (criterion 7). `IsDefault` counts any non-empty text, so a lone space makes the panel non-default
+  without being an error (po, 2026-10-24).
 
 ## Log
 - 2026-10-18: created (po).
