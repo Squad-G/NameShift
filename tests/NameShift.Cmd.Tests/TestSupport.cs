@@ -123,7 +123,24 @@ internal sealed class FakeBatchRenamer : IBatchRenamer
 
     public ConflictReport? Conflicts { get; private set; }
 
-    public LastBatch LoadLastBatch() => throw new NotSupportedException("The command line never reads the journal.");
+    /// <summary>What LoadLastBatch returns; null (the default) makes it throw, so an apply that reads the journal fails.</summary>
+    public LastBatch? LastBatch { get; set; }
+
+    /// <summary>What Revert returns; null (the default) makes it throw, so an apply that reverts fails.</summary>
+    public RevertResult? RevertResult { get; set; }
+
+    /// <summary>Thrown by Revert when set.</summary>
+    public Exception? RevertThrows { get; set; }
+
+    public int LoadCalls { get; private set; }
+
+    public int RevertCalls { get; private set; }
+
+    public LastBatch LoadLastBatch()
+    {
+        LoadCalls++;
+        return LastBatch ?? throw new NotSupportedException("The command line never reads the journal.");
+    }
 
     public RenameRunResult Rename(IReadOnlyList<RenameResult> results, ConflictReport conflicts)
     {
@@ -138,7 +155,16 @@ internal sealed class FakeBatchRenamer : IBatchRenamer
         return Result;
     }
 
-    public RevertResult Revert() => throw new NotSupportedException("The command line never reverts.");
+    public RevertResult Revert()
+    {
+        RevertCalls++;
+        if (RevertThrows != null)
+        {
+            throw RevertThrows;
+        }
+
+        return RevertResult ?? throw new NotSupportedException("The command line never reverts.");
+    }
 }
 
 /// <summary>Returns one fixed listing for every folder.</summary>
@@ -189,6 +215,49 @@ internal static class CmdResults
 
     public static RenameRunResult NotStarted(string message) =>
         new RenameRunResult(null, Journal(JournalWritePhase.BeforeStart, message));
+
+    /// <summary>A journal state; Revertable and Reverted carry a time, Revertable the folders and the renames.</summary>
+    public static LastBatch Batch(LastBatchState state, params CompletedRename[] renames)
+    {
+        bool revertable = state == LastBatchState.Revertable;
+        DateTimeOffset? time = revertable || state == LastBatchState.Reverted ? new DateTimeOffset(2026, 10, 24, 12, 0, 0, TimeSpan.Zero) : (DateTimeOffset?)null;
+        string[] folders = revertable
+            ? renames.Select(r => Path.GetDirectoryName(r.OldPath)!).Distinct(StringComparer.OrdinalIgnoreCase).ToArray()
+            : Array.Empty<string>();
+        return new LastBatch(state, time, folders, renames);
+    }
+
+    public static SkippedRevert Skipped(string oldPath, string newPath) =>
+        new SkippedRevert(Done(oldPath, newPath), RevertSkipReason.ItemMissing);
+
+    /// <summary>n skipped entries: C:\A\x_g0.txt back to g0.txt, and so on.</summary>
+    public static SkippedRevert[] SkippedEntries(int count) =>
+        Enumerable.Range(0, count)
+            .Select(i => Skipped(Path.Combine(@"C:\A", $"g{i}.txt"), Path.Combine(@"C:\A", $"x_g{i}.txt")))
+            .ToArray();
+
+    public static RevertResult NothingToRevert() => new RevertResult(RevertOutcome.NothingToRevert);
+
+    public static RevertResult Reverted(int count, bool afterFinishIssue = false) =>
+        new RevertResult(
+            RevertOutcome.Reverted,
+            Renames(count),
+            journalIssue: afterFinishIssue ? Journal(JournalWritePhase.AfterFinish) : null);
+
+    public static RevertResult PartlyReverted(int reverted, int skipped) =>
+        new RevertResult(RevertOutcome.PartlyReverted, Renames(reverted), SkippedEntries(skipped));
+
+    public static RevertResult NothingReverted(int skipped) =>
+        new RevertResult(RevertOutcome.NothingReverted, notReverted: SkippedEntries(skipped));
+
+    public static RevertResult RevertNotStarted(string message) =>
+        new RevertResult(RevertOutcome.NotStarted, journalIssue: Journal(JournalWritePhase.BeforeStart, message));
+
+    public static RevertResult RevertNeedsAttention() =>
+        new RevertResult(
+            RevertOutcome.NeedsAttention,
+            failure: Failure(FailureReason.RenameFailed, @"C:\A\f0.txt", systemMessage: "Access is denied."),
+            needsAttention: new[] { Stranded(@"C:\A\tmp.txt", @"C:\A\f0.txt") });
 }
 
 /// <summary>Fails for one item index and passes the others.</summary>

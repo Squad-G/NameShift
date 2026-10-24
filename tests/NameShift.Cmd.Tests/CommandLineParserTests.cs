@@ -140,6 +140,13 @@ public sealed class CommandLineParserTests
         new object?[] { @"apply|D:\P|--replace|IMG|--case|lower", "ReplaceNeedsValues", null, null },
         new object?[] { @"apply|D:\P|--replace|--dry-run|x", "ReplaceNeedsValues", null, null },
         new object?[] { @"apply|D:\P|--replace|--replace|x", "ReplaceNeedsValues", null, null },
+        new object?[] { @"undo|C:\x", "UndoOnlyDryRun", null, null },
+        new object?[] { @"undo|--case|lower", "UndoOnlyDryRun", null, null },
+        new object?[] { @"undo|--replace|a|b", "UndoOnlyDryRun", null, null },
+        new object?[] { @"undo|-q", "UndoOnlyDryRun", null, null },
+        new object?[] { @"undo|apply", "UndoOnlyDryRun", null, null },
+        new object?[] { @"undo|", "UndoOnlyDryRun", null, null },
+        new object?[] { @"undo|--dry-run|--dry-run", "RepeatedOption", "--dry-run", null },
     };
 
     /// <summary>The words of the parser's list: a word of the list as a value of --replace means a missing value.</summary>
@@ -167,9 +174,57 @@ public sealed class CommandLineParserTests
     public void Words_AreTheDispatchedWords()
     {
         Assert.Equal(
-            new[] { "apply", "help", "--help", "-h", "/?", "--version", "--replace", "--case", "--dry-run" },
+            new[] { "apply", "undo", "help", "--help", "-h", "/?", "--version", "--replace", "--case", "--dry-run" },
             CommandLineParser.Words);
         Assert.Equal(CommandLineParser.Words, CommandLineParser.GlobalWords.Concat(CommandLineParser.ApplyOptionWords));
+    }
+
+    [Fact]
+    public void UndoOptionWords_AreDryRun()
+    {
+        Assert.Equal(new[] { "--dry-run" }, CommandLineParser.UndoOptionWords);
+        Assert.Equal(1, CommandLineParser.Words.Count(w => w == "--dry-run"));
+    }
+
+    [Theory]
+    [InlineData("undo", false)]
+    [InlineData("UNDO", false)]
+    [InlineData("undo|--dry-run", true)]
+    [InlineData("undo|--DRY-RUN", true)]
+    public void Undo_Parses(string joined, bool dryRun)
+    {
+        ParsedCommand command = CommandLineParser.Parse(Args(joined));
+
+        Assert.Equal(CommandKind.Undo, command.Kind);
+        Assert.Equal(dryRun, command.UndoDryRun);
+        Assert.Null(command.Options);
+        Assert.Equal("", command.Error);
+    }
+
+    [Theory]
+    [InlineData("undo|--help")]
+    [InlineData(@"undo|C:\x|-h")]
+    [InlineData("undo|--dry-run|--dry-run|/?")]
+    public void Undo_HelpAnywhere_WinsOverErrors(string joined)
+    {
+        Assert.Equal(CommandKind.UndoHelp, CommandLineParser.Parse(Args(joined)).Kind);
+    }
+
+    [Fact]
+    public void Apply_RepeatedDryRun_StillAccepted()
+    {
+        // Parses_AnyOrder already holds a repeated --dry-run; this one pins it with --case.
+        ApplyOptions options = Applied(Args(@"apply|C:\x|--case|lower|--dry-run|--dry-run"));
+
+        Assert.True(options.DryRun);
+    }
+
+    [Fact]
+    public void ParsedCommand_UndoDryRun_IsFalseForOtherKinds()
+    {
+        Assert.False(CommandLineParser.Parse(Args("help")).UndoDryRun);
+        Assert.False(CommandLineParser.Parse(Args(@"apply|D:\P|--case|lower|--dry-run")).UndoDryRun);
+        Assert.False(CommandLineParser.Parse(Args("undo|--help")).UndoDryRun);
     }
 
     [Theory]

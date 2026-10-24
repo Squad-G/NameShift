@@ -78,7 +78,55 @@ public sealed class ExitCodesTests
     [Fact]
     public void For_Null_Throws()
     {
-        Assert.Throws<ArgumentNullException>(() => ExitCodes.For(null!));
+        Assert.Throws<ArgumentNullException>(() => ExitCodes.For((RenameRunResult)null!));
+    }
+
+    private static RevertResult BuildRevert(string name)
+    {
+        switch (name)
+        {
+            case "NothingToRevert":
+                return CmdResults.NothingToRevert();
+            case "Reverted":
+                return CmdResults.Reverted(2);
+            case "Reverted, journal AfterFinish":
+                return CmdResults.Reverted(2, afterFinishIssue: true);
+            case "PartlyReverted":
+                return CmdResults.PartlyReverted(1, 1);
+            case "NothingReverted":
+                return CmdResults.NothingReverted(2);
+            case "NotStarted":
+                return CmdResults.RevertNotStarted("The disk is full.");
+            case "NeedsAttention":
+                return CmdResults.RevertNeedsAttention();
+            default:
+                throw new ArgumentOutOfRangeException(nameof(name), name, "Unknown case.");
+        }
+    }
+
+    public static IEnumerable<object[]> RevertCases() =>
+        new (string Name, ExitCode Code)[]
+        {
+            ("NothingToRevert", ExitCode.Success),
+            ("Reverted", ExitCode.Success),
+            ("Reverted, journal AfterFinish", ExitCode.NeedsAttention),
+            ("PartlyReverted", ExitCode.NeedsAttention),
+            ("NothingReverted", ExitCode.NotRenamed),
+            ("NotStarted", ExitCode.NotRenamed),
+            ("NeedsAttention", ExitCode.NeedsAttention),
+        }.Select(c => new object[] { c.Name, c.Code });
+
+    [Theory]
+    [MemberData(nameof(RevertCases))]
+    public void ForRevert(string name, ExitCode expected)
+    {
+        Assert.Equal(expected, ExitCodes.For(BuildRevert(name)));
+    }
+
+    [Fact]
+    public void ForRevert_Null_Throws()
+    {
+        Assert.Throws<ArgumentNullException>(() => ExitCodes.For((RevertResult)null!));
     }
 
     [Fact]

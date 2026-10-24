@@ -40,10 +40,31 @@ public sealed class CmdStringsTests
     }
 
     [Fact]
-    public void Usage_NamesTheExeAndEveryOption()
+    public void Usage_NamesTheExeAndBothVerbs()
+    {
+        Assert.Equal("Usage: NameShiftCmd apply <folder> <options> | NameShiftCmd undo [--dry-run]", Strings.Usage);
+    }
+
+    [Fact]
+    public void NoCommand_NamesBothVerbs()
+    {
+        Assert.Equal("Give a command: apply or undo.", Strings.NoCommand);
+    }
+
+    [Fact]
+    public void ExitCodeTexts()
+    {
+        Assert.Equal("Nothing changed (refused, rolled back, no history, or a crash before it).", Strings.ExitCode3);
+        Assert.Equal("Look at the disk: items left renamed or not restored, no history, a crash.", Strings.ExitCode4);
+    }
+
+    [Fact]
+    public void UndoTexts()
     {
         Assert.Equal(
-            "Usage: NameShiftCmd apply <folder> [--replace <find> <with>] [--case lower|upper|title|sentence] [--dry-run]",
-            Strings.Usage);
+            "The undo history cannot be used: a rename was cut short or the history file is unreadable. No file was changed.",
+            Strings.UndoHistoryUnusable);
+        Assert.Equal("undo takes no folder or rule options, only --dry-run.", Strings.UndoOnlyDryRun);
+        Assert.Equal("NameShift hit an unexpected problem. No file was changed.", Strings.UnexpectedBeforeUndo);
     }
 }
