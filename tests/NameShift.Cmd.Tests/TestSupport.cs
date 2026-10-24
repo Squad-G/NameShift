@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using NameShift.Core;
 using NameShift.Disk;
 using NameShift.Ui.Actions;
@@ -177,7 +178,7 @@ internal sealed class FakeFileListSource : IFileListSource
         _listing = listing;
     }
 
-    public FileListing ListEntries(string folderPath) => _listing;
+    public FileListing ListEntries(string folderPath, bool includeSubfolders, CancellationToken cancellationToken) => _listing;
 }
 
 /// <summary>Real Disk result objects, built through their validating internal constructors (a copy of the Ui tests'

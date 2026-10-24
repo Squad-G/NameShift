@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using NameShift.Disk;
 using NameShift.Ui.Actions;
 using Xunit;
@@ -322,6 +323,6 @@ public sealed class CommandRunnerUndoTests
 
     private sealed class ThrowingFileListSource : NameShift.Ui.Files.IFileListSource
     {
-        public NameShift.Ui.Files.FileListing ListEntries(string folderPath) => throw new InvalidOperationException("listing failed");
+        public NameShift.Ui.Files.FileListing ListEntries(string folderPath, bool includeSubfolders, CancellationToken cancellationToken) => throw new InvalidOperationException("listing failed");
     }
 }

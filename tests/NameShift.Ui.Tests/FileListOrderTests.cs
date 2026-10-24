@@ -1,17 +1,26 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using NameShift.Core;
 using NameShift.Ui.Files;
 using Xunit;
+using Xunit.Abstractions;
 using static NameShift.Ui.Tests.FakeFileListSource;
 
 namespace NameShift.Ui.Tests;
 
 public sealed class FileListOrderTests
 {
+    private readonly ITestOutputHelper _output;
+
+    public FileListOrderTests(ITestOutputHelper output)
+    {
+        _output = output;
+    }
+
     [Fact]
     public void FoldersFirst_ThenFiles_EachInNaturalOrder()
     {
@@ -176,5 +185,77 @@ public sealed class FileListOrderTests
         Assert.NotEqual(new FileListSort(FileListColumn.Size, false), toggled);
         Assert.NotEqual(new FileListSort(FileListColumn.Name, true), toggled);
         Assert.Throws<ArgumentOutOfRangeException>(() => new FileListSort((FileListColumn)9, false));
+    }
+
+    // NS-74 AC 11: items of several folders stay grouped, in the order the folders first appear.
+
+    private static string[] Paths(IEnumerable<RenameItem> items) => items.Select(i => i.FolderPath + "\\" + i.Name).ToArray();
+
+    [Fact]
+    public void TwoInterleavedFolders_Gathered()
+    {
+        RenameItem[] items =
+        {
+            File("b", folder: @"C:\Root"), File("a", folder: @"C:\Root\x"), File("a", folder: @"C:\Root"), File("b", folder: @"C:\Root\x"),
+        };
+
+        Assert.Equal(new[] { @"C:\Root\a", @"C:\Root\b", @"C:\Root\x\a", @"C:\Root\x\b" }, Paths(FileListOrder.Sort(items)));
+    }
+
+    [Fact]
+    public void DescendingSize_KeepsRootFirst()
+    {
+        RenameItem[] items =
+        {
+            File("r1", 1, @"C:\Root"), File("x9", 9, @"C:\Root\x"), File("r5", 5, @"C:\Root"), File("x3", 3, @"C:\Root\x"),
+            Folder("d", @"C:\Root"),
+        };
+
+        IReadOnlyList<RenameItem> sorted = FileListOrder.Sort(items, new FileListSort(FileListColumn.Size, true));
+
+        Assert.Equal(new[] { @"C:\Root\d", @"C:\Root\r5", @"C:\Root\r1", @"C:\Root\x\x9", @"C:\Root\x\x3" }, Paths(sorted));
+        Assert.Equal(
+            new[] { @"C:\Root\d", @"C:\Root\r1", @"C:\Root\r5", @"C:\Root\x\x3", @"C:\Root\x\x9" },
+            Paths(FileListOrder.Sort(items, new FileListSort(FileListColumn.Size, false))));
+        Assert.Equal(
+            new[] { @"C:\Root\d", @"C:\Root\r5", @"C:\Root\r1", @"C:\Root\x\x9", @"C:\Root\x\x3" },
+            Paths(FileListOrder.Sort(items, new FileListSort(FileListColumn.Name, true))));
+    }
+
+    [Fact]
+    public void FolderGroupsIgnoreCase()
+    {
+        RenameItem[] items =
+        {
+            File("b", folder: @"C:\A\X"), File("z", folder: @"C:\A"), File("a", folder: @"c:\a\x"),
+        };
+
+        Assert.Equal(new[] { @"c:\a\x\a", @"C:\A\X\b", @"C:\A\z" }, Paths(FileListOrder.Sort(items)));
+    }
+
+    private static string Sub(int i) => @"C:\Root\sub" + i.ToString(CultureInfo.InvariantCulture);
+
+    [Theory]
+    [MemberData(nameof(EverySort))]
+    public async Task TenThousandItemsIn500Folders_UnderOneSecond(FileListSort sort)
+    {
+        var random = new Random(74);
+        RenameItem[] items = Enumerable.Range(0, 10000)
+            .Select(i => File("file" + random.Next(100000).ToString(CultureInfo.InvariantCulture) + ".txt", random.Next(1000), Sub(i % 500)))
+            .ToArray();
+
+        // Off the test thread, as the model sorts on the pool.
+        var watch = Stopwatch.StartNew();
+        IReadOnlyList<RenameItem> sorted = await Task.Run(() => FileListOrder.Sort(items, sort));
+        watch.Stop();
+
+        _output.WriteLine(string.Format(CultureInfo.InvariantCulture, "{0} {1}: {2:N1} ms.", sort.Column, sort.Descending ? "descending" : "ascending", watch.Elapsed.TotalMilliseconds));
+        Assert.Equal(10000, sorted.Count);
+        Assert.Equal(
+            Enumerable.Range(0, 500).Select(Sub),
+            sorted.Select(item => item.FolderPath).Distinct());
+        Assert.True(
+            watch.Elapsed < TimeSpan.FromSeconds(1),
+            string.Format(CultureInfo.InvariantCulture, "The sort took {0:N0} ms; budget 1,000 ms.", watch.Elapsed.TotalMilliseconds));
     }
 }

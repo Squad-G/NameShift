@@ -3,6 +3,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using NameShift.Core;
 using NameShift.Ui.Files;
 using NameShift.Ui.Folders;
@@ -279,7 +280,7 @@ public sealed class CommandRunnerTests : IDisposable
 
     private sealed class ThrowingFileListSource : IFileListSource
     {
-        public FileListing ListEntries(string folderPath) => throw new InvalidOperationException("A bug in the listing.");
+        public FileListing ListEntries(string folderPath, bool includeSubfolders, CancellationToken cancellationToken) => throw new InvalidOperationException("A bug in the listing.");
     }
 
     private sealed class ThrowingWriter : TextWriter

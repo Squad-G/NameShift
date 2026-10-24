@@ -66,4 +66,35 @@ public sealed class FileListTextTests
     {
         Assert.Equal("", FileListText.Modified(FileOf(0), CultureInfo.InvariantCulture));
     }
+
+    // NS-74 AC 14
+
+    [Theory]
+    [InlineData(@"C:\Pics", @"C:\Pics", "")]
+    [InlineData(@"C:\Pics", @"c:\pics\a\b", @"a\b")]
+    [InlineData(@"C:\Pics", @"C:\Pics\a\", "a")]
+    [InlineData(@"C:\Pics", @"C:\Pics\", "")]
+    [InlineData(@"C:\Pics\", @"C:\Pics", "")]
+    [InlineData(@"C:\Pics\", @"c:\pics\a\b", @"a\b")]
+    [InlineData(@"C:\Pics\", @"C:\Pics\a\", "a")]
+    [InlineData(@"C:\", @"C:\x", "x")]
+    [InlineData(@"C:\", @"C:\", "")]
+    [InlineData(@"C:\", @"c:\x\y", @"x\y")]
+    [InlineData(@"C:\Pics", @"C:\Pics2\x", @"C:\Pics2\x")]
+    [InlineData(@"C:\Pics", @"C:\Pics2", @"C:\Pics2")]
+    [InlineData(@"C:\Pics", @"D:\y", @"D:\y")]
+    [InlineData(@"C:\Pics\a", @"C:\Pics", @"C:\Pics")]
+    public void RelativeFolder(string root, string folder, string expected)
+    {
+        var item = new RenameItem("a.txt", folder);
+
+        Assert.Equal(expected, FileListText.RelativeFolder(root, item));
+    }
+
+    [Fact]
+    public void RelativeFolder_NullArguments_Throw()
+    {
+        Assert.Throws<ArgumentNullException>(() => FileListText.RelativeFolder(null!, FileOf(0)));
+        Assert.Throws<ArgumentNullException>(() => FileListText.RelativeFolder(@"C:\A", null!));
+    }
 }

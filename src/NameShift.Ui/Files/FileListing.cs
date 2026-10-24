@@ -6,17 +6,18 @@ using NameShift.Ui.Folders;
 
 namespace NameShift.Ui.Files;
 
-/// <summary>The result of listing one folder's entries: items, or a problem.</summary>
+/// <summary>The result of listing a folder's entries (and its sub-folders'): items, or a problem.</summary>
 public sealed class FileListing
 {
     /// <summary>The empty map of names: a failed listing, an empty folder, or no folder loaded.</summary>
     internal static readonly IReadOnlyDictionary<string, IReadOnlyCollection<string>> NoNames =
         new Dictionary<string, IReadOnlyCollection<string>>(StringComparer.OrdinalIgnoreCase);
 
-    private FileListing(IReadOnlyList<RenameItem> items, FolderProblem? problem)
+    private FileListing(IReadOnlyList<RenameItem> items, FolderProblem? problem, int skippedFolders)
     {
         Items = items;
         Problem = problem;
+        SkippedFolders = skippedFolders;
         ExistingNamesByFolder = items.Count == 0 ? NoNames : GroupNames(items);
     }
 
@@ -32,21 +33,32 @@ public sealed class FileListing
     /// <summary>Null when the listing succeeded.</summary>
     public FolderProblem? Problem { get; }
 
-    /// <summary>A successful listing of every entry, hidden and system ones included.</summary>
+    /// <summary>How many sub-folders could not be read and were skipped (reparse points are never entered and not
+    /// counted); 0 for a failed listing.</summary>
+    public int SkippedFolders { get; }
+
+    /// <summary>A successful listing of every entry, hidden and system ones included, with the number of sub-folders
+    /// skipped.</summary>
     /// <exception cref="ArgumentNullException">When items is null.</exception>
-    public static FileListing Ok(IReadOnlyList<RenameItem> items)
+    /// <exception cref="ArgumentOutOfRangeException">When skippedFolders is negative.</exception>
+    public static FileListing Ok(IReadOnlyList<RenameItem> items, int skippedFolders = 0)
     {
         if (items == null)
         {
             throw new ArgumentNullException(nameof(items));
         }
 
-        return new FileListing(items, null);
+        if (skippedFolders < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(skippedFolders), skippedFolders, "The count cannot be negative.");
+        }
+
+        return new FileListing(items, null, skippedFolders);
     }
 
-    /// <summary>A failed listing: no items and no names.</summary>
+    /// <summary>A failed listing: no items, no names and no skipped folder.</summary>
     public static FileListing Failed(FolderProblem problem) =>
-        new FileListing(Array.Empty<RenameItem>(), problem);
+        new FileListing(Array.Empty<RenameItem>(), problem, 0);
 
     private static IReadOnlyDictionary<string, IReadOnlyCollection<string>> GroupNames(IReadOnlyList<RenameItem> items)
     {

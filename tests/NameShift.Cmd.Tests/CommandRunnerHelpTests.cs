@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using NameShift.Core;
 using NameShift.Ui.Files;
 using Xunit;
@@ -305,7 +306,7 @@ public sealed class CommandRunnerHelpTests : IDisposable
     {
         public int Calls { get; private set; }
 
-        public FileListing ListEntries(string folderPath)
+        public FileListing ListEntries(string folderPath, bool includeSubfolders, CancellationToken cancellationToken)
         {
             Calls++;
             return FileListing.Ok(Array.Empty<RenameItem>());

@@ -1,9 +1,10 @@
+using System;
 using System.Globalization;
 using NameShift.Core;
 
 namespace NameShift.Ui.Files;
 
-/// <summary>The text of the Size and Modified cells, formatted in the given culture.</summary>
+/// <summary>The text of the Size, Modified and Folder cells, formatted in the given culture.</summary>
 public static class FileListText
 {
     /// <summary>Whole kilobytes rounded up, like Explorer's details view; empty for a folder.</summary>
@@ -34,4 +35,40 @@ public static class FileListText
     /// <summary>Short date and time; empty when the date is unknown (never invented).</summary>
     public static string Modified(RenameItem item, CultureInfo culture) =>
         item.Modified == default ? "" : item.Modified.ToString("g", culture);
+
+    /// <summary>The item's folder under <paramref name="rootFolder"/>: "" for an item of the root itself, the path
+    /// below it for a deeper one (<c>sub\deep</c>), ignoring case and trailing separators (a drive root such as
+    /// <c>C:\</c> works); the item's full folder path when it is not under the root (<c>C:\Pics2</c> is not under
+    /// <c>C:\Pics</c>). Text only: the disk is never read.</summary>
+    /// <exception cref="ArgumentNullException">When rootFolder or item is null.</exception>
+    public static string RelativeFolder(string rootFolder, RenameItem item)
+    {
+        if (rootFolder == null)
+        {
+            throw new ArgumentNullException(nameof(rootFolder));
+        }
+
+        if (item == null)
+        {
+            throw new ArgumentNullException(nameof(item));
+        }
+
+        // C:\ trimmed is C:, so C:\x is C: followed by \x.
+        string root = rootFolder.TrimEnd('\\', '/');
+        string folder = item.FolderPath.TrimEnd('\\', '/');
+        if (root.Length == 0)
+        {
+            return item.FolderPath;
+        }
+
+        if (string.Equals(folder, root, StringComparison.OrdinalIgnoreCase))
+        {
+            return "";
+        }
+
+        bool under = folder.Length > root.Length + 1
+            && folder[root.Length] == '\\'
+            && string.Compare(folder, 0, root, 0, root.Length, StringComparison.OrdinalIgnoreCase) == 0;
+        return under ? folder.Substring(root.Length + 1) : item.FolderPath;
+    }
 }

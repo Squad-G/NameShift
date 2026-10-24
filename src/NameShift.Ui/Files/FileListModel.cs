@@ -12,7 +12,8 @@ namespace NameShift.Ui.Files;
 /// <summary>
 /// The file list's data for the current folder: every entry (<see cref="AllItems"/>) and the entries the filter keeps
 /// (<see cref="Items"/>). Loads and filters off the calling thread; a newer load or filter supersedes an older one,
-/// and <see cref="Dispose"/> supersedes both. All state is read and written on the calling (UI) thread; only the
+/// and <see cref="Dispose"/> supersedes both. A new load, <see cref="SetIncludeSubfoldersAsync"/> and
+/// <see cref="Dispose"/> also cancel the folder walk in flight (through the load's token). All state is read and written on the calling (UI) thread; only the
 /// listing, the sort and the filter loop run on the pool.
 /// </summary>
 public sealed class FileListModel : IDisposable
@@ -25,9 +26,9 @@ public sealed class FileListModel : IDisposable
     // Shared by loads, filter runs and Dispose: a result applies only while its version is the latest.
     private int _version;
 
-    // The current filter work (a filter run, or the filter step of a load). Old sources are cancelled, never disposed:
-    // a pool task may still hold the token.
-    private CancellationTokenSource? _filterCts;
+    // The current work (a filter run, or a load: its folder walk and its filter step). Old sources are cancelled, never
+    // disposed: a pool task may still hold the token.
+    private CancellationTokenSource? _workCts;
     private ItemFilter _requestedFilter;
     private bool _disposed;
 
@@ -49,6 +50,15 @@ public sealed class FileListModel : IDisposable
     public string? FolderPath { get; private set; }
 
     public FileListState State { get; private set; }
+
+    /// <summary>True: loads list every sub-folder too (NS-74). False by default; read by every <see cref="LoadAsync"/>
+    /// when it starts, so a reload or another folder keeps it. Changed only by
+    /// <see cref="SetIncludeSubfoldersAsync"/>.</summary>
+    public bool IncludeSubfolders { get; private set; }
+
+    /// <summary>How many sub-folders the last listing could not read and skipped; 0 before a load lands, while loading
+    /// and after a failed load.</summary>
+    public int SkippedFolders { get; private set; }
 
     /// <summary>Every entry of the listing, hidden and system ones included, in list order; empty before a load, while
     /// loading and when the listing failed. Never goes to the pipeline: <see cref="Items"/> does.</summary>
@@ -133,8 +143,9 @@ public sealed class FileListModel : IDisposable
     /// selected.</summary>
     public event EventHandler? OrderChanged;
 
-    /// <summary>The row of the listed item named <paramref name="name"/> (ordinal, ignoring case), or -1: also before
-    /// the folder is loaded, when it failed, and for an entry the filter leaves out (not in <see cref="Items"/>).</summary>
+    /// <summary>The row of the listed item of the shown folder (<see cref="FolderPath"/>, never a sub-folder) named
+    /// <paramref name="name"/> (ordinal, ignoring case), or -1: also before the folder is loaded, when it failed, and
+    /// for an entry the filter leaves out (not in <see cref="Items"/>).</summary>
     public int FindRow(string? name)
     {
         if (State != FileListState.Loaded || string.IsNullOrEmpty(name))
@@ -143,9 +154,11 @@ public sealed class FileListModel : IDisposable
         }
 
         IReadOnlyList<RenameItem> listItems = Items;
+        string folder = FolderPath!;
         for (int row = 0; row < listItems.Count; row++)
         {
-            if (string.Equals(listItems[row].Name, name, StringComparison.OrdinalIgnoreCase))
+            RenameItem item = listItems[row];
+            if (string.Equals(item.Name, name, StringComparison.OrdinalIgnoreCase) && PathInput.SameFolder(item.FolderPath, folder))
             {
                 return row;
             }
@@ -347,8 +360,25 @@ public sealed class FileListModel : IDisposable
         return current.Rows.SequenceEqual(next.Rows);
     }
 
-    /// <summary>Lists the folder and applies the filter asked for last; false when a newer load or
-    /// <see cref="Dispose"/> superseded this one. Never throws.</summary>
+    /// <summary>Asks for sub-folders to be listed too (or not). The same value does nothing; otherwise the value is kept
+    /// and, when a folder is shown, the folder loads again (the sort and the filter asked for kept, the selection
+    /// cleared, the load in flight superseded and its walk cancelled); with no folder yet the first load uses it.</summary>
+    /// <returns>True when the reload was applied; false when nothing loaded (same value, no folder, the model disposed:
+    /// then nothing is kept) or the reload was superseded.</returns>
+    public Task<bool> SetIncludeSubfoldersAsync(bool value)
+    {
+        if (_disposed || value == IncludeSubfolders)
+        {
+            return NotApplied;
+        }
+
+        IncludeSubfolders = value;
+        return FolderPath is null ? NotApplied : LoadAsync(FolderPath);
+    }
+
+    /// <summary>Lists the folder (with its sub-folders when <see cref="IncludeSubfolders"/> is set) and applies the
+    /// filter asked for last; false when a newer load, <see cref="SetIncludeSubfoldersAsync"/> or
+    /// <see cref="Dispose"/> superseded this one (its folder walk is then cancelled). Never throws.</summary>
     public async Task<bool> LoadAsync(string folderPath)
     {
         if (_disposed)
@@ -356,9 +386,9 @@ public sealed class FileListModel : IDisposable
             return false;
         }
 
-        _filterCts?.Cancel();
+        _workCts?.Cancel();
         var cts = new CancellationTokenSource();
-        _filterCts = cts;
+        _workCts = cts;
         int version = ++_version;
         IsFilterPending = false;
         bool sameFolder = FolderPath != null && PathInput.SameFolder(FolderPath, folderPath);
@@ -370,6 +400,7 @@ public sealed class FileListModel : IDisposable
 
         FileListSort sort = Sort;
         ItemFilter filter = _requestedFilter;
+        bool subfolders = IncludeSubfolders;
         FolderPath = folderPath;
         State = FileListState.Loading;
         AllItems = Array.Empty<RenameItem>();
@@ -377,6 +408,7 @@ public sealed class FileListModel : IDisposable
         Batch = FileBatch.Empty;
         SelectedRows = Array.Empty<int>();
         ExistingNamesByFolder = FileListing.NoNames;
+        SkippedFolders = 0;
         Problem = null;
         Changed?.Invoke(this, EventArgs.Empty);
 
@@ -386,7 +418,7 @@ public sealed class FileListModel : IDisposable
             result = await Task.Run(
                 () =>
                 {
-                    FileListing found = _source.ListEntries(folderPath);
+                    FileListing found = _source.ListEntries(folderPath, subfolders, cts.Token);
                     if (found.Problem != null)
                     {
                         return new LoadResult(found, Array.Empty<RenameItem>(), Array.Empty<RenameItem>());
@@ -400,7 +432,7 @@ public sealed class FileListModel : IDisposable
         }
         catch (OperationCanceledException) when (cts.IsCancellationRequested)
         {
-            // A newer load or Dispose took over.
+            // A newer load, a change of IncludeSubfolders or Dispose took over (and cancelled the walk).
             return false;
         }
         catch (Exception)
@@ -422,6 +454,7 @@ public sealed class FileListModel : IDisposable
         Batch = FileBatch.WholeList(Items);
         SelectedRows = Array.Empty<int>();
         ExistingNamesByFolder = result.Listing.ExistingNamesByFolder;
+        SkippedFolders = result.Listing.SkippedFolders;
         Problem = result.Listing.Problem;
         State = loaded ? FileListState.Loaded : FileListState.Failed;
         Changed?.Invoke(this, EventArgs.Empty);
@@ -436,8 +469,8 @@ public sealed class FileListModel : IDisposable
         return true;
     }
 
-    /// <summary>Supersedes every pending load and filter run: none applies and no event is raised after this, and later
-    /// loads and filters do nothing. The current state is kept (the window is closing). Safe to call more than
+    /// <summary>Supersedes every pending load and filter run, and cancels the folder walk in flight: none applies and no
+    /// event is raised after this, and later loads and filters do nothing. The current state is kept (the window is closing). Safe to call more than
     /// once.</summary>
     public void Dispose()
     {
@@ -447,7 +480,7 @@ public sealed class FileListModel : IDisposable
         }
 
         _disposed = true;
-        _filterCts?.Cancel();
+        _workCts?.Cancel();
         ++_version;
     }
 
@@ -455,9 +488,9 @@ public sealed class FileListModel : IDisposable
     /// throws.</summary>
     private async Task<bool> RunFilterAsync(ItemFilter filter)
     {
-        _filterCts?.Cancel();
+        _workCts?.Cancel();
         var cts = new CancellationTokenSource();
-        _filterCts = cts;
+        _workCts = cts;
         int version = ++_version;
         IsFilterPending = true;
         IReadOnlyList<RenameItem> all = AllItems;
