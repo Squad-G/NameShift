@@ -133,6 +133,10 @@ public class PhotoDateTests
         { "second 60", Concat(Ascii("2023:07:01 10:00:60"), [0x00]) },
         { "day 00", Concat(Ascii("2023:07:00 10:00:00"), [0x00]) },
         { "T separator", Concat(Ascii("2023:07:01T10:00:00"), [0x00]) },
+        { "year 0000", Concat(Ascii("0000:07:01 10:00:00"), [0x00]) },
+        { "month 00", Concat(Ascii("2023:00:01 10:00:00"), [0x00]) },
+        { "colon in a digit place", Concat(Ascii("2023:07:01 10:00:0:"), [0x00]) },
+        { "slash in a digit place", Concat(Ascii("202/:07:01 10:00:00"), [0x00]) },
     };
 
     [Theory]
@@ -161,9 +165,11 @@ public class PhotoDateTests
     }
 
     // AC 5
-    public static TheoryData<string> MarkerWalkProblems => new()
+    // The name and how many bytes the reader takes before it stops ("at once").
+    public static TheoryData<string, int> MarkerWalkProblems => new()
     {
-        "no SOI", "length 0", "length 1", "not FF", "code 00", "length past end",
+        { "no SOI", 2 }, { "length 0", 6 }, { "length 1", 6 }, { "not FF", 3 }, { "code 00", 4 },
+        { "length past end", 16 },
     };
 
     private static byte[] MarkerWalkFile(string name)
@@ -183,13 +189,56 @@ public class PhotoDateTests
 
     [Theory]
     [MemberData(nameof(MarkerWalkProblems))]
-    public void Read_MarkerWalkProblems_Null(string name)
+    public void Read_MarkerWalkProblems_Null(string name, int served)
     {
         byte[] file = MarkerWalkFile(name);
         var stream = new ProbeStream(file);
 
         Assert.Null(PhotoDate.Read(stream));
-        Assert.True(stream.Served <= file.Length);
+        Assert.Equal(served, stream.Served);
+    }
+
+    // AC 6: an IFD0 offset below 8 is refused even when an IFD read there would find the pointer. Read at 4 (II), the
+    // count is the low half of the IFD0 offset field (4) and slot 1 sits at 18; read at 6 (MM), the count is 6 and slot
+    // 1 sits at 20. The control puts the header offset on the real IFD and gives the date.
+    [Theory]
+    [InlineData(false, 4u, 16, 16u)]
+    [InlineData(true, 6u, 18, 18u)]
+    public void Read_Ifd0OffsetBelow8_Null(bool bigEndian, uint lowOffset, int ifdPosition, uint control)
+    {
+        byte[] Build(uint ifd0Offset) => WithTiff(b =>
+        {
+            b.Ifd0Offset = ifd0Offset;
+            b.Ifd0Position = -1;
+            b.ExifPosition = 60;
+            b.ExifEntries[0] = new TiffEntry(0x9003, 2, 20, 90);
+            b.TextPosition = 90;
+            b.MinLength = 120;
+            b.AddIfd(ifdPosition, 0, new TiffEntry(0x8769, 4, 1, 60));
+        }, bigEndian);
+
+        Assert.Equal(Expected, ReadBytes(Build(control)));
+        Assert.Null(ReadBytes(Build(lowOffset)));
+    }
+
+    // AC 6: an Exif IFD offset below 8 is refused even when an IFD read there would find 0x9003. Read at 4 (II), the
+    // count is 8 (the IFD0 offset field) and slot 2 sits at 30; read at 6 (MM), the count is 8 and slot 2 sits at 32.
+    [Theory]
+    [InlineData(false, 4u, 28, 28u)]
+    [InlineData(true, 6u, 30, 30u)]
+    public void Read_ExifOffsetBelow8_Null(bool bigEndian, uint lowOffset, int ifdPosition, uint control)
+    {
+        byte[] Build(uint exifOffset) => WithTiff(b =>
+        {
+            b.Ifd0Entries[0] = new TiffEntry(0x8769, 4, 1, exifOffset);
+            b.ExifPosition = -1;
+            b.TextPosition = 110;
+            b.MinLength = 140;
+            b.AddIfd(ifdPosition, 0, new TiffEntry(0x9003, 2, 20, 110));
+        }, bigEndian);
+
+        Assert.Equal(Expected, ReadBytes(Build(control)));
+        Assert.Null(ReadBytes(Build(lowOffset)));
     }
 
     // AC 6
@@ -308,11 +357,14 @@ public class PhotoDateTests
                     b.Ifd0Entries.Add(new TiffEntry(0x9003, 2, 20, 44));
                     b.ExifPosition = -1;
                 }, bigEndian),
+                // IFD0 has no pointer; its next link leads to an IFD holding one, whose next link leads back to
+                // IFD0. A reader that followed links would find the pointer and the date before it looped.
                 "next link to IFD0" => WithTiff(b =>
                 {
                     b.Ifd0Entries[0] = new TiffEntry(0x0132, 2, 20, 44);
-                    b.Ifd0Next = 8;
+                    b.Ifd0Next = 70;
                     b.ExifNext = 8;
+                    b.AddIfd(70, 8, new TiffEntry(0x8769, 4, 1, 26));
                 }, bigEndian),
                 "65535 entries" => WithTiff(b =>
                 {
@@ -324,7 +376,7 @@ public class PhotoDateTests
 
             var stream = new ProbeStream(file);
             Assert.Null(PhotoDate.Read(stream));
-            Assert.True(stream.Served <= file.Length);
+            Assert.Equal(file.Length - Trailer.Length, stream.Served);
         }
     }
 
@@ -527,6 +579,23 @@ public class PhotoDateTests
 
             Assert.Null(ReadBytes(file));
         }
+    }
+
+    [Fact]
+    public void Read_App1WithWrongSixthByte_Skipped()
+    {
+        byte[] notExif = Segment(0xE1, Concat([0x45, 0x78, 0x69, 0x66, 0x00, 0x01], Ascii("XX*")));
+        byte[] file = Concat(Soi, notExif, Exif(new TiffBuilder(false).Build()), Trailer);
+
+        Assert.Equal(Expected, ReadBytes(file));
+    }
+
+    [Fact]
+    public void Read_EmptyExifSegmentDecides()
+    {
+        byte[] file = Concat(Soi, Segment(0xE1, ExifHeader), Exif(new TiffBuilder(false).Build()), Trailer);
+
+        Assert.Null(ReadBytes(file));
     }
 
     [Fact]

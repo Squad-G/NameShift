@@ -41,7 +41,12 @@ public class PhotoDateFuzzTests
         var stream = new ProbeStream(bytes);
 
         Assert.Null(PhotoDate.Read(stream));
-        Assert.True(stream.Served <= bytes.Length);
+        bool startsWithSoi = bytes.Length >= 2 && bytes[0] == 0xFF && bytes[1] == 0xD8;
+        if (!startsWithSoi)
+        {
+            // Not FF D8: the reader stops after the first two bytes (or what there is of them).
+            Assert.Equal(Math.Min(2, bytes.Length), stream.Served);
+        }
     }
 
     // AC 16
