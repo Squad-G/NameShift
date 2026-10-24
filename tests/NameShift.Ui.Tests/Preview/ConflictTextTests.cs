@@ -37,7 +37,7 @@ public sealed class ConflictTextTests
     [Fact]
     public void Message_InvalidCharacter_ListsTheCharacters()
     {
-        Assert.Equal("Not allowed in a name: ? *", ConflictText.Message(new Conflict(ConflictCode.InvalidCharacter, "?*")));
+        Assert.Equal("Windows does not allow these characters in a name: ? *", ConflictText.Message(new Conflict(ConflictCode.InvalidCharacter, "?*")));
     }
 
     [Fact]
@@ -45,29 +45,93 @@ public sealed class ConflictTextTests
     {
         string message = ConflictText.Message(new Conflict(ConflictCode.InvalidCharacter, "\u0001\t"));
 
-        Assert.Equal("Not allowed in a name: U+0001 U+0009", message);
+        Assert.Equal("Windows does not allow these characters in a name: U+0001 U+0009", message);
         Assert.DoesNotContain(message, char.IsControl);
     }
 
     [Fact]
     public void Message_ReservedName_ShowsTheStem()
     {
-        Assert.Equal("Reserved by Windows: CON", ConflictText.Message(new Conflict(ConflictCode.ReservedName, "CON")));
+        Assert.Equal("Windows reserves the name CON: change it", ConflictText.Message(new Conflict(ConflictCode.ReservedName, "CON")));
     }
 
     [Fact]
     public void Message_ReservedName_ControlCharacter_IsEscaped()
     {
         Assert.Equal(
-            "Reserved by Windows: aU+001Fb",
+            "Windows reserves the name aU+001Fb: change it",
             ConflictText.Message(new Conflict(ConflictCode.ReservedName, "a\u001Fb")));
     }
 
     [Fact]
-    public void Message_NullDetail_DoesNotThrow()
+    public void Message_InvalidCharacter_OneControlCharacter_UsesThisCharacter()
     {
-        Assert.Equal("Not allowed in a name: ", ConflictText.Message(new Conflict(ConflictCode.InvalidCharacter)));
-        Assert.Equal("Reserved by Windows: ", ConflictText.Message(new Conflict(ConflictCode.ReservedName)));
+        Assert.Equal(
+            "Windows does not allow this character in a name: U+0009",
+            ConflictText.Message(new Conflict(ConflictCode.InvalidCharacter, "\u0009")));
+    }
+
+    [Theory]
+    [InlineData(ConflictCode.InvalidCharacter, null, "Windows does not allow these characters in a name: ")]
+    [InlineData(ConflictCode.InvalidCharacter, "", "Windows does not allow these characters in a name: ")]
+    [InlineData(ConflictCode.ReservedName, null, "Windows reserves this name: change it")]
+    [InlineData(ConflictCode.ReservedName, "", "Windows reserves this name: change it")]
+    public void Message_NoDetail_UsesTheNoDetailTexts(ConflictCode code, string? detail, string expected)
+    {
+        Assert.Equal(expected, ConflictText.Message(new Conflict(code, detail)));
+    }
+
+    [Theory]
+    [InlineData(ConflictCode.InvalidCharacter, "?", "Windows does not allow this character in a name: ?")]
+    [InlineData(ConflictCode.InvalidCharacter, "?*", "Windows does not allow these characters in a name: ? *")]
+    [InlineData(ConflictCode.InvalidCharacter, null, "Windows does not allow these characters in a name: ")]
+    [InlineData(ConflictCode.ReservedName, "CON", "Windows reserves the name CON: change it")]
+    [InlineData(ConflictCode.ReservedName, null, "Windows reserves this name: change it")]
+    [InlineData(ConflictCode.TrailingDotOrSpace, null, "A name cannot end with a dot or a space: remove it")]
+    [InlineData(ConflictCode.EmptyName, null, "The new name is empty: keep some text in the name")]
+    [InlineData(ConflictCode.NameTooLong, null, "The name is longer than 255 characters: shorten it")]
+    [InlineData(ConflictCode.DuplicateTarget, null, "Another item gets the same new name: change one of them")]
+    [InlineData(ConflictCode.TargetExists, null, "An item with this name already exists in the folder: choose another name")]
+    [InlineData(ConflictCode.PathTooLong, null, "The full path would be longer than 259 characters: shorten the name")]
+    public void Message_EachCode_ExactText(ConflictCode code, string? detail, string expected)
+    {
+        Assert.Equal(expected, ConflictText.Message(new Conflict(code, detail)));
+    }
+
+    [Fact]
+    public void Message_NameTooLong_QuotesTheCheckLimit()
+    {
+        string limit = InvalidNameCheck.MaxNameLength.ToString(CultureInfo.InvariantCulture);
+
+        Assert.Equal("255", limit);
+        Assert.Contains(limit, ConflictText.Message(new Conflict(ConflictCode.NameTooLong)));
+    }
+
+    [Fact]
+    public void Message_PathTooLong_QuotesTheCheckLimit()
+    {
+        string limit = PathLengthCheck.MaxPathLength.ToString(CultureInfo.InvariantCulture);
+
+        Assert.Equal("259", limit);
+        Assert.Contains(limit, ConflictText.Message(new Conflict(ConflictCode.PathTooLong)));
+    }
+
+    [Theory]
+    [InlineData("de-DE")]
+    [InlineData("ar-SA")]
+    [InlineData("tr-TR")]
+    public void Message_Limits_SameInAnyCulture(string culture)
+    {
+        string[] messages = InCulture(
+            culture,
+            () => new[]
+            {
+                ConflictText.Message(new Conflict(ConflictCode.NameTooLong)),
+                ConflictText.Message(new Conflict(ConflictCode.PathTooLong)),
+            });
+
+        Assert.Equal("The name is longer than 255 characters: shorten it", messages[0]);
+        Assert.Equal("The full path would be longer than 259 characters: shorten the name", messages[1]);
     }
 
     [Fact]
@@ -92,7 +156,7 @@ public sealed class ConflictTextTests
             new Conflict(ConflictCode.DuplicateTarget),
         });
 
-        Assert.Equal("Not allowed in a name: ?; Same new name as another file", text);
+        Assert.Equal("Windows does not allow this character in a name: ?; Another item gets the same new name: change one of them", text);
     }
 
     [Fact]
@@ -131,12 +195,14 @@ public sealed class ConflictTextTests
         Assert.Equal("aU+0000U+007FU+0085\u00e9", ConflictText.Escape("a\u0000\u007F\u0085\u00e9"));
     }
 
-    private static string InEnUs(Func<string> action)
+    private static string InEnUs(Func<string> action) => InCulture("en-US", action);
+
+    private static T InCulture<T>(string name, Func<T> action)
     {
         CultureInfo previous = CultureInfo.CurrentCulture;
         try
         {
-            CultureInfo.CurrentCulture = new CultureInfo("en-US");
+            CultureInfo.CurrentCulture = new CultureInfo(name);
             return action();
         }
         finally

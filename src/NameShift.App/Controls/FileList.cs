@@ -114,7 +114,7 @@ internal sealed class FileList : UserControl
 
         _list.Columns.Add(Strings.ColumnName, LogicalToDeviceUnits(280));
         _list.Columns.Add(Strings.ColumnNewName, LogicalToDeviceUnits(280));
-        _list.Columns.Add(Strings.ColumnStatus, LogicalToDeviceUnits(240));
+        _list.Columns.Add(Strings.ColumnStatus, LogicalToDeviceUnits(420));
         _list.Columns.Add(Strings.ColumnSize, LogicalToDeviceUnits(90), HorizontalAlignment.Right);
         _list.Columns.Add(Strings.ColumnModified, LogicalToDeviceUnits(150));
 

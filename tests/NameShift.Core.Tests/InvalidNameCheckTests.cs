@@ -14,6 +14,16 @@ public sealed class InvalidNameCheckTests
 
     private static IReadOnlyList<Conflict> CheckName(string name) => CheckOne(Changed(name));
 
+    [Fact]
+    public void Check_AtTheLimitConstant_FlagsOnlyOver()
+    {
+        Assert.Equal(255, InvalidNameCheck.MaxNameLength);
+        Assert.Equal(
+            [new Conflict(ConflictCode.NameTooLong)],
+            CheckName(new string('a', InvalidNameCheck.MaxNameLength + 1)));
+        Assert.Empty(CheckName(new string('a', InvalidNameCheck.MaxNameLength)));
+    }
+
     [Theory]
     [InlineData("a\\b", "\\")]
     [InlineData("a/b", "/")]
