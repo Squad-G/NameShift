@@ -1,6 +1,6 @@
 # NS-26: Auto date rule (file dates)
 
-Status: In Progress
+Status: In Review
 Depends on: NS-1
 Area: engine
 
@@ -82,3 +82,4 @@ modified 2024-03-09 14:05:07.
 - 2026-10-18: created (po).
 - 2026-10-24: criteria made testable (enums, culture, no date, validation, edge cases), set Ready (po).
 - 2026-10-24: In Progress (builder).
+- 2026-10-24: In Review (builder), PR #44.
