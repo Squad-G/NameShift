@@ -1,6 +1,6 @@
 # NS-57: Rename stays off until something changes
 
-Status: In Review
+Status: Done
 Depends on: NS-15
 Area: app
 
@@ -89,3 +89,4 @@ In the window (by hand, listed in the PR):
 - 2026-10-23: after review: hint through `RenameHint`, unexpected-failure and navigation cases decided, ordering note (po).
 - 2026-10-23: In Progress (builder).
 - 2026-10-23: In Review (builder), PR #26.
+- 2026-10-24: Done (tech-lead), PR #26 merged into dev. AC 11 still to be checked by hand by David.

@@ -28,8 +28,9 @@ public sealed class MainActions
     /// <summary>Bumped by every journal read and every action: a read applies only when nothing started after it.</summary>
     private int _journalVersion;
 
-    /// <summary>Set after a Rename that renamed something (or left items stranded, or failed unexpectedly) in the folder still shown; cleared by a
-    /// rule edit, a selection change, a folder load outside an action, or a Revert that ran. While set, Rename is off.</summary>
+    /// <summary>Set after a Rename that renamed something (or left items stranded, or failed unexpectedly) in the
+    /// folder still shown; cleared by a rule edit, a selection change, a folder load outside an action, or a Revert
+    /// that ran. While set, Rename is off.</summary>
     private bool _renameLocked;
 
     public MainActions(PreviewModel preview, FileListModel files, RulePanelHostModel rules, IBatchRenamer renamer)
