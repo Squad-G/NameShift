@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace NameShift.Ui.Tests.Rules;
 
@@ -16,7 +17,7 @@ internal static class MnemonicCheck
         foreach (var (title, labels) in panels)
         {
             var inPanel = new Dictionary<char, string>();
-            foreach (var text in Prepend(title, labels))
+            foreach (var text in new[] { title }.Concat(labels))
             {
                 var letter = LetterOf(text);
                 if (inPanel.TryGetValue(letter, out var other))
@@ -63,14 +64,5 @@ internal static class MnemonicCheck
         }
 
         throw new ArgumentException("No mnemonic in: " + text, nameof(text));
-    }
-
-    private static IEnumerable<string> Prepend(string first, string[] rest)
-    {
-        yield return first;
-        foreach (var text in rest)
-        {
-            yield return text;
-        }
     }
 }

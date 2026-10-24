@@ -186,6 +186,15 @@ public sealed class ReplaceRuleTests
     public void Run_KeepCase_OneLetterFound(string name, string expected) =>
         Assert.Equal(expected, RunOne(K("a", "xyz"), name).NewName);
 
+    [Theory]
+    [InlineData("a_b", "xy", "A_B.txt", "XY.txt")]
+    [InlineData("a_b", "xy", "A_b.txt", "Xy.txt")]
+    [InlineData("dump 1", "bob", "DUMP 1.txt", "BOB.txt")]
+    [InlineData("dump 1", "bob", "Dump 1.txt", "Bob.txt")]
+    [InlineData("img_001", "pic", "IMG_001.txt", "PIC.txt")]
+    public void Run_KeepCase_SkipsNonLettersInFound(string find, string with, string name, string expected) =>
+        Assert.Equal(expected, RunOne(K(find, with), name).NewName);
+
     [Fact]
     public void Run_KeepCase_NoLettersInFound_AsTyped() =>
         Assert.Equal("one.txt", RunOne(K("1", "one"), "1.txt").NewName);
