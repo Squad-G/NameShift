@@ -18,6 +18,17 @@ Filter the list from the window and include sub-folders.
 
 ## Decisions
 - Cycles through junctions? **Decision:** reparse points (junctions, links) are never followed, to avoid loops and surprises (po, 2026-10-18).
+- Hidden files? **Decision:** the listing then returns hidden and system entries too (with their attributes) and `ItemFilter`
+  (NS-32) leaves them out by default, so the "show hidden" option is one switch in the filter, not a second listing. This
+  replaces `DiskFileListSource.IsShown`; `ExistingNames` keeps every entry as today (po, 2026-10-24).
+- Split when scheduled: (a) filter settings model and sub-folder listing in `NameShift.Ui` with tests (a `FilterPanelModel`
+  with plain properties and `Changed`/`Reset`/`IsDefault`, `FileListModel` applying `ItemFilter`, a recursive
+  `IFileListSource` that skips reparse points and can be cancelled), then (b) the window control and the "restart in each
+  folder" checkbox of NS-60/NS-61 (po, 2026-10-24).
+- Where does the filter control sit in the window? **Open, for David:** the recommended default is one compact row above
+  the file list (mask box, kind check boxes, hidden, sub-folders, a "more" part for the regex and the lengths), because
+  the rule panels at the bottom are for rules and filters act on the list. Draft until David answers (po, 2026-10-24).
 
 ## Log
 - 2026-10-18: created (po).
+- 2026-10-24: kept Draft for the placement question above; NS-32 (engine) is Ready first (po).

@@ -47,3 +47,4 @@ Step`.
 ## Log
 - 2026-10-18: created inside NS-29 (po).
 - 2026-10-24: split out of NS-29 as its own story; kept Draft until sub-folders (NS-33) are scheduled (po).
+- 2026-10-24: NS-61 no longer depends on this story (the restart checkbox waits for NS-33); still Draft, since nothing could use it yet (po).

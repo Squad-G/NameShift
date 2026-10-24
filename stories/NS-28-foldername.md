@@ -52,6 +52,11 @@ only part that changes. Folder names are used as given (their case is kept).
   `C:` or `server` is not a name users call a folder (po, 2026-10-23).
 - Default separator? **Decision:** `_`, as in Numbering (po, 2026-10-23).
 - Place relative to the extension? **Decision:** before it, so `.jpg` stays last (po, 2026-10-23).
+- A drive-relative path such as `C:Photos\Paris`? **Decision:** it keeps `C:Photos` as one segment (the colon makes it
+  look like a drive only at the start of a segment ending in the colon); the colon is then flagged by the invalid-name
+  check. Rare, and the app only passes full paths (po, 2026-10-24, recorded from the build brief).
+- Extended paths (`\\?\C:\...`)? **Decision:** not handled; the app never builds them, and the path bar refuses them
+  (NS-10). A follow-up story is optional and not planned (po, 2026-10-24, recorded from the build brief).
 
 ## Log
 - 2026-10-18: created (po).

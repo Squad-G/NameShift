@@ -69,6 +69,11 @@ taken text, so a position past the end gives the same result as target End. Coun
   2026-10-24).
 - A cut inside a surrogate pair? **Decision:** take the whole pair, because an unpaired surrogate makes an invalid name,
   as in NS-20 (po, 2026-10-24).
+- An empty base name? **Decision:** the name is left unchanged, as there is nothing to move or copy (po, 2026-10-24,
+  recorded from the build brief).
+- "Only when both are not empty" versus "only when the remainder is not empty"? **Decision:** the same thing once the
+  rule is enabled (the count is at least 1, so the taken text is never empty); the code tests the remainder (po,
+  2026-10-24, recorded from the build brief).
 
 ## Log
 - 2026-10-18: created (po).
