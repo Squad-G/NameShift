@@ -36,7 +36,7 @@ cannot be reverted (criteria 3 and 4 need to tell them apart). The source scan o
 6. Given `RevertOutcome.NotStarted` (the journal could not be written before the revert) the exit code is 3, with the
    window's `ForRevert` text on the error stream. Given `NeedsAttention`, or a `JournalIssue` of AfterFinish, the exit
    code is 4 with the window's text on the error stream. Given an exception from `Revert()`, the exit code is 4 with
-   `Strings.ActionUnexpected` (the disk state is unknown), as for `apply` (NS-43:8). Each outcome is tested through a
+   `Strings.ActionUnexpected` (the disk state is unknown), as for `apply` (NS-43:9). Each outcome is tested through a
    fake `IBatchRenamer` and the stream and the text are checked against `ActionText`.
 7. Given `NameShiftCmd undo --dry-run`, then `LoadLastBatch()` is read and, for each entry of the batch, one line
    `<current file name> -> <name it would get back>` (file names, journal order) is written to the output stream, then
@@ -51,7 +51,8 @@ cannot be reverted (criteria 3 and 4 need to tell them apart). The source scan o
    lists the verb (NS-43's help test fails otherwise). The exit codes of `undo` extend NS-43's `Strings.ExitCode3` and
    `Strings.ExitCode4` wording (the history cannot be used, or no file could be restored, for 3; some files not restored,
    for 4), and NS-43:8's test reads the extended text. An exception from `LoadLastBatch()` (before `Revert()` is
-   called) is exit 3 with `Strings.UnexpectedBeforeRename`-style text for undo ("No file was changed."), as NS-43:9.
+   called) is exit 3 with a new undo string that says no file was changed (its key and text are chosen when NS-42
+   becomes Ready), as NS-43:9 does for `apply`.
 10. Given any size of batch, then `undo` never prompts and never reads input (scripts never block). The window's Revert
     needs no confirmation either (NS-15).
 11. Given `undo` runs while no folder or file is given, then it works from any current directory (a test starts it in a

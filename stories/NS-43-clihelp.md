@@ -28,7 +28,9 @@ Help and version:
    (whatever the csproj gives; today the SDK default `1.0.0`); `CommandRunner` takes it as a parameter of its
    constructor and of `ForDisk` (tests give `1.2.3`; `Program.cs` keeps `ForDisk` and `JournaledRenamer.DefaultHistoryRoot`).
    A net48 exe test starts `NameShiftCmd.exe --version` and compares the line with the exe's own
-   `FileVersionInfo.ProductVersion` (build suffix removed). No version test touches the App's csproj.
+   `FileVersionInfo.ProductVersion` (build suffix removed). No version test touches the App's csproj. Until David
+   answers the open release-process question (how the versions are set), `--version` prints `1.0.0` while the window
+   app is `0.1.0`; the build PR says so, so nobody reads `1.0.0` as a release.
 4. Given a usage error (unknown verb or option, a missing value, no folder, no rule, none of them help), then exactly
    one line goes to the error stream: `<message> <usage> For help, run: NameShiftCmd --help`, the three parts joined by
    single spaces, where `<usage>` is `Strings.Usage` (it stays the one-line form, it is not limited to 79 columns) and
@@ -74,9 +76,11 @@ Console text:
     writes `?`), and only then passes the writers to `ForDisk`. The previous encoding is restored in a `finally`.
 12. Given there is no console attached (a detached process: the setter and the restore throw `IOException: The handle is
     invalid`), then setting or restoring the encoding is wrapped in a `try/catch` that ignores `IOException` (and
-    only that), the run goes on and the exit code is still 0 to 4. The console is behind a small seam in the exe
-    project (an `IConsoleEncoding` with a get and a set, a fake that throws in a test), so a unit test checks that a
-    throwing set and a throwing restore are both ignored and the command still returns its code.
+    only that), the run goes on and the exit code is still 0 to 4. The console is behind a small seam in `NameShift.Cmd`
+    (not in the exe, which tests cannot reference): an internal `IConsoleEncoding` with a get and a set, its real
+    implementation over `System.Console`, and an internal entry method that takes it and that `Program.Main` calls
+    (visible to `NameShift.Cmd.Tests`, as in criterion 7). A unit test with a fake that throws checks that a throwing
+    set and a throwing restore are both ignored and the command still returns its code.
 13. Given a net48 test starts the built exe on a temp folder holding `é.TXT` and `日本語.TXT` with
     `apply <folder> --case lower --dry-run`, then for output redirected to a pipe and (a second test) to a file
     (`cmd /c "... > file"`) the raw bytes decode as UTF-8 to `é.TXT -> é.txt` and `日本語.TXT -> 日本語.txt`, and the first
