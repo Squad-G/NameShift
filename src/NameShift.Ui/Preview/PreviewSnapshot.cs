@@ -44,30 +44,30 @@ public sealed class PreviewSnapshot
             throw new ArgumentException("There must be one result per item.", nameof(results));
         }
 
-        if (conflicts.Count != results.Count)
+        Plan = new RenamePlan(results, conflicts);
+        Batch = batch;
+    }
+
+    /// <summary>Creates a snapshot of a plan; there must be exactly one result per item of the batch.</summary>
+    internal PreviewSnapshot(FileBatch batch, RenamePlan plan)
+    {
+        if (batch == null)
         {
-            throw new ArgumentException("There must be one conflict list per result.", nameof(conflicts));
+            throw new ArgumentNullException(nameof(batch));
+        }
+
+        if (plan == null)
+        {
+            throw new ArgumentNullException(nameof(plan));
+        }
+
+        if (batch.Count != plan.Results.Count)
+        {
+            throw new ArgumentException("There must be one result per item.", nameof(plan));
         }
 
         Batch = batch;
-        Results = results;
-        Conflicts = conflicts;
-        for (int i = 0; i < results.Count; i++)
-        {
-            if (conflicts.ForItem(i).Count > 0)
-            {
-                ConflictCount++;
-            }
-
-            if (results[i].Status == RenameStatus.Error)
-            {
-                ErrorCount++;
-            }
-            else if (results[i].Status == RenameStatus.Changed)
-            {
-                ChangedCount++;
-            }
-        }
+        Plan = plan;
     }
 
     /// <summary>The batch the pipeline ran on, with the list it was taken from (compared with the file list's items).</summary>
@@ -76,21 +76,27 @@ public sealed class PreviewSnapshot
     /// <summary>The exact list the pipeline ran on.</summary>
     public IReadOnlyList<RenameItem> Items => Batch.Items;
 
+    /// <summary>The plan of the batch: its results, conflicts, counts and Blocker.</summary>
+    public RenamePlan Plan { get; }
+
     /// <summary>One result per item, Results[i].Index == i.</summary>
-    public IReadOnlyList<RenameResult> Results { get; }
+    public IReadOnlyList<RenameResult> Results => Plan.Results;
 
     /// <summary>One conflict list per result, by position.</summary>
-    public ConflictReport Conflicts { get; }
+    public ConflictReport Conflicts => Plan.Conflicts;
 
     /// <summary>Items with at least one conflict (a row with two codes counts once).</summary>
-    public int ConflictCount { get; }
+    public int ConflictCount => Plan.ConflictCount;
 
-    /// <summary>Results whose status is Error (a rule failed). For NS-15, which disables Rename on conflicts or errors.</summary>
-    public int ErrorCount { get; }
+    /// <summary>Results whose status is Error (a rule failed).</summary>
+    public int ErrorCount => Plan.ErrorCount;
 
     /// <summary>Results whose status is Changed: what a Rename would rename.</summary>
-    public int ChangedCount { get; }
+    public int ChangedCount => Plan.ChangedCount;
 
     /// <summary>ConflictCount > 0.</summary>
-    public bool HasConflicts => ConflictCount > 0;
+    public bool HasConflicts => Plan.HasConflicts;
+
+    /// <summary>Why Rename cannot run the plan; None when it can.</summary>
+    public RenameBlocker Blocker => Plan.Blocker;
 }

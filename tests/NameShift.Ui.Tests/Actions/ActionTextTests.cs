@@ -48,6 +48,22 @@ public sealed class ActionTextTests
     [Fact]
     public void Hint_EmptySnapshot_IsEmpty() => Assert.Equal("", ActionText.Hint(PreviewSnapshot.Empty));
 
+    [Fact]
+    public void Hint_NothingToRename_IsEmpty()
+    {
+        RenameItem[] items = { FakeFileListSource.File("a.txt"), FakeFileListSource.File("b.txt") };
+        var results = new[]
+        {
+            new RenameResult(items[0], 0, "a.txt", RenameStatus.Unchanged, null),
+            new RenameResult(items[1], 1, "b.txt", RenameStatus.Unchanged, null),
+        };
+        IReadOnlyList<Conflict> none = Array.Empty<Conflict>();
+        var snapshot = new PreviewSnapshot(items, results, new ConflictReport(new[] { none, none }));
+
+        Assert.Equal(RenameBlocker.NothingToRename, snapshot.Blocker);
+        Assert.Equal("", ActionText.Hint(snapshot));
+    }
+
     // Confirmation, busy text, Revert's description
 
     [Fact]

@@ -139,7 +139,7 @@ public sealed class PreviewModel
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
-    /// <summary>The pipeline and the three conflict checks, in one run on the pool.</summary>
+    /// <summary>The plan of the batch, in one run on the pool.</summary>
     private static PreviewSnapshot Compute(
         IReadOnlyList<IRenameRule> rules,
         FileBatch batch,
@@ -147,15 +147,11 @@ public sealed class PreviewModel
         IReadOnlyList<string> existingNames,
         CancellationToken token)
     {
-        IReadOnlyList<RenameResult> results = new RenamePipeline(rules).Run(batch.Items, token);
-        token.ThrowIfCancellationRequested();
         var existing = new Dictionary<string, IReadOnlyCollection<string>>(StringComparer.OrdinalIgnoreCase)
         {
             [folder] = existingNames as IReadOnlyCollection<string> ?? existingNames.ToArray(),
         };
-        IConflictCheck[] checks = { new InvalidNameCheck(), new DuplicateTargetCheck(existing), new PathLengthCheck() };
-        ConflictReport conflicts = ConflictChecker.Run(results, checks);
-        return new PreviewSnapshot(batch, results, conflicts);
+        return new PreviewSnapshot(batch, RenamePlanner.Plan(rules, batch.Items, existing, token));
     }
 
     /// <summary>Runs the pipeline and the conflict checks; true when the result was applied. Never throws.</summary>

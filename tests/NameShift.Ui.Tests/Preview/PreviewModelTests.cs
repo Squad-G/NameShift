@@ -955,4 +955,34 @@ public sealed class PreviewModelTests
         Assert.Equal("c_02.txt", preview.CellForRow(1).Text);
         Assert.Equal("a_03.txt", preview.CellForRow(2).Text);
     }
+
+    [Fact]
+    public async Task Snapshot_EqualsThePlannersPlan()
+    {
+        FakeRulePanelModel panel = ReplacePanel("a");
+        var host = new RulePanelHostModel(new IRulePanelModel[] { panel });
+        var preview = new PreviewModel(host, _files, _delay.Delay);
+        panel.Enabled = true;
+
+        await _files.LoadAsync(@"C:\A");
+        await preview.Pending;
+
+        PreviewSnapshot snapshot = preview.Snapshot;
+        var existing = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IReadOnlyCollection<string>>
+        {
+            [@"C:\A"] = _files.ExistingNames,
+        };
+        RenamePlan expected = RenamePlanner.Plan(host.Rules, snapshot.Items, existing, CancellationToken.None);
+        Assert.Equal(3, snapshot.Results.Count);
+        Assert.Equal(expected.Results.Select(r => r.NewName).ToArray(), snapshot.Results.Select(r => r.NewName).ToArray());
+        Assert.Equal(expected.Results.Select(r => r.Status).ToArray(), snapshot.Results.Select(r => r.Status).ToArray());
+        for (int i = 0; i < expected.Results.Count; i++)
+        {
+            Assert.Equal(
+                expected.Conflicts.ForItem(i).Select(c => c.Code).ToArray(),
+                snapshot.Conflicts.ForItem(i).Select(c => c.Code).ToArray());
+        }
+
+        Assert.Equal(expected.Blocker, snapshot.Blocker);
+    }
 }

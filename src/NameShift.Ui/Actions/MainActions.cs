@@ -77,9 +77,9 @@ public sealed class MainActions
     /// <summary>True from a Rename or Revert click until the folder has reloaded: everything is locked.</summary>
     public bool IsBusy { get; private set; }
 
-    /// <summary>True when Rename may run the preview on screen. The only place this rule is written (criterion 2): the
-    /// list is loaded, the preview is current and did not fail, and it has at least one changed name, no conflict and
-    /// no rule error, and no Rename just ran (until a rule, the selection or the folder changes).</summary>
+    /// <summary>True when Rename may run the preview on screen. The window's conditions are written here: the list is
+    /// loaded, the preview is current and did not fail, no Rename just ran (until a rule, the selection or the folder
+    /// changes), and the plan has no blocker. "A change, no conflict and no rule error" is RenamePlan.Blocker's.</summary>
     public bool CanRename
     {
         get
@@ -89,8 +89,7 @@ public sealed class MainActions
                 return false;
             }
 
-            PreviewSnapshot snapshot = _preview.Snapshot;
-            return snapshot.ChangedCount > 0 && !snapshot.HasConflicts && snapshot.ErrorCount == 0;
+            return _preview.Snapshot.Blocker == RenameBlocker.None;
         }
     }
 
