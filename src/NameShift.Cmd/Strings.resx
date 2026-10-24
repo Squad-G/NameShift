@@ -4,8 +4,8 @@
   <resheader name="version"><value>2.0</value></resheader>
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
-  <data name="Usage" xml:space="preserve"><value>Usage: NameShiftCmd apply &lt;folder&gt; [--replace &lt;find&gt; &lt;with&gt;] [--case lower|upper|title|sentence] [--dry-run]</value></data>
-  <data name="NoCommand" xml:space="preserve"><value>Give a command: apply.</value></data>
+  <data name="Usage" xml:space="preserve"><value>Usage: NameShiftCmd apply &lt;folder&gt; &lt;options&gt; | NameShiftCmd undo [--dry-run]</value></data>
+  <data name="NoCommand" xml:space="preserve"><value>Give a command: apply or undo.</value></data>
   <data name="UnknownCommand" xml:space="preserve"><value>Unknown command "{0}".</value></data>
   <data name="UnknownOption" xml:space="preserve"><value>Unknown option "{0}".</value></data>
   <data name="ReplaceNeedsValues" xml:space="preserve"><value>--replace needs two values: the text to find and the new text.</value></data>
@@ -26,10 +26,14 @@
   <data name="ItemLine" xml:space="preserve"><value>{0}: {1}</value></data>
   <data name="HelpPointer" xml:space="preserve"><value>For help, run: NameShiftCmd --help</value></data>
   <data name="UnexpectedBeforeRename" xml:space="preserve"><value>NameShift hit an unexpected problem. No file was renamed.</value></data>
+  <data name="UnexpectedBeforeUndo" xml:space="preserve"><value>NameShift hit an unexpected problem. No file was changed.</value></data>
+  <data name="UndoHistoryUnusable" xml:space="preserve"><value>The undo history cannot be used: a rename was cut short or the history file is unreadable. No file was changed.</value></data>
+  <data name="UndoOnlyDryRun" xml:space="preserve"><value>undo takes no folder or rule options, only --dry-run.</value></data>
   <data name="VersionLine" xml:space="preserve"><value>NameShift {0}</value></data>
   <data name="HelpUsageApply" xml:space="preserve"><value>Usage:
-  NameShiftCmd apply &lt;folder&gt; [--replace &lt;find&gt; &lt;with&gt;]
-                     [--case lower|upper|title|sentence] [--dry-run]</value></data>
+  NameShiftCmd apply &lt;folder&gt; &lt;options&gt;</value></data>
+  <data name="HelpUsageUndo" xml:space="preserve"><value>Usage:
+  NameShiftCmd undo [--dry-run]</value></data>
   <data name="HelpMain" xml:space="preserve"><value>NameShiftCmd renames the files of a folder in one step, and lists the new names
 first with --dry-run.
 
@@ -38,7 +42,8 @@ Other usage:
   NameShiftCmd --version
 
 Commands:
-  apply            Rename the files of a folder (--replace and/or --case).
+  apply            Rename the files of a folder with rule options.
+  undo             Take back the last batch (also one made in the window).
   help             Show this help.
 
 Options:
@@ -48,6 +53,7 @@ Options:
 Examples:
   NameShiftCmd apply "D:\Pics" --replace IMG Trip --dry-run
   NameShiftCmd apply "D:\Pics" --case lower
+  NameShiftCmd undo --dry-run
   NameShiftCmd apply --help</value></data>
   <data name="HelpApply" xml:space="preserve"><value>Options of apply:
   --replace &lt;find&gt; &lt;with&gt;  Replace &lt;find&gt; with &lt;with&gt; in each file name.
@@ -58,10 +64,18 @@ Give at least one of --replace and --case. Options can come in any order.
 
 Example of apply:
   NameShiftCmd apply "D:\Pics" --replace IMG Trip --case lower --dry-run</value></data>
+  <data name="HelpUndo" xml:space="preserve"><value>Options of undo:
+  --dry-run       List the names undo would restore; change nothing. Reads the
+                  history only: it does not check the files.
+  --help, -h, /?  Show this help.
+Undo takes back the last batch, also one made in the window.
+
+Example of undo:
+  NameShiftCmd undo --dry-run</value></data>
   <data name="HelpExitCodes" xml:space="preserve"><value>Exit codes:</value></data>
   <data name="ExitCode0" xml:space="preserve"><value>Done, or there was nothing to rename.</value></data>
   <data name="ExitCode1" xml:space="preserve"><value>Usage or input error (the command line or the folder). Nothing renamed.</value></data>
   <data name="ExitCode2" xml:space="preserve"><value>Conflicts or rule errors. Nothing renamed.</value></data>
-  <data name="ExitCode3" xml:space="preserve"><value>Nothing renamed (refused, rolled back, no history, or a crash before it).</value></data>
-  <data name="ExitCode4" xml:space="preserve"><value>Look at the disk: items left renamed, no history, or a crash mid-way.</value></data>
+  <data name="ExitCode3" xml:space="preserve"><value>Nothing changed (refused, rolled back, no history, or a crash before it).</value></data>
+  <data name="ExitCode4" xml:space="preserve"><value>Look at the disk: items left renamed or not restored, no history, a crash.</value></data>
 </root>

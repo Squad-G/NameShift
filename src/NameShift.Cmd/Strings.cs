@@ -69,17 +69,32 @@ public static class Strings
     /// <summary>"NameShift hit an unexpected problem. No file was renamed.": a crash before the renamer was called.</summary>
     public static string UnexpectedBeforeRename => Get(nameof(UnexpectedBeforeRename));
 
+    /// <summary>"NameShift hit an unexpected problem. No file was changed.": a crash before undo reverted anything.</summary>
+    public static string UnexpectedBeforeUndo => Get(nameof(UnexpectedBeforeUndo));
+
+    /// <summary>"The undo history cannot be used...": the last batch is interrupted or unreadable.</summary>
+    public static string UndoHistoryUnusable => Get(nameof(UndoHistoryUnusable));
+
+    /// <summary>"undo takes no folder or rule options, only --dry-run.": a usage error.</summary>
+    public static string UndoOnlyDryRun => Get(nameof(UndoOnlyDryRun));
+
     /// <summary>"NameShift {0}": the version line.</summary>
     public static string VersionLine => Get(nameof(VersionLine));
 
-    /// <summary>The wrapped usage of apply, several lines, in the helps.</summary>
+    /// <summary>The usage of apply, two lines, in the helps.</summary>
     public static string HelpUsageApply => Get(nameof(HelpUsageApply));
+
+    /// <summary>The usage of undo, two lines, in the helps.</summary>
+    public static string HelpUsageUndo => Get(nameof(HelpUsageUndo));
 
     /// <summary>The main help between its usage and the apply options: commands, global options, examples.</summary>
     public static string HelpMain => Get(nameof(HelpMain));
 
     /// <summary>The options of apply and one example.</summary>
     public static string HelpApply => Get(nameof(HelpApply));
+
+    /// <summary>The options of undo and one example.</summary>
+    public static string HelpUndo => Get(nameof(HelpUndo));
 
     /// <summary>"Exit codes:": the title of the exit code table.</summary>
     public static string HelpExitCodes => Get(nameof(HelpExitCodes));
