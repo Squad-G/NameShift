@@ -27,14 +27,17 @@ Seam and contract:
    cancelled". `DiskFileListSource`'s catch-all rethrows cancellation (it must not turn it into a `Failed` listing).
    `FileListModel` passes the token of the load in flight; its existing handler (`catch (OperationCanceledException) when
    cts.IsCancellationRequested`) already means "superseded: returns false, no `Failed` state, no message"; an
-   `OperationCanceledException` with a token that is not cancelled still ends as `Failed` (a test). The other caller, the
+   `OperationCanceledException` with a token that is not cancelled still ends as `Failed` (a test). A model that is
+   disposed returns false from `SetIncludeSubfoldersAsync` and stores nothing (as `SetFilterAsync`). The other caller, the
    command line (`CommandRunner`), passes `false` and `CancellationToken.None`; if NS-43 is merged first, the call is the one
    in its merged code.
 3. `FileListing` gets `SkippedFolders` (int, 0 by default and for a failed listing; `Ok(items, skippedFolders = 0)`), and
    `FileListModel` exposes it as `SkippedFolders` (0 until a load lands, while loading and after a failure).
 4. `FilterPanelModel.IncludeSubfolders` (default false, part of `IsDefault` and `Reset`, one `Changed` per real change, none
    for the same value). It does not rebuild `Filter`: `Filter` is the same instance after the change, so no filter run
-   starts for it (a test: `ReferenceEquals` before and after).
+   starts for it. `Reset()` (which rebuilds `Filter` every time today) rebuilds it only when a filter value changed, never
+   for the box alone. Tests: `ReferenceEquals(Filter)` before and after setting the box; before and after a `Reset()` that
+   changes only the box (same instance, one `Changed`); a new instance after a `Reset()` that also changes a filter value.
 5. `FileListModel.IncludeSubfolders` (false by default, read-only property) and `SetIncludeSubfoldersAsync(bool)`:
    the same value returns false and does nothing; otherwise the value is stored and, when a folder is shown
    (`FolderPath` is not null), the same folder is loaded again (state `Loading` then `Loaded`, `Changed` as for any load);
@@ -56,10 +59,14 @@ Listing:
    time through it, and removes it with `Directory.Delete(path, false)` (never recursive: that would delete the target).
 9. Given a sub-folder whose enumeration throws (`UnauthorizedAccessException`, `PathTooLongException`,
    `DirectoryNotFoundException` as if removed meanwhile, `IOException`), whether at the call or midway, then it is skipped,
-   the entries read before the error are kept, the rest of the tree is listed, and `SkippedFolders` counts it once. The root
+   the entries read before the error are kept, the rest of the tree is listed, and `SkippedFolders` counts it once. The
+   sub-folders already discovered in a folder that fails midway are still entered. That folder's names in
+   `ExistingNamesByFolder` are partial: safe (NS-8 re-checks every target on disk and never replaces), but the preview can
+   say OK and the Rename then fail and roll back. The root
    failing is the usual folder problem (`Failed`, `FolderProblem` as today).
 10. Given a fake tree 5,000 folders deep with one file in each, then it is listed without a stack overflow (the walk keeps its
-    own stack, never recursion) and the test completes in a few seconds.
+    own stack, never recursion) and the test completes in a few seconds. The test must fail, not just be slow, on a
+    quadratic walk (a time limit of a few seconds, with paths of about 10 KB at the deepest).
 11. Order, decided in the source and kept by the sort. The source returns the entries grouped by folder in tree order: the
     root first, then each sub-folder right after its parent's entries, siblings in the natural name order (`x`, `x\y`, `x2`,
     never `x`, `x2`, `x\y`). `FileListOrder.Sort` groups the items by `FolderPath` (ignoring case) in the order each folder
@@ -73,8 +80,11 @@ Listing:
 
 Cancel:
 13. Given a new `LoadAsync`, a change of `IncludeSubfolders` or `Dispose`, then the walk in flight is cancelled: the source
-    receives the token of that load and checks it at least once per folder and once per 1,000 entries (a fake that counts
-    checks, a fake that blocks until the token is cancelled and then throws), and the walk runs off the UI thread (the
+    receives the token of that load and checks it at least once per folder and once per 1,000 entries. Observable tests:
+    a fake enumerator cancels the token's source after k entries of one folder holding many more, and the test asserts the
+    source asked for at most k + 1,000 more entries and the listing throws `OperationCanceledException`; another cancels
+    inside folder 1 and asserts folder 2 is never enumerated; a fake that blocks until the token is cancelled and then
+    throws ends the load as superseded. The walk runs off the UI thread (the
     existing `Task.Run`). The superseded load returns false and applies nothing. The real source called with a token
     already cancelled throws `OperationCanceledException` at once. There is no separate Cancel button or method: unticking
     Sub-folders (NS-78) or opening another folder is the cancel.
@@ -112,6 +122,11 @@ Relative folder and rename:
 - Where does the option live? **Decision:** `FilterPanelModel` holds what the box shows (with Reset and `IsDefault`), and
   `FileListModel` holds what was applied, since it is a listing parameter and not an item filter; the window ties them
   (NS-78) (po, 2026-10-24).
+- Reparse-point folders (junctions, links, possibly cloud placeholder folders such as OneDrive's)? **Decision:** listed,
+  never entered, silently, and not counted in `SkippedFolders`: following them risks loops and double renames. The PR says
+  whether a real OneDrive folder carries the attribute; if it does, a follow-up counts them (po, 2026-10-24).
+- A read blocked on a dead share? **Decision:** it cannot be cancelled, only superseded: its pool thread stays blocked until
+  the disk answers, and its result is never applied (po, 2026-10-24).
 - A Cancel method or button? **Decision:** none: the window is not locked while a folder loads, so opening another folder
   or unticking the box cancels, and a second way would need a third state (po, 2026-10-24).
 

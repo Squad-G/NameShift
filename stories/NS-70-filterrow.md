@@ -47,7 +47,8 @@ Wiring:
    binding once; the filters stay when another folder opens (the model applies the requested filter to every load), start at
    default, and are not saved (NS-37 does not remember them).
 6. Given the Reset button (NS-15), then it resets the rules and the filters (`FilterPanelModel.Reset`: every value at its
-   default, `More` hidden); the folder, the sort and the selection stay (the selected items still listed stay selected, as
+   default; the row's `More` toggle keeps its state, since it is view state the model does not know, so the values clear and
+   the line stays as the user left it); the folder, the sort and the selection stay (the selected items still listed stay selected, as
    a filter change does). `MainActions` takes the `FilterPanelModel`: `CanReset` is true when a panel has something to reset
    or the filters are not at default (and not busy); `Changed` is raised when the filters change; `Reset()` does both; the
    documentation of `Reset` ("never touches files, journal or selection") says what it does now. Tests in `MainActions`'
@@ -66,7 +67,8 @@ List:
    conflict line, restores the model's selected rows (none when the list is empty, nothing indexes `Items[rows[0]]` past
    the end), and scrolls to the first selected row, or to the top when the list shrank and nothing is selected. Today it
    assumes the count is unchanged. By hand, written in the PR: filter to zero rows and back; filter with some rows selected
-   (those still listed stay selected); filter while scrolled to the bottom of a long list; sort after a filter; no exception
+   (those still listed stay selected); filter while a selection read is pending (`ReadSelection` calls `SetSelection`, which
+   throws for a row outside `Items`: a read scheduled before the shrink must not index past the end); filter while scrolled to the bottom of a long list; sort after a filter; no exception
    in any of them.
 9. Given the window closes, then `MainForm` disposes `FileListModel` (a `Dispose(bool)` override) and the row's
    `FilterTyping`, so a load or filter run still in flight never raises an event on a dead window. (`FileListModel.Dispose`
@@ -88,8 +90,8 @@ Alt keys and access:
 
 ## Decisions
 - Placement? **Decided by David (2026-10-24):** one compact row above the file list, as above.
-- Reset? **Decision:** one Reset for everything the user typed (rules and filters), as NS-37 says; no `Reset all` menu item
-  (po, 2026-10-24).
+- Reset? **Decision:** one Reset for everything the user typed (rules and filters), as NS-37 says; no `Reset all` menu item.
+  It clears the values and leaves the `More` line as it is (view state, not model state) (po, 2026-10-24).
 - Does this wait for sub-folders? **Decision:** no: the filters are useful alone, so the Sub-folders box and the Folder column
   move to NS-78, which needs this row and NS-74; the row's layout is unchanged for David's decision (po, 2026-10-24).
 - Do the filters survive a folder change? **Decision:** yes, as the model already does (the requested filter applies to every

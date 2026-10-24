@@ -17,16 +17,20 @@ file access (`IPresetFiles`), `FolderNavigator`, `OpenTarget`, `OpenSequence`.
 Files (`AppSettingsStore(folder)`, default `%LOCALAPPDATA%\NameShift`, only computed, created on the first save):
 1. `settings.json`: `{ "version": 1, "window": { "left", "top", "width", "height", "maximized" }, "mainSplit", "rightSplit",
    "lastFolder" }`, UTF-8 without BOM, indented. Sizes and splitter values are in 96-DPI logical pixels, the position in
-   screen pixels. `last-rules.json`: the rules in the preset format (NS-36:4) under the fixed name `(last used)`, written
+   screen (device) pixels. `mainSplit` is the `SplitterDistance` of the folder tree (default 260); `rightSplit` is the
+   height of the bottom panel (default 240), not a `SplitterDistance` (the right split has `FixedPanel.Panel2`). `last-rules.json`: the rules in the preset format (NS-36:4) under the fixed name `(last used)`, written
    with `Preset.FromPanels` and `PresetJson`, so a new panel setting is remembered the moment it is in a preset. Writes
    are atomic (temporary file, then move: a failing write leaves the old file and no temporary file; a test with the file
-   seam that fails), never throw, and a failure is silent (closing the window is not a place for a message).
+   seam that fails), never throw, and a failure is silent (closing the window is not a place for a message). No test
+   uses the default `%LOCALAPPDATA%\NameShift` folder: the store takes its folder (a temp folder in tests); only
+   `Program` passes the default.
 2. Reading is lenient and never throws: a missing file gives defaults; empty, corrupt, over 1 MB or newer-version content gives
    defaults for that file and the file is left alone until the next save replaces it; inside a good file a missing or
-   invalid value (a text where a number goes, a negative size) defaults on its own and the others still load. Tests: each
-   case, and a round trip of every value.
+   invalid value (a text where a number goes, a negative size) defaults on its own and the others still load. The in-box
+   serializer fails the whole file on one wrong type, so the numbers and the flag are read as string-typed members (or by
+   a manual read) and parsed one by one. Tests: each case, and a round trip of every value.
 3. Given a remembered preset in `last-rules.json`, then at start `RuleHost.ApplyPreset` applies it before the first listing,
-   so the panels hold the values and the enabled boxes as left (one `RulesChanged`, no preview yet); a file with no panels,
+   so the panels hold the values and the enabled boxes as left (a test: exactly one `RulesChanged`); a file with no panels,
    or an unreadable one, leaves every panel at default.
 
 Window:
@@ -35,11 +39,16 @@ Window:
    the window open. A close that is refused because a Rename or Revert runs (NS-15) writes nothing. Only the last window
    to close wins when two run at once; there is no lock.
 5. Given a saved placement, then `WindowPlacement.Fit(saved, screens, minimumSize)` (pure, plain integers, in `NameShift.Ui`)
-   decides: the window opens at the saved place and size when at least 100 px wide of its top 40 px strip lies inside one
-   screen's working area; otherwise (a screen that is gone, a position far outside) the answer is "no placement" and the
+   decides. Units (the app is PerMonitorV2): `saved` has its position in device pixels and its size in logical (96-DPI)
+   pixels; each screen carries its working area in device pixels and its scale (1.0 = 100 %); `minimumSize` is logical; the
+   result is a device-pixel rectangle (size = logical size times the landing screen's scale) or "no placement". The window
+   opens there when at least 100 device px of the width of its top 40 device px strip lie inside one screen's working area
+   (the landing screen is the one with the largest overlap); otherwise (a screen that is gone, a position far outside) the answer is "no placement" and the
    window opens centred on the primary screen at the default size (today's behaviour). The size is never below the minimum
    size and never above the working area of the screen it lands on. A maximised window comes back maximised, at its
-   restore bounds underneath; the window never starts minimised. Tests: on screen, partly off screen but grabbable, fully
+   restore bounds underneath; the window never starts minimised, and one closed while minimised is saved with its restore
+   bounds and `maximized` false (or true if it was maximised before). Tests also cover a layout saved at 150 % on a screen
+   that is now 100 %. Tests: on screen, partly off screen but grabbable, fully
    off screen, a second screen that is gone, a size too small, a size larger than the screen, two screens with negative
    coordinates (a screen left of the primary), maximised.
 6. Given saved splitter values, then `MainForm.OnLoad` applies them in place of the defaults (260 and the bottom height of
@@ -50,7 +59,7 @@ Window:
 
 Folder:
 8. Given no path argument on the command line, then the remembered folder opens: it is checked with `IFolderSource.CheckFolder`
-   off the UI thread, as `OpenTarget` does, and a folder that is gone, not a folder, unreachable or empty falls back to
+   off the UI thread, as `OpenTarget` does, and a folder that is gone, not a folder, unreachable, or an empty path falls back to
    Documents (the usual start folder) with no message. Given a path argument or a drop, then that wins (NS-47) and the
    remembered folder is ignored. The folder saved at close is `Navigator.CurrentFolder` (nothing is saved when none was
    shown). While the check runs the window is usable (a click in the tree or a path typed cancels it, as for
