@@ -11,6 +11,9 @@ Free, open-source, lightweight bulk file renamer for Windows (MIT). Owner: **Dav
   `tests/NameShift.Disk.Tests` (net10.0 and net48, xUnit): executor tests against real temp folders.
 - `src/NameShift.Ui` (netstandard2.0): window logic (navigation, path parsing, tree model, disk folder source) and
   every visible string (`Strings.resx`), no WinForms reference. `tests/NameShift.Ui.Tests` (net10.0 and net48, xUnit).
+- `src/NameShift.Cmd` (netstandard2.0): the command line's logic and its visible strings (`Strings.resx`); plans with
+  `RenamePlanner`, renames only through `IBatchRenamer`. `src/NameShift.Cmd.Exe` (net48): `NameShiftCmd.exe`, a console
+  program whose `Main` only calls it. `tests/NameShift.Cmd.Tests` (net10.0 and net48, xUnit).
 - Installer: Inno Setup 6 (`installer/`). Target: a download of a few MB at most.
 - No third-party UI framework. A new NuGet dependency needs a reason in the PR (size, and an MIT-compatible licence).
 

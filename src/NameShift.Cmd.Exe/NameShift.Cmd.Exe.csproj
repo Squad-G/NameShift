@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AssemblyName>NameShiftCmd</AssemblyName>
+    <RootNamespace>NameShift.Cmd.Exe</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NameShift.Cmd\NameShift.Cmd.csproj" />
+    <ProjectReference Include="..\NameShift.Core\NameShift.Core.csproj" />
+    <ProjectReference Include="..\NameShift.Disk\NameShift.Disk.csproj" />
+    <ProjectReference Include="..\NameShift.Ui\NameShift.Ui.csproj" />
+  </ItemGroup>
+</Project>
