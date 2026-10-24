@@ -109,7 +109,9 @@ public class PhotoDateTests
     [InlineData(0xD9)]
     public void Read_SosOrEoiBeforeExif_Null(byte code)
     {
-        byte[] file = Concat(Soi, Jfif, [0xFF, code], Exif(new TiffBuilder(false).Build()), Trailer);
+        // A scan header with a plausible length: a reader that skipped it by length would reach the Exif segment.
+        byte[] file = Concat(Soi, Jfif, Segment(code, [0x01, 0x01, 0x00, 0x00, 0x3F, 0x00]),
+            Exif(new TiffBuilder(false).Build()), Trailer);
 
         Assert.Null(ReadBytes(file));
     }

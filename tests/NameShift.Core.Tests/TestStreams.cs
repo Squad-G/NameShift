@@ -4,10 +4,14 @@ using System.IO;
 namespace NameShift.Core.Tests;
 
 /// <summary>A read-only, non-seekable stream over bytes: at most <c>maxPerRead</c> bytes per call, counts what it
-/// served, and throws on Length, Position, Seek, SetLength and Write.</summary>
+/// served, and throws on Length, Position, Seek, SetLength and Write. It also throws when asked to read again and again
+/// at the end, so a reader that loops on a zero-byte read fails the test instead of hanging it.</summary>
 internal sealed class ProbeStream(byte[] data, int maxPerRead = int.MaxValue) : Stream
 {
+    private const int MaxReadsAtEnd = 1000;
+
     private int position;
+    private int readsAtEnd;
 
     public long Served { get; private set; }
 
@@ -35,6 +39,11 @@ internal sealed class ProbeStream(byte[] data, int maxPerRead = int.MaxValue) : 
         }
 
         int n = Math.Min(Math.Min(count, maxPerRead), data.Length - position);
+        if (n == 0 && count > 0 && ++readsAtEnd > MaxReadsAtEnd)
+        {
+            throw new InvalidOperationException("ProbeStream read at its end too often: the reader does not stop.");
+        }
+
         Buffer.BlockCopy(data, position, buffer, offset, n);
         position += n;
         Served += n;
