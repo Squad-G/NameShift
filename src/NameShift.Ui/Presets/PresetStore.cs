@@ -56,7 +56,8 @@ public sealed class PresetStore
     /// <summary>The store's folder, a full path without a trailing separator.</summary>
     public string Folder { get; }
 
-    /// <summary>Saves the preset under its trimmed name (white space around it is dropped, inner spaces stay). A preset with the same trimmed name (ignoring case) is replaced in its own file when
+    /// <summary>Saves the preset under its trimmed name (white space around it is dropped, inner spaces stay). A
+    /// preset with the same trimmed name (ignoring case) is replaced in its own file when
     /// <paramref name="overwrite"/> is true, otherwise the result is Exists. A new preset gets the first free file
     /// name of <c>name.json</c>, <c>name (2).json</c>, ...: a file that is taken, even an unreadable one, is never
     /// replaced. The write is atomic; a failure returns Failed with the system message and leaves any old file intact.
@@ -152,10 +153,10 @@ public sealed class PresetStore
         }
     }
 
-    /// <summary>Deletes the file of the readable preset with that name (trimmed, ignoring case), found by the name inside the
-    /// files of this folder: never a path from the caller, never another file, never a folder. A name that is not a
-    /// listed preset (such as <c>..\victim</c>) is NotFound. A disk failure returns Failed with the system message and
-    /// the file stays.</summary>
+    /// <summary>Deletes the file of the readable preset with that name (trimmed, ignoring case), found by the name
+    /// inside the files of this folder: never a path from the caller, never another file, never a folder. A name that
+    /// is not a listed preset (such as <c>..\victim</c>) is NotFound. A disk failure returns Failed with the system
+    /// message and the file stays.</summary>
     public PresetDeleteResult Delete(string name)
     {
         if (string.IsNullOrWhiteSpace(name))

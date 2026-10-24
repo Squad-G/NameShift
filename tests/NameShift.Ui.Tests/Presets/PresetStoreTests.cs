@@ -629,6 +629,7 @@ public sealed class PresetStoreTests : IDisposable
 
         Assert.Equal(2, store.List().Presets.Count);
     }
+
     private static string FindRoot()
     {
         string start = AppContext.BaseDirectory;

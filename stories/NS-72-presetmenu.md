@@ -1,6 +1,6 @@
 # NS-72: Presets menu: save, load and delete
 
-Status: In Review
+Status: Done
 Depends on: NS-36, NS-15
 Area: app
 
@@ -120,3 +120,7 @@ Window:
   store, Loading state, busy handling, Alt-key test, status-bar rules made exact; set Ready (po).
 - 2026-10-24: In Progress (builder).
 - 2026-10-24: In Review (builder), PR #70.
+- 2026-10-24: Done (tech-lead), PR #70 approved and merged. Checked by hand by David: name dialog; Yes/No dialogs (No
+  is the default, Escape = No, Rename still defaults to Yes); menu disabled while busy; 150 % and 200 % (incl. the menu
+  bar's height, no double scaling in the dialogs); Alt+P from the file list and inside the RegEx panel; dropping a folder
+  on the menu bar.
