@@ -1,18 +1,18 @@
-# NS-30: Panels for Extension, Name and Remove
+# NS-30: Panel for Remove
 
 Status: Draft
-Depends on: NS-11, NS-18, NS-19, NS-20, NS-21, NS-22, NS-23
+Depends on: NS-11, NS-20, NS-21, NS-22, NS-23
 Area: app
 
 ## Why
-Use these rules from the window.
+Use the Remove rules from the window. (The Name and Extension panels moved to NS-55, 2026-10-23.)
 
 ## Acceptance criteria
-1. Each panel exposes every option of its rule and maps them to the rule options.
+1. The panel exposes every option of its rules and maps them to the rule options.
 2. The Remove panel groups its parts (position, text, classes, tidy) in one panel with one enable checkbox.
-3. Panels sit in pipeline order and each has enable and reset.
+3. The panel sits in pipeline order and has enable and reset.
 4. Invalid or empty fields are marked, never an exception.
-5. Every setting of these panels is saved in presets (NS-36) and has a command-line option (NS-40); where those stories are not built yet, this story adds the hook for them, and the reviewer checks it.
+5. Every setting of this panel is saved in presets (NS-36) and has a command-line option (NS-40); where those stories are not built yet, this story adds the hook for them, and the reviewer checks it.
 
 ## Out of scope
 - Anything not listed above.
@@ -22,3 +22,4 @@ Use these rules from the window.
 
 ## Log
 - 2026-10-18: created (po).
+- 2026-10-23: Name and Extension panels split out to NS-55; this story is now the Remove panel only (po).
