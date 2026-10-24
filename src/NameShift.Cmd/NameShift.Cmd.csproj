@@ -12,5 +12,6 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="NameShift.Cmd.Tests" />
+    <InternalsVisibleTo Include="NameShiftCmd" />
   </ItemGroup>
 </Project>

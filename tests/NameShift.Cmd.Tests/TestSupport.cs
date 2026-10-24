@@ -75,7 +75,7 @@ internal static class Cmd
     {
         var output = new StringWriter(CultureInfo.InvariantCulture);
         var error = new StringWriter(CultureInfo.InvariantCulture);
-        var runner = new CommandRunner(output, error, currentDirectory, renamer, files ?? new DiskFileListSource(), EnUs);
+        var runner = new CommandRunner(output, error, currentDirectory, renamer, files ?? new DiskFileListSource(), EnUs, "1.2.3");
         if (buildRules != null)
         {
             runner.BuildRules = buildRules;
@@ -90,7 +90,7 @@ internal static class Cmd
     {
         var output = new StringWriter(CultureInfo.InvariantCulture);
         var error = new StringWriter(CultureInfo.InvariantCulture);
-        int code = CommandRunner.ForDisk(output, error, temp.Files, temp.History).Run(args);
+        int code = CommandRunner.ForDisk(output, error, temp.Files, temp.History, "1.2.3").Run(args);
         return (code, output.ToString(), error.ToString());
     }
 
