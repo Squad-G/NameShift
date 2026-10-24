@@ -17,8 +17,9 @@ public sealed class DiskFileListSourceTests : IDisposable
     private readonly DiskFileListSource _source = new DiskFileListSource();
 
     /// <summary>A regression guard against an accidental quadratic listing or sort, not the product promise: NS-51's
-    /// "lists in under 2 seconds" stays a hand check. The listing normally takes well under 1 s.</summary>
-    private static readonly TimeSpan GenerousBudget = TimeSpan.FromSeconds(10);
+    /// "lists in under 2 seconds" stays a hand check. The fastest of three warm runs normally takes 15 to 30 ms; a
+    /// quadratic sort of 10,000 entries takes about 5 s, so 3 s leaves wide headroom and still catches it.</summary>
+    private static readonly TimeSpan GenerousBudget = TimeSpan.FromSeconds(3);
 
     public DiskFileListSourceTests()
     {
