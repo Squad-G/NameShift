@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
+using NameShift.App.Style;
 using NameShift.Ui;
 using NameShift.Ui.Actions;
 
@@ -11,6 +12,7 @@ namespace NameShift.App.Controls;
 internal sealed class ActionButtons : UserControl
 {
     private const int HintLogicalWidth = 160;
+    private const int IconLogicalSize = 16;
     private static readonly Size ButtonLogicalSize = new Size(110, 28);
 
     private readonly MainActions _actions;
@@ -21,6 +23,9 @@ internal sealed class ActionButtons : UserControl
     private readonly Button _rename = new Button();
     private readonly Label _hint = new Label();
     private readonly ToolTip _toolTip = new ToolTip();
+    private Bitmap? _resetIcon;
+    private Bitmap? _revertIcon;
+    private Bitmap? _renameIcon;
 
     public ActionButtons(MainActions actions, Action<ActionReport> showReport, Action<string> showStatus)
     {
@@ -28,6 +33,7 @@ internal sealed class ActionButtons : UserControl
         _showReport = showReport ?? throw new ArgumentNullException(nameof(showReport));
         _showStatus = showStatus ?? throw new ArgumentNullException(nameof(showStatus));
         BuildLayout();
+        CreateIcons();
         _reset.Click += (_, _) => _actions.Reset();
         _revert.Click += OnRevertClick;
         _rename.Click += OnRenameClick;
@@ -40,9 +46,64 @@ internal sealed class ActionButtons : UserControl
         if (disposing)
         {
             _toolTip.Dispose();
+            _reset.Image = null;
+            _revert.Image = null;
+            _rename.Image = null;
+            _resetIcon?.Dispose();
+            _revertIcon?.Dispose();
+            _renameIcon?.Dispose();
         }
 
         base.Dispose(disposing);
+    }
+
+    protected override void OnDpiChangedAfterParent(EventArgs e)
+    {
+        base.OnDpiChangedAfterParent(e);
+        CreateIcons();
+    }
+
+    protected override void OnSystemColorsChanged(EventArgs e)
+    {
+        base.OnSystemColorsChanged(e);
+        CreateIcons();
+    }
+
+    /// <summary>Draws the three icons at the current scale and colours, assigns them, then disposes the previous ones.
+    /// Runs on creation, a DPI change and a system colour change, never on paint.</summary>
+    private void CreateIcons()
+    {
+        int size = LogicalToDeviceUnits(IconLogicalSize);
+        bool highContrast = SystemInformation.HighContrast;
+        Color text = SystemColors.ControlText;
+        Bitmap? newReset = null;
+        Bitmap? newRevert = null;
+        Bitmap newRename;
+        try
+        {
+            newReset = ButtonIcons.Create(ButtonIcon.Reset, size, text);
+            newRevert = ButtonIcons.Create(ButtonIcon.Revert, size, text);
+            newRename = ButtonIcons.Create(ButtonIcon.Rename, size, highContrast ? text : Palette.Accent);
+        }
+        catch
+        {
+            newReset?.Dispose();
+            newRevert?.Dispose();
+            throw;
+        }
+
+        Bitmap? oldReset = _resetIcon;
+        Bitmap? oldRevert = _revertIcon;
+        Bitmap? oldRename = _renameIcon;
+        _resetIcon = newReset;
+        _revertIcon = newRevert;
+        _renameIcon = newRename;
+        _reset.Image = newReset;
+        _revert.Image = newRevert;
+        _rename.Image = newRename;
+        oldReset?.Dispose();
+        oldRevert?.Dispose();
+        oldRename?.Dispose();
     }
 
     private void BuildLayout()
@@ -81,6 +142,8 @@ internal sealed class ActionButtons : UserControl
         button.AutoSize = true;
         button.MinimumSize = LogicalToDeviceUnits(ButtonLogicalSize);
         button.UseMnemonic = false;
+        button.ImageAlign = ContentAlignment.MiddleLeft;
+        button.TextImageRelation = TextImageRelation.ImageBeforeText;
     }
 
     private void Render()

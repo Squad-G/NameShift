@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.Windows.Forms;
+using NameShift.App.Style;
 using NameShift.Ui;
 using NameShift.Ui.Rules;
 
@@ -19,12 +20,14 @@ internal sealed class RulePanelFrame : UserControl
     private readonly CheckBox _check = new CheckBox();
     private readonly Button _reset = new Button();
     private Font _boldFont;
+    private Color _accent;
 
     public RulePanelFrame(IRulePanelModel model, Control content)
     {
         _model = model;
         _content = content;
         _boldFont = new Font(Font, FontStyle.Bold);
+        _accent = Palette.Accent;
         ResizeRedraw = true;
         DoubleBuffered = true;
         AutoSize = true;
@@ -43,7 +46,7 @@ internal sealed class RulePanelFrame : UserControl
         base.OnPaint(e);
         bool active = RulePanelHostModel.IsActive(_model);
         int width = active ? Math.Max(2, LogicalToDeviceUnits(2)) : Math.Max(1, LogicalToDeviceUnits(1));
-        Color color = active ? SystemColors.Highlight : SystemColors.ControlDark;
+        Color color = active ? _accent : SystemColors.ControlDark;
         Rectangle area = Rectangle.Inflate(ClientRectangle, -LogicalToDeviceUnits(1), -LogicalToDeviceUnits(1));
         using (var pen = new Pen(color, width) { Alignment = System.Drawing.Drawing2D.PenAlignment.Inset })
         {
@@ -61,7 +64,15 @@ internal sealed class RulePanelFrame : UserControl
     {
         base.OnDpiChangedAfterParent(e);
         ApplyLogicalMetrics();
+        _accent = Palette.Accent;
         RefreshBoldFont();
+    }
+
+    protected override void OnSystemColorsChanged(EventArgs e)
+    {
+        base.OnSystemColorsChanged(e);
+        _accent = Palette.Accent;
+        Sync();
     }
 
     protected override void Dispose(bool disposing)
@@ -78,8 +89,8 @@ internal sealed class RulePanelFrame : UserControl
     private void ApplyLogicalMetrics()
     {
         MinimumSize = LogicalToDeviceUnits(MinimumLogicalSize);
-        Margin = new Padding(LogicalToDeviceUnits(4));
-        Padding = new Padding(LogicalToDeviceUnits(3));
+        Margin = new Padding(LogicalToDeviceUnits(Spacing.Small));
+        Padding = new Padding(LogicalToDeviceUnits(Spacing.Small));
     }
 
     private void BuildLayout()
@@ -147,10 +158,13 @@ internal sealed class RulePanelFrame : UserControl
         if (active)
         {
             _check.Font = _boldFont;
+            // In a contrast theme the selection colour is a background colour: the bold title uses the text colour there.
+            _check.ForeColor = SystemInformation.HighContrast ? SystemColors.ControlText : _accent;
         }
         else
         {
             _check.ResetFont(); // inherit the frame's font, so the title scales with it
+            _check.ResetForeColor();
         }
 
         AccessibleDescription = active ? Strings.RulePanelActive : null;

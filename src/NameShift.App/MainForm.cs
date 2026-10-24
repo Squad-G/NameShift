@@ -191,14 +191,14 @@ internal sealed class MainForm : Form
         _mainSplit.Panel2.Controls.Add(_rightSplit);
 
         _pathBar.Dock = DockStyle.Fill;
-        _pathBar.Margin = new Padding(0, 0, 0, 6);
+        _pathBar.Margin = new Padding(0, 0, 0, LogicalToDeviceUnits(Spacing.Medium));
 
         var rootLayout = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
             ColumnCount = 1,
             RowCount = 2,
-            Padding = new Padding(8),
+            Padding = new Padding(LogicalToDeviceUnits(Spacing.Medium)),
         };
         rootLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
         rootLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));

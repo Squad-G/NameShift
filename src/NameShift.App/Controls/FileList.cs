@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using NameShift.App.Style;
 using NameShift.Core;
 using NameShift.Ui;
 using NameShift.Ui.Files;
@@ -24,10 +25,6 @@ internal sealed class FileList : UserControl
     private const int StatusColumn = 2;
     private const int SizeColumn = 3;
     private const int ModifiedColumn = 4;
-
-    // Green and red with at least 4.5:1 contrast on white; bold, the "Error: " prefix and the Status text are the non-colour cues.
-    private static readonly Color ChangedColor = Color.FromArgb(0x10, 0x7C, 0x10);
-    private static readonly Color ConflictColor = Color.FromArgb(0xC4, 0x2B, 0x1C);
 
     private readonly FileListModel _model;
     private readonly PreviewModel _preview;
@@ -150,12 +147,12 @@ internal sealed class FileList : UserControl
         _count.AutoSize = true;
         _count.TextAlign = ContentAlignment.MiddleLeft;
         _count.ForeColor = SystemColors.WindowText;
-        _count.Padding = new Padding(LogicalToDeviceUnits(4), 0, 0, 0);
+        _count.Padding = new Padding(LogicalToDeviceUnits(Spacing.Small), 0, 0, 0);
 
         _summary.Dock = DockStyle.Fill;
         _summary.AutoSize = false;
         _summary.TextAlign = ContentAlignment.MiddleLeft;
-        _summary.Padding = new Padding(LogicalToDeviceUnits(4), 0, 0, 0);
+        _summary.Padding = new Padding(LogicalToDeviceUnits(Spacing.Small), 0, 0, 0);
 
         // Fill first, then Left: docking runs back to front, so the count takes its width and the summary the rest.
         _strip.Dock = DockStyle.Bottom;
@@ -343,7 +340,7 @@ internal sealed class FileList : UserControl
         string text = _preview.ConflictSummary;
         _summary.Text = text;
         _summary.AccessibleName = text;
-        _summary.ForeColor = SystemInformation.HighContrast ? SystemColors.WindowText : ConflictColor;
+        _summary.ForeColor = Palette.ConflictText;
         UpdateStrip();
     }
 
@@ -455,7 +452,7 @@ internal sealed class FileList : UserControl
         StyleNewName(row.SubItems[1], cell.Kind);
         if (status.IsConflict)
         {
-            Color color = SystemInformation.HighContrast ? SystemColors.WindowText : ConflictColor;
+            Color color = Palette.ConflictText;
             row.SubItems[1].ForeColor = color;
             row.SubItems[2].ForeColor = color;
         }
@@ -466,18 +463,17 @@ internal sealed class FileList : UserControl
     private void StyleNewName(ListViewItem.ListViewSubItem subItem, PreviewCellKind kind)
     {
         // A Windows contrast theme wins: Changed and Error then use the theme's text colour (bold and the prefix still mark them).
-        bool highContrast = SystemInformation.HighContrast;
         switch (kind)
         {
             case PreviewCellKind.Changed:
-                subItem.ForeColor = highContrast ? SystemColors.WindowText : ChangedColor;
+                subItem.ForeColor = Palette.ChangedText;
                 subItem.Font = _boldFont;
                 break;
             case PreviewCellKind.Unchanged:
                 subItem.ForeColor = SystemColors.GrayText;
                 break;
             case PreviewCellKind.Error:
-                subItem.ForeColor = highContrast ? SystemColors.WindowText : ConflictColor;
+                subItem.ForeColor = Palette.ConflictText;
                 break;
         }
     }

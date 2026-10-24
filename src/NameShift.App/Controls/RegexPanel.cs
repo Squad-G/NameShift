@@ -61,7 +61,8 @@ internal sealed class RegexPanel : UserControl
 
         foreach (Control field in new Control[] { _pattern, _replacement })
         {
-            field.Margin = new Padding(3, 3, LogicalToDeviceUnits(20), 3); // room for the error icon, same right edge for both
+            int small = LogicalToDeviceUnits(Spacing.Small);
+            field.Margin = new Padding(small, small, LogicalToDeviceUnits(Spacing.Large + Spacing.Medium), small); // room for the error icon, same right edge for both
         }
 
         _error.SetIconPadding(_pattern, 2);
