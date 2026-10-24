@@ -1,6 +1,6 @@
 # NS-21: Remove: characters, text, crop before/after
 
-Status: Ready
+Status: In Progress
 Depends on: NS-1
 Area: engine
 
@@ -67,3 +67,4 @@ order, each on the result of the previous one: crop before, crop after, text, ch
 ## Log
 - 2026-10-18: created (po).
 - 2026-10-23: criteria made testable (order, case, whole word, markers, surrogates, empty results), set Ready (po).
+- 2026-10-23: In Progress (builder).
