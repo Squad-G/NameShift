@@ -93,6 +93,11 @@ public sealed class FolderNameRuleTests
         Assert.Equal(RenameStatus.Unchanged, result.Status);
     }
 
+    [Fact]
+    public void SingleLeadingSeparator_IsNotANetworkPath() =>
+        Assert.Equal("Photos_Paris_a.jpg",
+            Run(new FolderNameRule(FolderNamePlacement.Prefix, 5, "_"), "a.jpg", @"\Photos\Paris").NewName);
+
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
