@@ -102,3 +102,4 @@ Excluded items still count:
 ## Log
 - 2026-10-18: created (po).
 - 2026-10-24: criteria made testable against `RenameItem`, `NameParts`, `RegexRule.Validate` and `DuplicateTargetCheck`; invalid-regex rule refined; set Ready (po).
+- 2026-10-24: In Progress (builder).
