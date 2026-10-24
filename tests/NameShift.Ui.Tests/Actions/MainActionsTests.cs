@@ -1275,6 +1275,20 @@ public sealed class MainActionsTests
         Assert.Equal(LockText, actions.RenameHint);
     }
 
+    [Fact]
+    public async Task SortByFolderContentsHandler_WhileBusy_KeepsLock()
+    {
+        MainActions actions = await BuildLoaded(Prefix());
+        ReloadAsRenamed();
+        actions.FolderContentsChanged += (_, _) => _files.SortBy(FileListColumn.Name);
+
+        await Rename();
+        await ApplyPreview();
+
+        Assert.False(actions.CanRename);
+        Assert.Equal(LockText, actions.RenameHint);
+    }
+
     // AC 7
 
     [Fact]

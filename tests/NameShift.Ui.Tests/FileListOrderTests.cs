@@ -161,7 +161,6 @@ public sealed class FileListOrderTests
 
         Assert.Equal(10000, sorted.Count);
         Assert.True(watch.ElapsedMilliseconds < 1000, "The sort took " + watch.ElapsedMilliseconds + " ms.");
-        System.Console.WriteLine("Sort " + sort + ": " + watch.ElapsedMilliseconds + " ms");
     }
 
     [Fact]
