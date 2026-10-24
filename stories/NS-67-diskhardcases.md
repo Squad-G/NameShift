@@ -1,6 +1,6 @@
 # NS-67: Hard cases on disk: read-only, in use, vanishing drive
 
-Status: In Progress
+Status: In Review
 Depends on: NS-9, NS-15
 Area: app
 
@@ -61,3 +61,4 @@ not supported).
 - 2026-10-24: after review: `SkipFailedEntry` mapping, `HookedFileSystem`, `{0}` string and full status text, unchanged items
   need not exist (po).
 - 2026-10-24: In Progress (builder).
+- 2026-10-24: In Review (builder), PR #58.
