@@ -97,6 +97,7 @@ public sealed class AutoDateRuleTests
     [Fact]
     public void NoDate_ItemErrorOthersFine()
     {
+        // b.txt is built without dates: its Created and Modified are default(DateTime).
         var results = Run(new AutoDateRule(),
             Item("a.txt"), new RenameItem("b.txt", @"C:\Test"), Item("c.txt"));
 
@@ -128,6 +129,9 @@ public sealed class AutoDateRuleTests
     [InlineData("yyyy-MM-dd zzz")]
     [InlineData("%z")]
     [InlineData("\"q")]
+    [InlineData("\"'\"z")]
+    [InlineData("'\"'z")]
+    [InlineData(@"\\z")]
     public void Validate_Refused(string format)
     {
         var message = AutoDateRule.Validate(format);
@@ -146,6 +150,8 @@ public sealed class AutoDateRuleTests
     [InlineData("yyyy\"z\"")]
     [InlineData("'K'")]
     [InlineData(@"'a\'z'")]
+    [InlineData("\"'z'\"")]
+    [InlineData("'\"z\"'")]
     public void Validate_Accepted(string format) =>
         Assert.Null(AutoDateRule.Validate(format));
 
