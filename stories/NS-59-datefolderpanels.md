@@ -1,6 +1,6 @@
 # NS-59: Panels for Auto date and Append folder name
 
-Status: Ready
+Status: In Progress
 Depends on: NS-11, NS-26, NS-28, NS-31
 Area: app
 
@@ -94,3 +94,4 @@ In the window (by hand, listed in the PR):
 ## Log
 - 2026-10-24: created when NS-31 was split (po).
 - 2026-10-24: criteria made testable, set Ready; build after NS-26, NS-28 and NS-31 are merged (po).
+- 2026-10-24: In Progress (builder).
