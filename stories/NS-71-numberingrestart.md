@@ -1,6 +1,6 @@
 # NS-71: Numbering panel: restart in each folder
 
-Status: In Review
+Status: Done
 Depends on: NS-60, NS-61
 Area: app
 
@@ -44,3 +44,5 @@ In `NumberingPanelModel` (on top of NS-61) and `NumberingPanel`:
 - 2026-10-24: NS-60 and NS-61 merged; mnemonic test pointed at `FirstPanelsTests`; set Ready (po).
 - 2026-10-24: In Progress (builder).
 - 2026-10-24: In Review (builder), PR #68.
+- 2026-10-24: Done (tech-lead), PR #68; hand checks pending for David: placement and Alt+T, greyed with the panel, Reset
+  updates the preview once, 150 % and 200 % scale.
