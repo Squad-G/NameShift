@@ -9,7 +9,7 @@ public sealed class ReplacePanelModelTests
     [Fact]
     public void BuildRule_MapsEveryOption()
     {
-        var model = new ReplacePanelModel { Find = "a", With = "b", MatchCase = true, IncludeExtension = true };
+        var model = new ReplacePanelModel { Find = "a", With = "b", MatchCase = true, IncludeExtension = true, KeepCase = true };
 
         var rule = Assert.IsType<ReplaceRule>(model.BuildRule());
 
@@ -17,6 +17,7 @@ public sealed class ReplacePanelModelTests
         Assert.Equal("b", rule.With);
         Assert.True(rule.MatchCase);
         Assert.True(rule.IncludeExtension);
+        Assert.True(rule.KeepCase);
         Assert.Equal(RuleStage.Replace, rule.Stage);
     }
 
@@ -31,6 +32,7 @@ public sealed class ReplacePanelModelTests
     [InlineData("With")]
     [InlineData("MatchCase")]
     [InlineData("IncludeExtension")]
+    [InlineData("KeepCase")]
     public void EachSetting_MakesItNonDefault_AndResetRestores(string setting)
     {
         var model = new ReplacePanelModel { Enabled = true };
@@ -41,6 +43,7 @@ public sealed class ReplacePanelModelTests
             case "Find": model.Find = "x"; break;
             case "With": model.With = "x"; break;
             case "MatchCase": model.MatchCase = true; break;
+            case "KeepCase": model.KeepCase = true; break;
             default: model.IncludeExtension = true; break;
         }
 
@@ -54,6 +57,15 @@ public sealed class ReplacePanelModelTests
         Assert.Equal("", model.With);
         Assert.False(model.MatchCase);
         Assert.False(model.IncludeExtension);
+        Assert.False(model.KeepCase);
+    }
+
+    [Fact]
+    public void KeepCase_OffByDefault()
+    {
+        Assert.False(new ReplacePanelModel().KeepCase);
+        var rule = Assert.IsType<ReplaceRule>(new ReplacePanelModel { Find = "a" }.BuildRule());
+        Assert.False(rule.KeepCase);
     }
 
     [Fact]

@@ -37,22 +37,37 @@ public sealed class FirstPanelsTests
     }
 
     [Fact]
-    public void Mnemonics_AreUniqueAcrossPanels()
+    public void Mnemonics_UniqueWithinEachPanel_TitlesDistinct()
     {
-        string[] texts =
+        var panels = new (string Title, string[] Labels)[]
         {
-            Strings.ReplaceTitle, Strings.ReplaceFind, Strings.ReplaceWith, Strings.ReplaceMatchCase,
-            Strings.ReplaceIncludeExtension, Strings.CaseTitle, Strings.CaseMode, Strings.CaseExceptions,
-            Strings.AddTitle, Strings.AddPrefix, Strings.AddInsert, Strings.AddPosition, Strings.AddFromEnd,
-            Strings.AddSuffix, Strings.AddWordSpace, Strings.NumberingTitle, Strings.NumberingMode,
-            Strings.NumberingStart, Strings.NumberingStep, Strings.NumberingPad,
-            Strings.NumberingSeparator, Strings.NumberingPosition,
+            (Strings.ReplaceTitle, new[]
+            {
+                Strings.ReplaceFind, Strings.ReplaceWith, Strings.ReplaceMatchCase, Strings.ReplaceKeepCase,
+                Strings.ReplaceIncludeExtension,
+            }),
+            (Strings.CaseTitle, new[] { Strings.CaseMode, Strings.CaseExceptions }),
+            (Strings.AddTitle, new[]
+            {
+                Strings.AddPrefix, Strings.AddInsert, Strings.AddPosition, Strings.AddFromEnd, Strings.AddSuffix,
+                Strings.AddWordSpace,
+            }),
+            (Strings.NumberingTitle, new[]
+            {
+                Strings.NumberingMode, Strings.NumberingStart, Strings.NumberingStep, Strings.NumberingPad,
+                Strings.NumberingSeparator, Strings.NumberingPosition,
+            }),
         };
 
-        char[] letters = texts.Select(MnemonicOf).ToArray();
+        Assert.Empty(MnemonicCheck.Problems(panels));
+        Assert.Equal(MnemonicCheck.LetterOf(Strings.AddPosition), MnemonicCheck.LetterOf(Strings.AddPositionFromEnd));
+    }
 
-        Assert.Equal(letters.Length, letters.Distinct().Count());
-        Assert.Equal(MnemonicOf(Strings.AddPosition), MnemonicOf(Strings.AddPositionFromEnd));
+    [Fact]
+    public void Strings_ReplaceKeepCase_HasAltC()
+    {
+        Assert.Equal('C', MnemonicCheck.LetterOf(Strings.ReplaceKeepCase));
+        Assert.Equal("Match the case of the found text", Strings.ReplaceKeepCase.Replace("&", ""));
     }
 
     [Theory]
@@ -105,6 +120,7 @@ public sealed class FirstPanelsTests
         var engineReplace = new ReplaceRule("a", "");
         Assert.Equal(engineReplace.MatchCase, replace.MatchCase);
         Assert.Equal(engineReplace.IncludeExtension, replace.IncludeExtension);
+        Assert.Equal(engineReplace.KeepCase, replace.KeepCase);
         var engineAdd = new AddRule();
         Assert.Equal(engineAdd.Prefix, add.Prefix);
         Assert.Equal(engineAdd.Insert, add.Insert);
@@ -121,6 +137,7 @@ public sealed class FirstPanelsTests
         Change(new ReplacePanelModel(), m => m.With = "x"),
         Change(new ReplacePanelModel(), m => m.MatchCase = true),
         Change(new ReplacePanelModel(), m => m.IncludeExtension = true),
+        Change(new ReplacePanelModel(), m => m.KeepCase = true),
         Change(new CasePanelModel(), m => m.Mode = CaseMode.Upper),
         Change(new CasePanelModel(), m => m.ExceptionsText = "x"),
         Change(new AddPanelModel(), m => m.Prefix = "x"),
@@ -147,11 +164,4 @@ public sealed class FirstPanelsTests
 
     private static object[] Change<T>(T model, Action<T> set)
         where T : class, IRulePanelModel => new object[] { model, (Action)(() => set(model)) };
-
-    private static char MnemonicOf(string text)
-    {
-        int at = text.IndexOf('&');
-        Assert.True(at >= 0 && at + 1 < text.Length, text);
-        return char.ToUpperInvariant(text[at + 1]);
-    }
 }

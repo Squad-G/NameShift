@@ -114,6 +114,8 @@ public static class Strings
 
     public static string ReplaceMatchCase => Get(nameof(ReplaceMatchCase));
 
+    public static string ReplaceKeepCase => Get(nameof(ReplaceKeepCase));
+
     public static string ReplaceIncludeExtension => Get(nameof(ReplaceIncludeExtension));
 
     public static string CaseTitle => Get(nameof(CaseTitle));

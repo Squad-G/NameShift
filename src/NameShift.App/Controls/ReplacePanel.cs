@@ -5,13 +5,14 @@ using NameShift.Ui.Rules;
 
 namespace NameShift.App.Controls;
 
-/// <summary>The content of the Replace panel: Find, With, Match case, Include extension.</summary>
+/// <summary>The content of the Replace panel: Find, With, Match case, Match the case of the found text, Include extension.</summary>
 internal sealed class ReplacePanel : UserControl
 {
     private readonly ReplacePanelModel _model;
     private readonly TextBox _find = new TextBox();
     private readonly TextBox _with = new TextBox();
     private readonly CheckBox _matchCase = new CheckBox();
+    private readonly CheckBox _keepCase = new CheckBox();
     private readonly CheckBox _includeExtension = new CheckBox();
 
     public ReplacePanel(ReplacePanelModel model)
@@ -25,6 +26,7 @@ internal sealed class ReplacePanel : UserControl
         _find.TextChanged += (_, _) => _model.Find = _find.Text;
         _with.TextChanged += (_, _) => _model.With = _with.Text;
         _matchCase.CheckedChanged += (_, _) => _model.MatchCase = _matchCase.Checked;
+        _keepCase.CheckedChanged += (_, _) => _model.KeepCase = _keepCase.Checked;
         _includeExtension.CheckedChanged += (_, _) => _model.IncludeExtension = _includeExtension.Checked;
         _model.Changed += OnModelChanged;
     }
@@ -47,6 +49,9 @@ internal sealed class ReplacePanel : UserControl
         _matchCase.Text = Strings.ReplaceMatchCase;
         _matchCase.AutoSize = true;
         RulePanelLayout.AddSpanningRow(table, _matchCase);
+        _keepCase.Text = Strings.ReplaceKeepCase;
+        _keepCase.AutoSize = true;
+        RulePanelLayout.AddSpanningRow(table, _keepCase);
         _includeExtension.Text = Strings.ReplaceIncludeExtension;
         _includeExtension.AutoSize = true;
         RulePanelLayout.AddSpanningRow(table, _includeExtension);
@@ -60,6 +65,7 @@ internal sealed class ReplacePanel : UserControl
         RulePanelLayout.SetTextIfDifferent(_find, _model.Find);
         RulePanelLayout.SetTextIfDifferent(_with, _model.With);
         RulePanelLayout.SetCheckedIfDifferent(_matchCase, _model.MatchCase);
+        RulePanelLayout.SetCheckedIfDifferent(_keepCase, _model.KeepCase);
         RulePanelLayout.SetCheckedIfDifferent(_includeExtension, _model.IncludeExtension);
     }
 }
