@@ -1,6 +1,6 @@
 # NS-73: One planner for the window and the command line
 
-Status: Ready
+Status: In Progress
 Depends on: NS-13, NS-52, NS-15
 Area: app
 
@@ -43,3 +43,4 @@ In `NameShift.Ui` (namespace `NameShift.Ui.Preview`). Names are indicative.
 
 ## Log
 - 2026-10-24: created (po); Ready, to be built before NS-38.
+- 2026-10-24: In Progress (builder).
