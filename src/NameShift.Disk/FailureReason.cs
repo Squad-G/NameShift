@@ -15,6 +15,10 @@ public enum FailureReason
     /// <summary>Something that is not part of the batch occupies a name the batch needs.</summary>
     TargetInTheWay,
 
-    /// <summary>The rename call itself failed (in use, access denied, path too long, ...).</summary>
+    /// <summary>The rename call itself failed (access denied, path too long, drive gone, ...).</summary>
     RenameFailed,
+
+    /// <summary>The rename call failed because another program has the item open (a Windows sharing or lock
+    /// violation). The batch stops and rolls back; nothing is retried (NS-67).</summary>
+    ItemInUse,
 }

@@ -177,6 +177,8 @@ internal static class ActionText
                 return string.Format(culture, Strings.ItemBlocked, Name(failure.ItemPath!), Name(failure.BlockingPath!));
             case FailureReason.RenameFailed:
                 return string.Format(culture, Strings.ItemFailed, Name(failure.ItemPath!), Message(failure.SystemMessage));
+            case FailureReason.ItemInUse:
+                return string.Format(culture, Strings.ItemInUse, Name(failure.ItemPath!));
             default:
                 throw new ArgumentOutOfRangeException(nameof(failure), failure.Reason, "Unknown failure reason.");
         }

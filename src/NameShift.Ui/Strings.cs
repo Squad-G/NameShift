@@ -456,6 +456,9 @@ public static class Strings
     /// <summary>"{0} could not be renamed: {1}".</summary>
     public static string ItemFailed => Get(nameof(ItemFailed));
 
+    /// <summary>"{0} is in use by another program: close it and try again." ({0} is the file name).</summary>
+    public static string ItemInUse => Get(nameof(ItemInUse));
+
     /// <summary>"Nothing was renamed, because the history needed for Revert could not be saved: {0}".</summary>
     public static string RenameNoHistory => Get(nameof(RenameNoHistory));
 

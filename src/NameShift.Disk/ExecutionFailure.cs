@@ -52,6 +52,6 @@ public sealed class ExecutionFailure
     /// <summary>The exception's message when an exception occurred, else null.</summary>
     public string? SystemMessage { get; }
 
-    /// <summary>The exception's HResult when an exception occurred, else null (NS-48 uses it to recognise "in use").</summary>
+    /// <summary>The exception's HResult when an exception occurred, else null (NS-67 recognises "in use" from it: FailureReason.ItemInUse).</summary>
     public int? HResult { get; }
 }
