@@ -163,8 +163,16 @@ public sealed class RegexRuleTests
         var ex = Assert.Throws<InvalidOperationException>(
             () => rule.Apply(new NameParts(slow, "txt"), new ItemContext(Items.File(slow + ".txt"), 0, 1)));
 
-        Assert.IsType<RegexMatchTimeoutException>(ex.InnerException);
+        var timeout = Assert.IsType<RegexMatchTimeoutException>(ex.InnerException);
+        Assert.Equal(TimeSpan.FromMilliseconds(100), timeout.MatchTimeout);
     }
+
+    // Built in code: a name with a line break pins "no Multiline" (^ is only the start of the searched text).
+    [Fact]
+    public void Apply_NoMultiline_CaretOnlyAtStart() =>
+        Assert.Equal(
+            new NameParts("a\nb", "txt"),
+            new RegexRule("^b", "x").Apply(new NameParts("a\nb", "txt"), new ItemContext(Items.File("a.txt"), 0, 1)));
 
     [Fact]
     public void EmptyPattern_DisabledAndUnchanged()
