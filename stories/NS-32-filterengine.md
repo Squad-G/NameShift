@@ -1,6 +1,6 @@
 # NS-32: Filters: mask, regex, kinds and length
 
-Status: Ready
+Status: In Review
 Depends on: NS-1
 Area: engine
 
