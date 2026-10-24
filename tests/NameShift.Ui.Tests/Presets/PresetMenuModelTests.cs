@@ -182,6 +182,9 @@ public sealed class PresetMenuModelTests : IDisposable
             string? second = await TestWait.Within(Model.OpenAsync());
             Assert.Null(second);
             Assert.Equal(new[] { "One", "Two" }, ItemTexts());
+
+            // The held listing will now see a different folder: if it were applied, the items would change.
+            File.Delete(FileOf("Two"));
         }
         finally
         {
