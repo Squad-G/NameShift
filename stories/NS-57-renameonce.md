@@ -1,6 +1,6 @@
 # NS-57: Rename stays off until something changes
 
-Status: Ready
+Status: In Progress
 Depends on: NS-15
 Area: app
 
@@ -78,3 +78,4 @@ In the window (by hand, listed in the PR):
 ## Log
 - 2026-10-23: created and set Ready, after David's decision on the double-rename risk (po).
 - 2026-10-23: after review: hint through `RenameHint`, unexpected-failure and navigation cases decided, ordering note (po).
+- 2026-10-23: In Progress (builder).
