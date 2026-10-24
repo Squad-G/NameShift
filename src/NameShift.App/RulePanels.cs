@@ -17,6 +17,8 @@ internal static class RulePanels
         var numbering = new NumberingPanelModel();
         var name = new NamePanelModel();
         var extension = new ExtensionPanelModel();
+        var regex = new RegexPanelModel();
+        var moveCopy = new MoveCopyPanelModel();
         return new[]
         {
             new RulePanelEntry(replace, new ReplacePanel(replace)),
@@ -26,6 +28,8 @@ internal static class RulePanels
             new RulePanelEntry(numbering, new NumberingPanel(numbering)),
             new RulePanelEntry(name, new NamePanel(name)),
             new RulePanelEntry(extension, new ExtensionPanel(extension)),
+            new RulePanelEntry(regex, new RegexPanel(regex)),
+            new RulePanelEntry(moveCopy, new MoveCopyPanel(moveCopy)),
         };
     }
 }

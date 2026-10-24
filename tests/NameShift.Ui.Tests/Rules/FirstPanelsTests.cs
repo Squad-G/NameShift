@@ -67,6 +67,16 @@ public sealed class FirstPanelsTests
             }),
             (Strings.NameTitle, new[] { Strings.NameMode, Strings.NameText }),
             (Strings.ExtensionTitle, new[] { Strings.ExtensionMode, Strings.ExtensionText }),
+            (Strings.RegexTitle, new[]
+            {
+                Strings.RegexPattern, Strings.RegexReplacement, Strings.RegexIgnoreCase,
+                Strings.RegexIncludeExtension,
+            }),
+            (Strings.MoveCopyTitle, new[]
+            {
+                Strings.MoveCopyMode, Strings.MoveCopySource, Strings.MoveCopyCount, Strings.MoveCopyTarget,
+                Strings.MoveCopyPosition, Strings.MoveCopySeparator,
+            }),
         };
 
         Assert.Empty(MnemonicCheck.Problems(panels));
@@ -84,12 +94,40 @@ public sealed class FirstPanelsTests
             new[] { Strings.ExtensionTitle, Strings.ExtensionMode, Strings.ExtensionText }
                 .Select(MnemonicCheck.LetterOf).ToArray());
         Assert.Equal(
-            new[] { 'R', 'C', 'E', 'A', 'N', 'M', 'X' },
+            new[] { 'R', 'C', 'E', 'A', 'N', 'M', 'X', 'G', 'V' },
             new[]
             {
                 Strings.ReplaceTitle, Strings.CaseTitle, Strings.RemoveTitle, Strings.AddTitle,
-                Strings.NumberingTitle, Strings.NameTitle, Strings.ExtensionTitle,
+                Strings.NumberingTitle, Strings.NameTitle, Strings.ExtensionTitle, Strings.RegexTitle,
+                Strings.MoveCopyTitle,
             }.Select(MnemonicCheck.LetterOf).ToArray());
+    }
+
+    [Fact]
+    public void RegexAndMoveCopy_UseTheStoryLetters()
+    {
+        Assert.Equal(
+            new[] { 'G', 'P', 'M', 'I', 'X' },
+            new[]
+            {
+                Strings.RegexTitle, Strings.RegexPattern, Strings.RegexReplacement, Strings.RegexIgnoreCase,
+                Strings.RegexIncludeExtension,
+            }.Select(MnemonicCheck.LetterOf).ToArray());
+        Assert.Equal(
+            new[] { 'V', 'T', 'F', 'C', 'P', 'S', 'B' },
+            new[]
+            {
+                Strings.MoveCopyTitle, Strings.MoveCopyMode, Strings.MoveCopySource, Strings.MoveCopyCount,
+                Strings.MoveCopyTarget, Strings.MoveCopyPosition, Strings.MoveCopySeparator,
+            }.Select(MnemonicCheck.LetterOf).ToArray());
+        Assert.All(
+            new[]
+            {
+                Strings.MoveCopyModeMove, Strings.MoveCopyModeCopy, Strings.MoveCopySourceStart,
+                Strings.MoveCopySourceEnd, Strings.MoveCopyTargetStart, Strings.MoveCopyTargetEnd,
+                Strings.MoveCopyTargetPosition,
+            },
+            word => Assert.DoesNotContain("&", word));
     }
 
     [Fact]
@@ -127,19 +165,20 @@ public sealed class FirstPanelsTests
     }
 
     [Fact]
-    public void AllSevenPanels_ListedInPipelineOrder()
+    public void AllNinePanels_ListedInPipelineOrder()
     {
         var host = new RulePanelHostModel(new IRulePanelModel[]
         {
-            new ExtensionPanelModel(), new AddPanelModel(), new NamePanelModel(), new NumberingPanelModel(),
-            new CasePanelModel(), new ReplacePanelModel(), new RemovePanelModel(),
+            new ExtensionPanelModel(), new MoveCopyPanelModel(), new AddPanelModel(), new NamePanelModel(),
+            new NumberingPanelModel(), new CasePanelModel(), new RegexPanelModel(), new ReplacePanelModel(),
+            new RemovePanelModel(),
         });
 
         Assert.Equal(
             new[]
             {
-                RuleStage.Name, RuleStage.Replace, RuleStage.Case, RuleStage.Remove, RuleStage.Add,
-                RuleStage.Numbering, RuleStage.Extension,
+                RuleStage.RegEx, RuleStage.Name, RuleStage.Replace, RuleStage.Case, RuleStage.Remove,
+                RuleStage.MoveCopy, RuleStage.Add, RuleStage.Numbering, RuleStage.Extension,
             },
             host.Panels.Select(p => p.Stage).ToArray());
     }
@@ -154,6 +193,33 @@ public sealed class FirstPanelsTests
         Assert.Equal(new[] { RuleStage.Replace, RuleStage.Remove }, host.Rules.Select(r => r.Stage).ToArray());
         var results = new RenamePipeline(host.Rules).Run(new[] { new RenameItem("abc.txt", @"C:\f") });
         Assert.Equal("bc.txt", results[0].NewName);
+    }
+
+    [Fact]
+    public void RegexRunsBeforeReplace()
+    {
+        var regex = new RegexPanelModel { Enabled = true, Pattern = @"IMG_(\d+)", Replacement = "Photo $1" };
+        var replace = new ReplacePanelModel { Enabled = true, Find = "Photo", With = "Pic" };
+        var host = new RulePanelHostModel(new IRulePanelModel[] { replace, regex });
+
+        Assert.Equal(new[] { RuleStage.RegEx, RuleStage.Replace }, host.Rules.Select(r => r.Stage).ToArray());
+        var results = new RenamePipeline(host.Rules).Run(new[] { new RenameItem("IMG_042.jpg", @"C:\f") });
+        Assert.Equal("Pic 042.jpg", results[0].NewName);
+    }
+
+    [Fact]
+    public void RemoveMoveCopyAdd_InStageOrder()
+    {
+        var remove = new RemovePanelModel { Enabled = true, FirstText = "1" };
+        var moveCopy = new MoveCopyPanelModel { Enabled = true, CountText = "2", Separator = "_" };
+        var add = new AddPanelModel { Enabled = true, Prefix = "P-" };
+        var host = new RulePanelHostModel(new IRulePanelModel[] { add, remove, moveCopy });
+
+        Assert.Equal(
+            new[] { RuleStage.Remove, RuleStage.MoveCopy, RuleStage.Add },
+            host.Rules.Select(r => r.Stage).ToArray());
+        var results = new RenamePipeline(host.Rules).Run(new[] { new RenameItem("xabcd.txt", @"C:\f") });
+        Assert.Equal("P-cd_ab.txt", results[0].NewName);
     }
 
     [Fact]
@@ -202,6 +268,7 @@ public sealed class FirstPanelsTests
         var @case = new CasePanelModel { Mode = CaseMode.Title, ExceptionsText = text! };
         var name = new NamePanelModel { Mode = NameMode.Fixed, Text = text! };
         var extension = new ExtensionPanelModel { Mode = ExtensionMode.Fixed, Text = text! };
+        var regex = new RegexPanelModel { Pattern = text!, Replacement = text! };
         var remove = new RemovePanelModel
         {
             FirstText = text!, LastText = text!, FromText = text!, ToText = text!, Characters = text!, Text = text!,
@@ -224,6 +291,11 @@ public sealed class FirstPanelsTests
                 name.BuildRule();
                 extension.BuildRule();
                 remove.BuildRule();
+                regex.BuildRule();
+                foreach (var target in MoveCopyPanelModel.Targets)
+                {
+                    new MoveCopyPanelModel { CountText = text!, Target = target, PositionText = text! }.BuildRule();
+                }
             });
 
             Assert.Null(exception);
@@ -239,7 +311,12 @@ public sealed class FirstPanelsTests
         var name = new NamePanelModel();
         var extension = new ExtensionPanelModel();
         var remove = new RemovePanelModel();
-        foreach (IRulePanelModel model in new IRulePanelModel[] { replace, @case, add, name, extension, remove })
+        var regex = new RegexPanelModel();
+        var moveCopy = new MoveCopyPanelModel();
+        foreach (IRulePanelModel model in new IRulePanelModel[]
+        {
+            replace, @case, add, name, extension, remove, regex, moveCopy,
+        })
         {
             Assert.True(model.IsDefault);
             Assert.False(model.Enabled);
@@ -260,6 +337,14 @@ public sealed class FirstPanelsTests
         Assert.Equal(CaseMode.Same, @case.Mode);
         Assert.Equal(NameMode.Keep, name.Mode);
         Assert.Equal(ExtensionMode.Same, extension.Mode);
+        var engineRegex = new RegexRule("a", "");
+        Assert.Equal(engineRegex.IgnoreCase, regex.IgnoreCase);
+        Assert.Equal(engineRegex.IncludeExtension, regex.IncludeExtension);
+        var engineMoveCopy = new MoveCopyRule();
+        Assert.Equal(engineMoveCopy.Mode, moveCopy.Mode);
+        Assert.Equal(engineMoveCopy.Source, moveCopy.Source);
+        Assert.Equal(engineMoveCopy.Target, moveCopy.Target);
+        Assert.Equal(engineMoveCopy.Separator, moveCopy.Separator);
     }
 
     public static IEnumerable<object[]> SettingChanges() => new[]
@@ -299,6 +384,16 @@ public sealed class FirstPanelsTests
         Change(new RemovePanelModel(), m => m.Trim = true),
         Change(new RemovePanelModel(), m => m.LeadingDots = true),
         Change(new RemovePanelModel(), m => m.DoubleSpaces = true),
+        Change(new RegexPanelModel(), m => m.Pattern = "x"),
+        Change(new RegexPanelModel(), m => m.Replacement = "x"),
+        Change(new RegexPanelModel(), m => m.IgnoreCase = true),
+        Change(new RegexPanelModel(), m => m.IncludeExtension = true),
+        Change(new MoveCopyPanelModel(), m => m.Mode = MoveCopyMode.Copy),
+        Change(new MoveCopyPanelModel(), m => m.Source = MoveCopySource.End),
+        Change(new MoveCopyPanelModel(), m => m.CountText = "2"),
+        Change(new MoveCopyPanelModel(), m => m.Target = MoveCopyTarget.Start),
+        Change(new MoveCopyPanelModel(), m => m.PositionText = "2"),
+        Change(new MoveCopyPanelModel(), m => m.Separator = "x"),
     };
 
     [Theory]

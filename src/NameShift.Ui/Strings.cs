@@ -224,6 +224,51 @@ public static class Strings
 
     public static string RemoveRangeInvalid => Get(nameof(RemoveRangeInvalid));
 
+    public static string RegexTitle => Get(nameof(RegexTitle));
+
+    public static string RegexPattern => Get(nameof(RegexPattern));
+
+    public static string RegexReplacement => Get(nameof(RegexReplacement));
+
+    public static string RegexIgnoreCase => Get(nameof(RegexIgnoreCase));
+
+    public static string RegexIncludeExtension => Get(nameof(RegexIncludeExtension));
+
+    /// <summary>"This pattern is not valid. {0} Until then the rule is skipped.", where {0} is the parser's message.</summary>
+    public static string RegexPatternInvalid => Get(nameof(RegexPatternInvalid));
+
+    public static string RegexPatternHint => Get(nameof(RegexPatternHint));
+
+    public static string MoveCopyTitle => Get(nameof(MoveCopyTitle));
+
+    public static string MoveCopyMode => Get(nameof(MoveCopyMode));
+
+    public static string MoveCopySource => Get(nameof(MoveCopySource));
+
+    public static string MoveCopyCount => Get(nameof(MoveCopyCount));
+
+    public static string MoveCopyTarget => Get(nameof(MoveCopyTarget));
+
+    public static string MoveCopyPosition => Get(nameof(MoveCopyPosition));
+
+    public static string MoveCopySeparator => Get(nameof(MoveCopySeparator));
+
+    public static string MoveCopyModeMove => Get(nameof(MoveCopyModeMove));
+
+    public static string MoveCopyModeCopy => Get(nameof(MoveCopyModeCopy));
+
+    public static string MoveCopySourceStart => Get(nameof(MoveCopySourceStart));
+
+    public static string MoveCopySourceEnd => Get(nameof(MoveCopySourceEnd));
+
+    public static string MoveCopyTargetStart => Get(nameof(MoveCopyTargetStart));
+
+    public static string MoveCopyTargetEnd => Get(nameof(MoveCopyTargetEnd));
+
+    public static string MoveCopyTargetPosition => Get(nameof(MoveCopyTargetPosition));
+
+    public static string MoveCopyNumberInvalid => Get(nameof(MoveCopyNumberInvalid));
+
     public static string AddTitle => Get(nameof(AddTitle));
 
     public static string AddPrefix => Get(nameof(AddPrefix));
