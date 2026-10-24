@@ -1,6 +1,6 @@
 # NS-31: Panels for RegEx and Move/Copy
 
-Status: Ready
+Status: In Progress
 Depends on: NS-11, NS-24, NS-25
 Area: app
 
@@ -97,3 +97,4 @@ In the window (by hand, listed in the PR):
 ## Log
 - 2026-10-18: created (po).
 - 2026-10-24: split: Auto date and Append folder panels moved to NS-59; criteria made testable, set Ready; build after NS-24 and NS-25 are merged (po).
+- 2026-10-24: In Progress (builder).
