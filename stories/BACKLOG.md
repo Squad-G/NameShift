@@ -30,8 +30,8 @@ IDs), not the rank: the rank is the row order.
 | 18 | [NS-18 Extension rule](NS-18-extension.md) | Ready | NS-1 |
 | 19 | [NS-19 Name rule: keep, remove, fixed, reverse](NS-19-namerule.md) | Ready | NS-1 |
 | 20 | [NS-20 Remove: first n, last n, from-to](NS-20-removepos.md) | Ready | NS-1 |
-| 16 | [NS-16 Replace rule: keep the case pattern of the found text](NS-16-replacecase.md) | Draft | NS-2, NS-12 |
-| 55 | [NS-55 Panels for Name and Extension](NS-55-namepanels.md) | Draft | NS-11, NS-18, NS-19 |
+| 16 | [NS-16 Replace rule: keep the case pattern of the found text](NS-16-replacecase.md) | Ready | NS-2, NS-12 |
+| 55 | [NS-55 Panels for Name and Extension](NS-55-namepanels.md) | Ready | NS-11, NS-18, NS-19, NS-16 |
 | 21 | [NS-21 Remove: characters, words, crop before/after](NS-21-removetext.md) | Draft | NS-1 |
 | 22 | [NS-22 Remove: digits, symbols, accents, high characters](NS-22-removeclasses.md) | Draft | NS-1 |
 | 23 | [NS-23 Remove: trim, leading dots, double spaces](NS-23-removetidy.md) | Draft | NS-1 |

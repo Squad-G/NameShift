@@ -1,6 +1,6 @@
 # NS-16: Replace rule: keep the case pattern of the found text
 
-Status: Draft
+Status: Ready
 Depends on: NS-2, NS-12
 Area: engine
 
@@ -30,9 +30,14 @@ from the letters of each found text (non-letters are skipped); every match is ju
    pattern is Find's).
 10. Given the option on with Include extension on, then `DUMP.TXT`, find `txt` with `log`, becomes `DUMP.LOG`.
 11. Given the Replace panel (NS-12), then it has a checkbox "Match the case of the found text" (label from
-    `NameShift.Ui.Strings`, mnemonic per the window's rule once David has decided it), off by default, cleared by the panel's
+    `NameShift.Ui.Strings`, text "Match the &case of the found text", Alt+C), off by default, cleared by the panel's
     reset (`IsDefault` false while it is on), and `BuildRule` passes it to the rule. A model test covers the mapping,
     default and reset. The checkbox sits after Match case (by hand, listed in the PR).
+12. The mnemonic test is changed from "unique across the window" to David's rule: within one rule panel, the title and
+    all its labels have distinct Alt letters; the panel titles are distinct among themselves (today R, C, A, N). Given
+    the same letter in two different panels (Replace's Alt+C on the new checkbox and the Case title), then the test
+    passes; given a repeat inside one panel, or two panels with the same title letter, then it fails (a test of the
+    check itself with sample labels). Later panel stories follow this rule.
 
 ## Out of scope
 - Presets (NS-36) and the command-line option `--replace-keep-case` (NS-40): until they exist the panel model keeps
@@ -48,11 +53,12 @@ from the letters of each found text (non-letters are skipped); every match is ju
 - Presets and CLI in criterion 5 of the draft? **Decision:** removed from this story, since neither exists yet; each
   of those stories picks the setting up (po, 2026-10-23).
 - The seam: `ReplacementFor(found)` already exists in ReplaceRule for this (po, 2026-10-23).
-
-- Alt-key letter for the checkbox? **Open, for David:** "Match the case of the found text" has no free letter (only
-  J K Q Z are free; M is taken by "Match case"). Back to Draft until decided (po, 2026-10-23).
+- Alt-key letters? **Decision:** unique within a panel only; repeats across panels are allowed (Windows cycles focus
+  between them). Panel titles stay distinct among themselves. This replaces the window-wide rule of NS-12 (David,
+  2026-10-23). The checkbox gets C: Replace uses R F W M X, so C is free inside it.
 
 ## Log
 - 2026-10-18: created (po).
 - 2026-10-23: criteria made testable, presets and CLI moved out, set Ready (po).
 - 2026-10-23: back to Draft, blocked on the Alt-letter question; leading non-letter case added (po, from the PR #24 review).
+- 2026-10-23: David chose per-panel mnemonics; letter C and the test change (criterion 12) added; set Ready (po).

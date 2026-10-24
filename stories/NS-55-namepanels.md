@@ -1,7 +1,7 @@
 # NS-55: Panels for Name and Extension
 
-Status: Draft
-Depends on: NS-11, NS-18, NS-19
+Status: Ready
+Depends on: NS-11, NS-18, NS-19, NS-16
 Area: app
 
 ## Why
@@ -30,8 +30,10 @@ Same pattern as NS-12: a model in `NameShift.Ui.Rules` (extends `RulePanelModel`
    Extension, in any order given) lists them in pipeline order: Name (2) before Replace (3); Extension (11) after
    Numbering (9). The host sorts by stage itself; the test is in `NameShift.Ui.Tests`.
 9. Given an enabled panel whose rule is null (Keep or Same), then nothing breaks and the preview is unchanged.
-10. Mnemonics: the new labels follow the window's mnemonic rule once David has decided it (see Decisions: open
-    question). Mode texts live in small `*ModeText` helpers like `CaseModeText`, with a test that every mode has a
+10. Mnemonics (rule: unique within a panel, panel titles distinct among themselves; test from NS-16 criterion 12):
+    Name panel: title "Na&me" (M), mode label "Mod&e" (E), text label "&Text" (T). Extension panel: title
+    "E&xtension" (X), mode label "&Mode" (M), text label "&Text" (T). The titles then are R, C, A, N, M, X, all
+    distinct. The Extension note has no mnemonic. Mode texts live in small `*ModeText` helpers like `CaseModeText`, with a test that every mode has a
     non-empty text.
 11. By hand (listed in the PR): both panels fit at 100 % and 200 % scale, tab order is mode list then text box, and
     a screen reader reads each panel's title and the disabled state.
@@ -50,10 +52,10 @@ Same pattern as NS-12: a model in `NameShift.Ui.Rules` (extends `RulePanelModel`
 - Does the Extension panel validate the text? **Decision:** no; the rule cleans dots and spaces, and invalid
   characters show up as a conflict on the row (po, 2026-10-23).
 
-- Alt-key letters for the new labels? **Open, for David:** only J K Q Z are free in the window (NS-12 and NS-53 use
-  the rest) and this story adds up to six labels. Back to Draft until decided; the options are in the PO's reply to
-  the lead (po, 2026-10-23).
+- Alt-key letters for the new labels? **Decision:** unique within a panel only, repeats across panels allowed, titles
+  distinct among themselves (David, 2026-10-23); letters in criterion 10. Depends on NS-16 for the changed test.
 
 ## Log
 - 2026-10-23: created and set Ready (po).
 - 2026-10-23: back to Draft: criterion 10 needs David's decision on Alt letters; criterion 8 made a model test; build-after line dropped (po, from the PR #24 review).
+- 2026-10-23: David chose per-panel mnemonics; letters set, depends on NS-16 for the test; set Ready (po).
