@@ -68,7 +68,7 @@ public sealed class ConflictTextTests
     {
         Assert.Equal(
             "Windows does not allow this character in a name: U+0009",
-            ConflictText.Message(new Conflict(ConflictCode.InvalidCharacter, "	")));
+            ConflictText.Message(new Conflict(ConflictCode.InvalidCharacter, "\u0009")));
     }
 
     [Theory]
