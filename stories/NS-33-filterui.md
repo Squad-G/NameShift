@@ -1,6 +1,6 @@
 # NS-33: Filters: settings model and filtered file list
 
-Status: In Review
+Status: Done
 Depends on: NS-32, NS-51, NS-66, NS-73
 Area: app
 
@@ -70,3 +70,5 @@ File list (`FileListModel`):
 - 2026-10-24: In Progress (builder).
 - 2026-10-24: criteria 7 and 10 reworded: the filter runs off the UI thread (lead's decision) (builder).
 - 2026-10-24: In Review (builder), PR #64.
+- 2026-10-24: Done (tech-lead), PR #64; hand checks pending for David: none beyond what the PR lists (the filter row
+  comes in NS-70).
