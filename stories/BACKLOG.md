@@ -60,7 +60,7 @@ IDs), not the rank: the rank is the row order.
 | 54 | [NS-54 Visual polish](NS-54-visual-polish.md) | Done | NS-15, NS-55, NS-30 |
 | 60 | [NS-60 Numbering rule: restart in each folder](NS-60-numberingfolders.md) | Done | NS-17, NS-29 |
 | 33 | [NS-33 Filters: settings model and filtered file list](NS-33-filterui.md) | Done | NS-32, NS-51, NS-66, NS-73 |
-| 36 | [NS-36 Presets: format and store](NS-36-presets.md) | In Review | NS-12, NS-55, NS-30, NS-31, NS-59 |
+| 36 | [NS-36 Presets: format and store](NS-36-presets.md) | Done | NS-12, NS-55, NS-30, NS-31, NS-59 |
 | 43 | [NS-43 Command line: help, version, console text and the exit code of a crash](NS-43-clihelp.md) | Ready | NS-38 |
 | 77 | [NS-77 Find and fix the occasional net48 failure in the Ui tests](NS-77-uitestsflake.md) | Ready | |
 | 71 | [NS-71 Numbering panel: restart in each folder](NS-71-numberingrestart.md) | Ready | NS-60, NS-61 |

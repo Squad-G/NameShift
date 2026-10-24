@@ -41,3 +41,5 @@ with tests; the menu and dialogs are thin; every text from `Strings`; disk work 
 
 ## Log
 - 2026-10-24: split out of NS-36 (po); Draft until the store (NS-36) is merged.
+- 2026-10-24: from the review of NS-36 (PR #65): trim preset names, so "Photos" and "Photos " cannot both exist
+  (tech-lead).

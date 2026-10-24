@@ -1,6 +1,6 @@
 # NS-36: Presets: format and store
 
-Status: In Review
+Status: Done
 Depends on: NS-12, NS-55, NS-30, NS-31, NS-59
 Area: app
 
@@ -102,3 +102,5 @@ The store (`PresetStore(folder)`; default folder `%APPDATA%\NameShift\presets`, 
   from file contents, write and delete tests, dictionary format (po).
 - 2026-10-24: In Progress (builder).
 - 2026-10-24: In Review (builder), PR #65.
+- 2026-10-24: Done (tech-lead), PR #65; hand checks pending for David: none beyond what the PR lists (the menu comes in
+  NS-72).
