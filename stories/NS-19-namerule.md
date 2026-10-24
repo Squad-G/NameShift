@@ -1,6 +1,6 @@
 # NS-19: Name rule: keep, remove, fixed, reverse
 
-Status: In Review
+Status: Done
 Depends on: NS-1
 Area: engine
 
@@ -48,3 +48,4 @@ name only; the extension is never touched.
 - 2026-10-23: criteria made testable, empty-fixed decided, set Ready (po).
 - 2026-10-23: In Progress (builder).
 - 2026-10-23: In Review (builder), PR #29.
+- 2026-10-24: Done (tech-lead), PR #29 merged into dev.

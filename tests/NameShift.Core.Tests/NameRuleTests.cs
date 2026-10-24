@@ -190,8 +190,8 @@ public sealed class NameRuleTests
 
     [Theory]
     [InlineData("   ")]
-    [InlineData("	")]
-    [InlineData(" 	 ")]
+    [InlineData("\t")]
+    [InlineData(" \t ")]
     public void Fixed_WhitespaceOnly_CountsAsEmpty_Disabled_Unchanged(string value)
     {
         var rule = new NameRule(NameMode.Fixed, value);
