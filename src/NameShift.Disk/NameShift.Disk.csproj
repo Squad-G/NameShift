@@ -9,6 +9,7 @@
     <ProjectReference Include="..\NameShift.Core\NameShift.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="NameShift.Cmd.Tests" />
     <InternalsVisibleTo Include="NameShift.Disk.Tests" />
     <InternalsVisibleTo Include="NameShift.Ui.Tests" />
   </ItemGroup>

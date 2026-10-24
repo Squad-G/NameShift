@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Usage" xml:space="preserve"><value>Usage: NameShiftCmd apply &lt;folder&gt; [--replace &lt;find&gt; &lt;with&gt;] [--case lower|upper|title|sentence] [--dry-run]</value></data>
+  <data name="NoCommand" xml:space="preserve"><value>Give a command: apply.</value></data>
+  <data name="UnknownCommand" xml:space="preserve"><value>Unknown command "{0}".</value></data>
+  <data name="UnknownOption" xml:space="preserve"><value>Unknown option "{0}".</value></data>
+  <data name="ReplaceNeedsValues" xml:space="preserve"><value>--replace needs two values: the text to find and the new text.</value></data>
+  <data name="CaseNeedsValue" xml:space="preserve"><value>--case needs a value: lower, upper, title or sentence.</value></data>
+  <data name="BadCase" xml:space="preserve"><value>"{0}" is not a value of --case: use lower, upper, title or sentence.</value></data>
+  <data name="RepeatedOption" xml:space="preserve"><value>{0} can be given only once.</value></data>
+  <data name="EmptyFind" xml:space="preserve"><value>The text to find in --replace cannot be empty.</value></data>
+  <data name="TwoFolders" xml:space="preserve"><value>Give one folder only: "{0}" and "{1}" were both given.</value></data>
+  <data name="NoFolder" xml:space="preserve"><value>Give the folder to rename in.</value></data>
+  <data name="NoRule" xml:space="preserve"><value>Give at least one rule: --replace or --case.</value></data>
+  <data name="QuoteInFolder" xml:space="preserve"><value>The folder {0} contains a quote: remove the backslash before the closing quote, as in "D:\Pics" instead of "D:\Pics\".</value></data>
+  <data name="InvalidFolder" xml:space="preserve"><value>"{0}" is not a valid folder path.</value></data>
+  <data name="FolderIsFile" xml:space="preserve"><value>{0} is a file, not a folder.</value></data>
+  <data name="FolderNotFound" xml:space="preserve"><value>Folder not found: {0}</value></data>
+  <data name="CannotList" xml:space="preserve"><value>Cannot list {0}: {1}</value></data>
+  <data name="NothingToRename" xml:space="preserve"><value>Nothing to rename.</value></data>
+  <data name="DryRunLine" xml:space="preserve"><value>{0} -&gt; {1}</value></data>
+  <data name="ItemLine" xml:space="preserve"><value>{0}: {1}</value></data>
+</root>

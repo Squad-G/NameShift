@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NameShift.Core\NameShift.Core.csproj" />
+    <ProjectReference Include="..\NameShift.Disk\NameShift.Disk.csproj" />
+    <ProjectReference Include="..\NameShift.Ui\NameShift.Ui.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="NameShift.Cmd.Tests" />
+  </ItemGroup>
+</Project>

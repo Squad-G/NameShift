@@ -16,7 +16,7 @@ internal static class Program
         string currentDirectory = Environment.CurrentDirectory;
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
-        // The only place the real history folder is named.
+        // The window's only place that names the real history folder (the command line's is NameShift.Cmd.Exe's Main).
         var renamer = new JournaledBatchRenamer(new JournaledRenamer(JournaledRenamer.DefaultHistoryRoot));
         Application.Run(new MainForm(new DiskFolderSource(), new DiskFileListSource(), renamer, args, currentDirectory));
     }

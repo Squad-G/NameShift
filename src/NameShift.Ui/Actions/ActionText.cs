@@ -9,7 +9,7 @@ namespace NameShift.Ui.Actions;
 
 /// <summary>The words of the Rename, Revert and Reset buttons and of their results. The one place they are built.
 /// An item in a sentence is its file name; an item in a dialog list is its full path.</summary>
-internal static class ActionText
+public static class ActionText
 {
     /// <summary>The most items a dialog lists before "...and N more.".</summary>
     public const int DetailLines = 20;
