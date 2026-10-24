@@ -106,6 +106,7 @@ public sealed class ExtensionRuleTests
 
     [Theory]
     [InlineData("a.txt", "a")]
+    [InlineData("a.b", "a")]
     [InlineData("a.tar.gz", "a.tar")]
     [InlineData("Makefile", "Makefile")]
     [InlineData(".gitignore", ".gitignore")]
@@ -122,6 +123,12 @@ public sealed class ExtensionRuleTests
     [Fact]
     public void Run_Fixed_OnANameWithoutExtension_AddsIt() =>
         Assert.Equal("Makefile.png", RunOne(new ExtensionRule(ExtensionMode.Fixed, "png"), "Makefile").NewName);
+
+    [Theory]
+    [InlineData(ExtensionMode.Fixed)]
+    [InlineData(ExtensionMode.Extra)]
+    public void Run_FixedOrExtra_OnADotfile_AddsAnExtension(ExtensionMode mode) =>
+        Assert.Equal(".gitignore.png", RunOne(new ExtensionRule(mode, "png"), ".gitignore").NewName);
 
     [Theory]
     [InlineData(ExtensionMode.Same)]

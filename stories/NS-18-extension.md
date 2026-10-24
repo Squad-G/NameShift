@@ -1,6 +1,6 @@
 # NS-18: Extension rule
 
-Status: In Review
+Status: Done
 Depends on: NS-1
 Area: engine
 
@@ -49,3 +49,4 @@ Remove. Case changes are invariant-culture. Only the last extension (as split by
 - 2026-10-23: criteria made testable, folders and edge cases decided, set Ready (po).
 - 2026-10-23: In Progress (builder).
 - 2026-10-23: In Review (builder), PR #28.
+- 2026-10-24: Done (tech-lead), PR #28 merged into dev.

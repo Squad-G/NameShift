@@ -58,6 +58,8 @@ public sealed class ExtensionRule : IRenameRule
                 return name.WithExtension(name.Extension.ToLowerInvariant());
             case ExtensionMode.Upper:
                 return name.WithExtension(name.Extension.ToUpperInvariant());
+            // Enabled is false with an empty Value and the pipeline skips the rule; Apply checks again because it is
+            // public and may be called directly.
             case ExtensionMode.Fixed:
                 return Value.Length == 0 ? name : name.WithExtension(Value);
             case ExtensionMode.Extra:
