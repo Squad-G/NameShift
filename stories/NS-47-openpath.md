@@ -1,6 +1,6 @@
 # NS-47: Open a folder from the command line or by drag and drop
 
-Status: Ready
+Status: In Progress
 Depends on: NS-10, NS-51
 Area: app
 
@@ -114,3 +114,4 @@ In the window (by hand, listed in the PR):
 - 2026-10-18: created (po).
 - 2026-10-24: depends on NS-51 too (file selection); criteria made testable (`OpenTarget`, `FindRow`) and the window
   checks listed; set Ready (po).
+- 2026-10-24: In Progress (builder).
