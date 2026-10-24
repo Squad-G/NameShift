@@ -9,7 +9,8 @@ namespace NameShift.Ui.Files;
 /// <summary>The result of listing one folder's entries: items, or a problem.</summary>
 public sealed class FileListing
 {
-    private static readonly IReadOnlyDictionary<string, IReadOnlyCollection<string>> NoNames =
+    /// <summary>The empty map of names: a failed listing, an empty folder, or no folder loaded.</summary>
+    internal static readonly IReadOnlyDictionary<string, IReadOnlyCollection<string>> NoNames =
         new Dictionary<string, IReadOnlyCollection<string>>(StringComparer.OrdinalIgnoreCase);
 
     private FileListing(IReadOnlyList<RenameItem> items, FolderProblem? problem)

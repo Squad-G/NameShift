@@ -19,9 +19,6 @@ public sealed class FileListModel : IDisposable
 {
     private static readonly Task<bool> NotApplied = Task.FromResult(false);
 
-    private static readonly IReadOnlyDictionary<string, IReadOnlyCollection<string>> NoNames =
-        new Dictionary<string, IReadOnlyCollection<string>>(StringComparer.OrdinalIgnoreCase);
-
     private readonly IFileListSource _source;
     private readonly Func<ItemFilter, RenameItem, bool> _includes;
 
@@ -79,7 +76,7 @@ public sealed class FileListModel : IDisposable
     /// while loading and when the listing failed. A snapshot of the folder at load time: a file created later is not
     /// seen until the folder reloads; NS-8 re-checks every target on disk before renaming and never replaces, so this
     /// is safe.</summary>
-    public IReadOnlyDictionary<string, IReadOnlyCollection<string>> ExistingNamesByFolder { get; private set; } = NoNames;
+    public IReadOnlyDictionary<string, IReadOnlyCollection<string>> ExistingNamesByFolder { get; private set; } = FileListing.NoNames;
 
     /// <summary>The rows that go into the pipeline: the selected rows in list order, or the whole list with no selection.
     /// Rebuilt on every selection change, sort, applied filter and load (a load resets the selection to none).</summary>
@@ -229,29 +226,7 @@ public sealed class FileListModel : IDisposable
         IReadOnlyList<int> oldRows = SelectedRows;
         IReadOnlyList<RenameItem> sortedAll = FileListOrder.Sort(AllItems, next);
         IReadOnlyList<RenameItem> sorted = KeepListed(sortedAll, oldItems);
-        IReadOnlyList<int> newRows = oldRows;
-        FileBatch batch;
-        if (oldRows.Count == 0 || oldRows.Count == sorted.Count)
-        {
-            batch = FileBatch.WholeList(sorted);
-        }
-        else
-        {
-            var rowOfItem = new Dictionary<RenameItem, int>(sorted.Count, ReferenceComparer.Instance);
-            for (int row = 0; row < sorted.Count; row++)
-            {
-                rowOfItem[sorted[row]] = row;
-            }
-
-            var selected = new bool[sorted.Count];
-            foreach (int oldRow in oldRows)
-            {
-                selected[rowOfItem[oldItems[oldRow]]] = true;
-            }
-
-            batch = BatchOf(sorted, selected, oldRows.Count);
-            newRows = batch.Rows;
-        }
+        (FileBatch batch, IReadOnlyList<int> newRows) = MapSelection(oldItems, oldRows, sorted);
 
         AllItems = sortedAll;
         Items = sorted;
@@ -297,6 +272,48 @@ public sealed class FileListModel : IDisposable
                 Filter = filter;
                 return NotApplied;
         }
+    }
+
+    /// <summary>The selection of <paramref name="oldItems"/> carried by item to <paramref name="newItems"/>: the
+    /// selected items still listed stay selected, items new to the list are not. No selected item left, or every row
+    /// selected, is the whole list, as <see cref="SetSelection"/> decides.</summary>
+    private static (FileBatch Batch, IReadOnlyList<int> Rows) MapSelection(
+        IReadOnlyList<RenameItem> oldItems, IReadOnlyList<int> oldRows, IReadOnlyList<RenameItem> newItems)
+    {
+        if (oldRows.Count == 0)
+        {
+            return (FileBatch.WholeList(newItems), Array.Empty<int>());
+        }
+
+        var selectedItems = new HashSet<RenameItem>(ReferenceComparer.Instance);
+        foreach (int row in oldRows)
+        {
+            selectedItems.Add(oldItems[row]);
+        }
+
+        var selected = new bool[newItems.Count];
+        int count = 0;
+        for (int row = 0; row < newItems.Count; row++)
+        {
+            if (selectedItems.Contains(newItems[row]))
+            {
+                selected[row] = true;
+                count++;
+            }
+        }
+
+        if (count == 0)
+        {
+            return (FileBatch.WholeList(newItems), Array.Empty<int>());
+        }
+
+        if (count == newItems.Count)
+        {
+            return (FileBatch.WholeList(newItems), Enumerable.Range(0, count).ToArray());
+        }
+
+        FileBatch batch = BatchOf(newItems, selected, count);
+        return (batch, batch.Rows);
     }
 
     private static FileBatch BatchOf(IReadOnlyList<RenameItem> listItems, bool[] selected, int count)
@@ -359,7 +376,7 @@ public sealed class FileListModel : IDisposable
         Items = Array.Empty<RenameItem>();
         Batch = FileBatch.Empty;
         SelectedRows = Array.Empty<int>();
-        ExistingNamesByFolder = NoNames;
+        ExistingNamesByFolder = FileListing.NoNames;
         Problem = null;
         Changed?.Invoke(this, EventArgs.Empty);
 
@@ -410,7 +427,8 @@ public sealed class FileListModel : IDisposable
         Changed?.Invoke(this, EventArgs.Empty);
 
         // A filter asked for while the folder was loading: its result arrives as one OrderChanged.
-        if (State == FileListState.Loaded && !ReferenceEquals(_requestedFilter, filter))
+        // Not after Dispose (a Changed handler may have disposed the model).
+        if (State == FileListState.Loaded && !_disposed && !ReferenceEquals(_requestedFilter, filter))
         {
             PendingFilter = RunFilterAsync(_requestedFilter);
         }
@@ -476,41 +494,8 @@ public sealed class FileListModel : IDisposable
         // A sort ran meanwhile (a load would have changed the version): the result follows the current order.
         IReadOnlyList<RenameItem> newItems = ReferenceEquals(all, AllItems) ? filtered : KeepListed(AllItems, filtered);
 
-        // The selection by item, from the current selection (it may have changed meanwhile). Newly shown items are not
-        // selected; no selected item left, or every row selected, is the whole list, as SetSelection decides.
-        IReadOnlyList<RenameItem> oldItems = Items;
-        IReadOnlyList<int> oldRows = SelectedRows;
-        FileBatch batch = FileBatch.WholeList(newItems);
-        IReadOnlyList<int> newRows = Array.Empty<int>();
-        if (oldRows.Count > 0)
-        {
-            var selectedItems = new HashSet<RenameItem>(ReferenceComparer.Instance);
-            foreach (int row in oldRows)
-            {
-                selectedItems.Add(oldItems[row]);
-            }
-
-            var selected = new bool[newItems.Count];
-            int count = 0;
-            for (int row = 0; row < newItems.Count; row++)
-            {
-                if (selectedItems.Contains(newItems[row]))
-                {
-                    selected[row] = true;
-                    count++;
-                }
-            }
-
-            if (count > 0 && count == newItems.Count)
-            {
-                newRows = Enumerable.Range(0, count).ToArray();
-            }
-            else if (count > 0)
-            {
-                batch = BatchOf(newItems, selected, count);
-                newRows = batch.Rows;
-            }
-        }
+        // The selection by item, from the current selection (it may have changed meanwhile).
+        (FileBatch batch, IReadOnlyList<int> newRows) = MapSelection(Items, SelectedRows, newItems);
 
         Filter = filter;
         Items = newItems;

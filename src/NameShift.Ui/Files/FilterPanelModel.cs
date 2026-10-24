@@ -25,8 +25,7 @@ public sealed class FilterPanelModel
     /// <summary>A model with every setting at its default: its filter behaves as <c>new ItemFilter()</c>.</summary>
     public FilterPanelModel()
     {
-        Filter = new ItemFilter();
-        Rebuild();
+        (Filter, Error) = Build();
     }
 
     /// <summary>Raised on the calling thread after a setting changed, once <see cref="Filter"/> and
@@ -143,19 +142,22 @@ public sealed class FilterPanelModel
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
-    private void Rebuild()
+    private void Rebuild() => (Filter, Error) = Build();
+
+    /// <summary>The filter of the current settings, and what is wrong with them (null when nothing is).</summary>
+    private (ItemFilter Filter, string? Error) Build()
     {
         bool minValid = TryParseLength(_minLengthText, out int? min);
         bool maxValid = TryParseLength(_maxLengthText, out int? max);
-        Filter = new ItemFilter(_mask, _pattern, _ignoreCase, _includeFiles, _includeFolders, _includeHidden, min, max);
+        var filter = new ItemFilter(_mask, _pattern, _ignoreCase, _includeFiles, _includeFolders, _includeHidden, min, max);
 
-        string? error = Filter.Error;
+        string? error = filter.Error;
         if (!minValid || !maxValid)
         {
             error = error is null ? Strings.FilterLengthInvalid : error + " " + Strings.FilterLengthInvalid;
         }
 
-        Error = error;
+        return (filter, error);
     }
 
     /// <summary>Empty or white space is no limit; otherwise a whole number from 0 up in ASCII digits (no sign, no

@@ -1311,6 +1311,147 @@ public sealed class FileListModelTests
         Assert.Equal(2, model.Items.Count);
     }
 
+    /// <summary>A model with 10,000 items in C:\A and one in C:\B, and a filter run held on its 5th item: the run
+    /// still has 9,995 items to go, so only a cancellation stops it early.</summary>
+    private async Task<(FileListModel Model, Task<bool> Run, Func<int> Calls)> HeldOnItemFive(TestGate gate)
+    {
+        FileListModel model = Seamed();
+        _source.SetEntries(@"C:\A", Enumerable.Range(0, 10000).Select(i => File("file" + i + ".txt")).ToArray());
+        _source.SetEntries(@"C:\B", File("x.txt", folder: @"C:\B"));
+        Assert.True(await Within(model.LoadAsync(@"C:\A")));
+        var slow = new ItemFilter(mask: "*.txt");
+        int calls = 0;
+        _seam.Use(slow, item =>
+        {
+            if (Interlocked.Increment(ref calls) == 5)
+            {
+                gate.Block();
+            }
+
+            return true;
+        });
+
+        Task<bool> run = model.SetFilterAsync(slow);
+        gate.WaitUntilReached();
+        return (model, run, () => Volatile.Read(ref calls));
+    }
+
+    [Fact]
+    public async Task Load_StopsAPendingFilterLoop()
+    {
+        using var gate = new TestGate();
+        (FileListModel model, Task<bool> run, Func<int> calls) = await HeldOnItemFive(gate);
+
+        Assert.True(await Within(model.LoadAsync(@"C:\B")));
+        gate.Release();
+
+        Assert.False(await Within(run));
+
+        // 5 calls before the load, at most one more after the release, and one for C:\B's only item.
+        Assert.InRange(calls(), 5, 7);
+        Assert.Equal(new[] { "x.txt" }, NamesOf(model.Items));
+    }
+
+    [Fact]
+    public async Task Dispose_StopsAPendingFilterLoop()
+    {
+        using var gate = new TestGate();
+        (FileListModel model, Task<bool> run, Func<int> calls) = await HeldOnItemFive(gate);
+        ResetEvents();
+
+        model.Dispose();
+        gate.Release();
+
+        Assert.False(await Within(run));
+        Assert.InRange(calls(), 5, 6);
+        Assert.Equal(0, Events);
+    }
+
+    [Fact]
+    public async Task LoadAsync_SupersededEmptyLoad_IsDiscarded()
+    {
+        // An empty listing reaches no token check: only the version stops it.
+        _source.SetEntries(@"C:\A");
+        _source.SetEntries(@"C:\B", File("b.txt", folder: @"C:\B"));
+        ManualResetEventSlim gateA = _source.Gate(@"C:\A");
+        try
+        {
+            Task<bool> loadA = _model.LoadAsync(@"C:\A");
+            Assert.True(SpinWait.SpinUntil(() => _source.Calls >= 1, TestWait.Timeout), "The first listing never started.");
+
+            Assert.True(await Within(_model.LoadAsync(@"C:\B")));
+            gateA.Set();
+
+            Assert.False(await Within(loadA));
+            Assert.Equal(@"C:\B", _model.FolderPath);
+            Assert.Equal(new[] { "b.txt" }, NamesOf(_model.Items));
+        }
+        finally
+        {
+            gateA.Set();
+        }
+    }
+
+    [Fact]
+    public async Task Dispose_InTheLoadsChangedHandler_NoFollowUpRun()
+    {
+        FileListModel model = Seamed();
+        _source.SetEntries(@"C:\A", File("a.txt"), File("b.jpg"));
+        ManualResetEventSlim gate = _source.Gate(@"C:\A");
+        try
+        {
+            Task<bool> load = model.LoadAsync(@"C:\A");
+            var filter = new ItemFilter(mask: "*.txt");
+            Assert.False(await Within(model.SetFilterAsync(filter)));
+            model.Changed += (_, _) =>
+            {
+                if (model.State == FileListState.Loaded)
+                {
+                    model.Dispose();
+                }
+            };
+            int calls = _seam.Calls;
+
+            gate.Set();
+            Assert.True(await Within(load));
+            await Within(model.PendingFilter);
+
+            Assert.Equal(0, _order);
+            Assert.NotSame(filter, model.Filter);
+            Assert.Equal(new[] { "a.txt", "b.jpg" }, NamesOf(model.Items));
+
+            // Only the load's own pass over its two items: no filter run after Dispose.
+            Assert.Equal(calls + 2, _seam.Calls);
+        }
+        finally
+        {
+            gate.Set();
+        }
+    }
+
+    [Fact]
+    public async Task SetFilter_WhileFailingLoad_IsKept()
+    {
+        _source.SetListing(@"C:\A", FileListing.Failed(FolderProblem.AccessDenied));
+        ManualResetEventSlim gate = _source.Gate(@"C:\A");
+        try
+        {
+            Task<bool> load = _model.LoadAsync(@"C:\A");
+            var filter = new ItemFilter(mask: "*.txt");
+            Assert.False(await Within(_model.SetFilterAsync(filter)));
+
+            gate.Set();
+            Assert.True(await Within(load));
+
+            Assert.Equal(FileListState.Failed, _model.State);
+            Assert.Same(filter, _model.Filter);
+        }
+        finally
+        {
+            gate.Set();
+        }
+    }
+
     // AC 8
 
     [Fact]

@@ -581,7 +581,7 @@ public sealed class PreviewModelTests
     {
         // NS-33: the names are grouped by each item's own folder, so DuplicateTargetCheck always finds its folder
         // (before, an item whose folder was not the listed folder made the check throw).
-        _source.SetEntries(@"C:\C", File("q.txt", folder: @"C:\Elsewhere"));
+        _source.SetEntries(@"C:\C", File("q.txt", folder: @"C:\Elsewhere"), Hidden("x.txt", @"C:\Elsewhere"));
         PreviewModel preview = Build(EnabledPanelOf(_ => new RenameToRule("x.txt")));
 
         await _files.LoadAsync(@"C:\C");
@@ -589,7 +589,8 @@ public sealed class PreviewModelTests
 
         Assert.False(preview.HasFailed);
         Assert.Single(preview.Snapshot.Results);
-        Assert.Equal("", preview.ConflictSummary);
+        Assert.Equal(Message(ConflictCode.TargetExists), preview.StatusForRow(0).Text);
+        Assert.Equal("1 conflict", preview.ConflictSummary);
     }
 
     [Fact]
