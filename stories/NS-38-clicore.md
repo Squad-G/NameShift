@@ -1,6 +1,6 @@
 # NS-38: Command line: apply rules to a folder
 
-Status: Ready
+Status: In Progress
 Depends on: NS-8, NS-9, NS-12, NS-13, NS-73
 Area: app
 
@@ -109,3 +109,4 @@ Console:
 - 2026-10-24: reshaped to rules-as-options, dry run and conflicts moved in, criteria made testable; set Ready (po).
 - 2026-10-24: after review: complete exit codes, shared planner (NS-73) and source-scan guard, public `ActionText`, rule
   errors, PE and WinForms test, input errors; depends on NS-73 (po).
+- 2026-10-24: In Progress (builder).
