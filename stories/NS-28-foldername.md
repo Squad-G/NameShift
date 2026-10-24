@@ -1,6 +1,6 @@
 # NS-28: Append folder name rule
 
-Status: In Review
+Status: Done
 Depends on: NS-1
 Area: engine
 
@@ -58,3 +58,4 @@ only part that changes. Folder names are used as given (their case is kept).
 - 2026-10-23: criteria made testable (order, placement, root and network paths, limits), set Ready (po).
 - 2026-10-24: In Progress (builder).
 - 2026-10-24: In Review (builder), PR #40.
+- 2026-10-24: Done (tech-lead), PR #40 merged into dev; review nit folded (one-letter relative path test).
