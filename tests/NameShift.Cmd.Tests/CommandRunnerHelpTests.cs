@@ -188,9 +188,16 @@ public sealed class CommandRunnerHelpTests : IDisposable
     [Fact]
     public void EveryWord_IsInTheHelp()
     {
-        Assert.All(CommandLineParser.GlobalWords, word => Assert.Contains(word, Strings.HelpMain, StringComparison.Ordinal));
-        Assert.All(CommandLineParser.ApplyOptionWords, word => Assert.Contains(word, Strings.HelpApply, StringComparison.Ordinal));
+        string[] mainTokens = Tokens(Strings.HelpMain);
+        string[] applyTokens = Tokens(Strings.HelpApply);
+
+        Assert.All(CommandLineParser.GlobalWords, word => Assert.Contains(word, mainTokens));
+        Assert.All(CommandLineParser.ApplyOptionWords, word => Assert.Contains(word, applyTokens));
     }
+
+    /// <summary>The whole words of a help text: lines split on spaces and commas, compared ordinally.</summary>
+    private static string[] Tokens(string text) =>
+        text.Split(new[] { ' ', ',', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
     [Fact]
     public void EveryExitCode_HasItsLine()
@@ -199,11 +206,13 @@ public sealed class CommandRunnerHelpTests : IDisposable
 
         foreach (ExitCode code in Enum.GetValues(typeof(ExitCode)))
         {
-            string line = "  " + (int)code + "  " + HelpText.ExitCodeText(code);
-            Assert.Contains(line, main);
-            Assert.NotEmpty(HelpText.ExitCodeText(code));
+            // The text comes from Strings by the code's number, not from the code under test.
+            string text = (string)typeof(Strings).GetProperty("ExitCode" + (int)code)!.GetValue(null)!;
+            Assert.NotEmpty(text);
+            Assert.Contains("  " + (int)code + "  " + text, main);
         }
 
+        Assert.Equal(5, Enum.GetValues(typeof(ExitCode)).Length);
         Assert.Throws<ArgumentOutOfRangeException>(() => HelpText.ExitCodeText((ExitCode)9));
         Assert.Contains(Strings.HelpExitCodes, main);
     }

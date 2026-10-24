@@ -152,6 +152,17 @@ public sealed class CommandLineParserTests
         Assert.StartsWith(Strings.ReplaceNeedsValues, command.Error, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData("help")]
+    [InlineData("apply")]
+    [InlineData("x")]
+    public void ReplaceValues_MayBeVerbsOrHelpWords(string find)
+    {
+        ApplyOptions options = Applied(new[] { "apply", @"D:\P", "--replace", find, "y" });
+
+        Assert.Equal(find, options.Find);
+    }
+
     [Fact]
     public void Words_AreTheDispatchedWords()
     {
