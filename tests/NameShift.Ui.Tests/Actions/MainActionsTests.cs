@@ -1073,6 +1073,21 @@ public sealed class MainActionsTests
         Assert.Equal(LockText, actions.RenameHint);
     }
 
+    [Fact]
+    public async Task Rename_NeedsAttention_LocksRename()
+    {
+        MainActions actions = await BuildLoaded(Prefix());
+        _renamer.RenameResult = DiskResults.NeedsAttention(
+            DiskResults.Failure(FailureReason.RenameFailed, @"C:\A.txt", systemMessage: "Busy."),
+            DiskResults.Stranded(@"C:\A\~ns-1234.tmp", @"C:\A.txt"));
+
+        await Rename();
+        await ApplyPreview();
+
+        Assert.False(actions.CanRename);
+        Assert.Equal(LockText, actions.RenameHint);
+    }
+
     // AC 4
 
     [Fact]
@@ -1215,6 +1230,7 @@ public sealed class MainActionsTests
     public async Task FolderChangedDuringRename_NoLock()
     {
         MainActions actions = await BuildLoaded(Prefix());
+        ManualResetEventSlim gate = _source.Gate(FolderA);
         Task? other = null;
         void OnChanged(object? sender, EventArgs e)
         {
@@ -1225,15 +1241,38 @@ public sealed class MainActionsTests
             }
         }
 
-        _files.Changed += OnChanged;
+        try
+        {
+            _files.Changed += OnChanged;
+            Task<ActionReport?> running = Rename();
+            Assert.True(SpinWait.SpinUntil(() => other != null, TimeSpan.FromSeconds(10)));
+            await other!;
+            gate.Set();
+            await running;
+
+            // Checked before anything else can raise an event: the lock must not be set for the other folder.
+            Assert.Equal(FolderB, _files.FolderPath);
+            Assert.Equal(FileListState.Loaded, _files.State);
+            Assert.Equal("", actions.RenameHint);
+        }
+        finally
+        {
+            gate.Set();
+        }
+    }
+
+    [Fact]
+    public async Task SelectionChangedByFolderContentsHandler_WhileBusy_KeepsLock()
+    {
+        MainActions actions = await BuildLoaded(Prefix());
+        ReloadAsRenamed();
+        actions.FolderContentsChanged += (_, _) => _files.SetSelection(new[] { 0 });
+
         await Rename();
-        Assert.NotNull(other);
-        await other!;
         await ApplyPreview();
 
-        Assert.Equal(FolderB, _files.FolderPath);
-        Assert.NotEqual(LockText, actions.RenameHint);
-        Assert.True(actions.CanRename);
+        Assert.False(actions.CanRename);
+        Assert.Equal(LockText, actions.RenameHint);
     }
 
     // AC 7

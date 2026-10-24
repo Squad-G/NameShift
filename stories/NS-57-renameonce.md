@@ -22,11 +22,13 @@ In `MainActions` (tests in `NameShift.Ui.Tests`, with the fake renamer and a fak
 1. Given a Rename that renamed at least one file (`Execution.Renamed` not empty), when it completes and the folder has
    reloaded, then `CanRename` is false, even though the preview shows changed names. The rules, their values and
    their enabled state are unchanged.
-2. Given a Rename that was started but renamed nothing (every item failed, or the batch was not started because the
-   journal could not be written), then the lock is not set and `CanRename` is true again as before: nothing changed on
-   disk, so the user may fix the problem and retry.
-3. Given the unexpected-failure path (`ActionUnexpected`: the renamer threw, disk state unknown), then the lock is set:
-   safe over clever, a retry could rename twice.
+2. Given a Rename that renamed nothing and left the disk as it was (the executor failed and rolled back cleanly, or
+   the batch was not started because the journal could not be written), then the lock is not set and `CanRename` is
+   true again as before: nothing changed on disk, so the user may fix the problem and retry.
+3. Given a Rename whose outcome is `NeedsAttention` (the rollback failed: `Execution.NeedsAttention` is not empty,
+   `Renamed` is empty, Revert is off) or the unexpected-failure path (`ActionUnexpected`: the renamer threw, disk state
+   unknown), then the lock is set: in both the folder may be half renamed, and a second Rename on it could rename
+   twice or collide. Safe over clever.
 4. Given `RenameHint` while locked (and no conflict or error), then it is the new string "Change a rule or the selection
    to rename again." (`Strings.resx`); a conflict or error hint still wins when there is one. It is "" while busy, as
    now. `ActionButtons` already shows it in the hint label and the button's accessible description.
@@ -55,6 +57,9 @@ In the window (by hand, listed in the PR):
 ## Out of scope
 - Clearing or auto-resetting the rules after a Rename (David wants them kept).
 - Remembering the lock across a restart or per folder.
+- Known gap: retyping the current folder in the path bar does not unlock, because `FolderNavigator` returns
+  `Unchanged` and nothing reloads. Criterion 5's "same folder through the path bar" therefore only holds when a load
+  actually happens; a refresh or reload action is a separate story (po, 2026-10-23).
 
 ## Decisions
 - Build order? **Decision:** after NS-56: both change `MainActions.RunAsync` and its tests (po, 2026-10-23).
@@ -62,6 +67,10 @@ In the window (by hand, listed in the PR):
   where the user has looked at a new preview (David, 2026-10-23).
 - Only after a successful Rename? **Decision:** only when at least one file was renamed; a run that renamed nothing
   leaves the disk unchanged, so a retry is safe and the user needs it (po, 2026-10-23).
+- After `NeedsAttention`? **Decision:** locked, same as an unexpected failure. It means the executor could not roll back
+  fully: the disk is dirty, `Renamed` is empty and Revert is off, so "lock only if something was renamed" would leave
+  Rename open on a half-renamed folder, the opposite of David's intent. Only a clean failure (nothing changed) stays
+  unlocked (po, 2026-10-23, from the PR #26 review).
 - After an unexpected failure? **Decision:** locked, the disk state is unknown and Revert is off (po, 2026-10-23).
 - After Revert? **Decision:** the lock is cleared. Revert puts the old names back, so the preview shows the same
   change as before the Rename and running it again is what the user asks for; the rules did not move, and the

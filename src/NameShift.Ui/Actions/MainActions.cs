@@ -28,7 +28,7 @@ public sealed class MainActions
     /// <summary>Bumped by every journal read and every action: a read applies only when nothing started after it.</summary>
     private int _journalVersion;
 
-    /// <summary>Set after a Rename that renamed something (or failed unexpectedly) in the folder still shown; cleared by a
+    /// <summary>Set after a Rename that renamed something (or left items stranded, or failed unexpectedly) in the folder still shown; cleared by a
     /// rule edit, a selection change, a folder load outside an action, or a Revert that ran. While set, Rename is off.</summary>
     private bool _renameLocked;
 
@@ -42,16 +42,13 @@ public sealed class MainActions
         _preview.Outdated += (_, _) => RaiseChanged();
         _files.Changed += (_, _) =>
         {
-            // Only LoadAsync raises this: outside an action it is a folder load; the action's own reload is ignored.
-            if (!IsBusy)
-            {
-                ClearLock();
-            }
-
+            // A folder load. The action's own reload raises this before RunAsync sets the lock, so it cannot clear it.
+            ClearLock();
             RaiseChanged();
         };
         _files.SelectionChanged += (_, _) =>
         {
+            // Not while busy: a FolderContentsChanged handler may change the selection after the lock was set.
             if (!IsBusy)
             {
                 ClearLock();
@@ -167,7 +164,7 @@ public sealed class MainActions
             new[] { folder },
             () => _renamer.Rename(snapshot.Results, snapshot.Conflicts),
             ActionText.ForRename,
-            r => r.Execution != null && r.Execution.Renamed.Count > 0,
+            r => r.Execution != null && (r.Execution.Renamed.Count > 0 || r.Execution.NeedsAttention.Count > 0),
             true);
     }
 
@@ -194,8 +191,7 @@ public sealed class MainActions
     }
 
     /// <summary>Locks, runs the action and the journal read in one pool task, applies the result, reloads the folder
-    /// (when there is one), sets the Rename lock when locksAfter says so (locksIfUnexpected when the action threw) and the
-    /// shown folder is still the action's, then unlocks. The lock is taken before the first await, and the finally always releases it.
+    /// (when there is one), sets the Rename lock (see _renameLocked), then unlocks. The lock is taken before the first await, and the finally always releases it.
     /// A startup journal read may still be running (CanRename does not wait for it): JournaledRenamer is "one operation
     /// at a time", but its read only reads, the read's result is dropped by the version check, and the worst overlap is
     /// a journal file briefly opened by both, which Rename reports as a journal problem in its result, never a wrong rename.</summary>
