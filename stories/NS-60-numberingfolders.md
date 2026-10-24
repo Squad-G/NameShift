@@ -1,6 +1,6 @@
 # NS-60: Numbering rule: restart in each folder
 
-Status: In Review
+Status: Done
 Depends on: NS-17, NS-29
 Area: engine
 
@@ -51,3 +51,4 @@ Step`.
 - 2026-10-24: David chose the filter row placement; the sub-folder stories are scheduled, so set Ready (po).
 - 2026-10-24: In Progress (builder).
 - 2026-10-24: In Review (builder), PR #62.
+- 2026-10-24: Done (tech-lead), PR #62 merged into dev.
