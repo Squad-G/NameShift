@@ -54,6 +54,7 @@ public sealed class CmdStringsTests
     [Fact]
     public void ExitCodeTexts()
     {
+        Assert.Equal("Done, or nothing to rename or undo.", Strings.ExitCode0);
         Assert.Equal("Nothing changed (refused, rolled back, no history, or a crash before it).", Strings.ExitCode3);
         Assert.Equal("Look at the disk: items left renamed or not restored, no history, a crash.", Strings.ExitCode4);
     }

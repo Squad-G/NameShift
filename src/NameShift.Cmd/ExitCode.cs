@@ -20,6 +20,7 @@ public enum ExitCode
 
     /// <summary>Look at the disk: items were left under other names, the names changed but the history for Revert could
     /// not be saved, or an unexpected error happened during the rename (the disk state is unknown). For <c>undo</c>:
-    /// some files were not restored.</summary>
+    /// some files were not restored, items were left under other names, the history could not be saved after the
+    /// revert, or an unexpected error happened during it.</summary>
     NeedsAttention = 4,
 }
