@@ -252,6 +252,24 @@ public sealed class RemoveTextRuleTests
     }
 
     [Fact]
+    public void Run_Text_StartingInsideAPair_IsNotMatched()
+    {
+        var result = RunOne(new RemoveTextRule(text: "\uDE00"), "a\U0001F600b.txt");
+
+        Assert.Equal("a\U0001F600b.txt", result.NewName);
+        Assert.Equal(0, LoneSurrogates(result.NewName));
+    }
+
+    [Fact]
+    public void Run_Crop_MarkerThatStartsInsideAPair_IsNotMatched()
+    {
+        var result = RunOne(new RemoveTextRule(cropAfter: "\uDE00"), "a\U0001F600b.txt");
+
+        Assert.Equal("a\U0001F600b.txt", result.NewName);
+        Assert.Equal(0, LoneSurrogates(result.NewName));
+    }
+
+    [Fact]
     public void Run_Dotfile_WholeNameIsTheBase() =>
         Assert.Equal(".ignore", RunOne(new RemoveTextRule(text: "git"), ".gitignore").NewName);
 
@@ -270,6 +288,10 @@ public sealed class RemoveTextRuleTests
         Assert.Equal(
             "e.txt",
             RunOne(new RemoveTextRule(characters: "p", text: "ke", cropBefore: "[", cropAfter: "]"), "x[keep]y.txt").NewName);
+
+    [Fact]
+    public void Run_PartsRunInOrder_TextBeforeCharacters() =>
+        Assert.Equal("ab.txt", RunOne(new RemoveTextRule(characters: "x", text: "ab"), "axb.txt").NewName);
 
     [Theory]
     [InlineData("characters")]
