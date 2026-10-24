@@ -1,7 +1,7 @@
 # NS-54: Visual polish
 
 Status: Draft
-Depends on: NS-15
+Depends on: NS-15, NS-55, NS-30
 Area: app
 
 ## Why
@@ -47,6 +47,10 @@ the finished layout (preview, conflicts, selection, buttons).
 ## Decisions
 - Why this story? **Decision:** David looked at the window on 2026-10-18 and said it is "a bit ugly ... will see at the
   end"; it is built at the end of the first usable slice, after NS-15 (po, 2026-10-18).
+- Build it now or after more panels? **Decision:** later: it restyles every panel and migrates their spacing, so it
+  goes after the Name/Extension and Remove panels (NS-55, NS-30) to avoid redoing it and merge conflicts; it stays
+  Draft until then and criteria 1 and 5 are re-checked against the panels that exist (po, 2026-10-23).
+- Placement after NS-30 confirmed by David (2026-10-23).
 - Dark mode in this story or later? **Decision:** a separate later story, not written yet. It needs its own colour
   work, owner-drawn parts of WinForms and its own tests, and would make this story large; this story first makes all
   colours go through system colours, which is what dark mode will build on (po, 2026-10-18).
@@ -57,3 +61,4 @@ the finished layout (preview, conflicts, selection, buttons).
 ## Log
 - 2026-10-18: created (po).
 - 2026-10-18: criteria 1-5 and 7 tightened: size measured on the Release output folder (no installer yet), spacing, font, colour, title and icon checks made testable (po, from the PR #19 review).
+- 2026-10-23: reordered after NS-30; kept Draft on purpose (po).
