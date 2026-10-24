@@ -108,6 +108,28 @@
   <data name="RemoveRangeHint" xml:space="preserve"><value>Positions count from 1; both ends are removed</value></data>
   <data name="RemovePositionInvalid" xml:space="preserve"><value>Type a whole number from 1. Until then this part is skipped.</value></data>
   <data name="RemoveRangeInvalid" xml:space="preserve"><value>Type two whole numbers from 1, From not after To. Until then the range is skipped.</value></data>
+  <data name="RegexTitle" xml:space="preserve"><value>Re&amp;gEx</value></data>
+  <data name="RegexPattern" xml:space="preserve"><value>&amp;Pattern</value></data>
+  <data name="RegexReplacement" xml:space="preserve"><value>Replace&amp;ment</value></data>
+  <data name="RegexIgnoreCase" xml:space="preserve"><value>&amp;Ignore case</value></data>
+  <data name="RegexIncludeExtension" xml:space="preserve"><value>Include e&amp;xtension</value></data>
+  <data name="RegexPatternInvalid" xml:space="preserve"><value>This pattern is not valid. {0} Until then the rule is skipped.</value></data>
+  <data name="RegexPatternHint" xml:space="preserve"><value>A .NET regular expression; the replacement can use $1 or ${name}</value></data>
+  <data name="MoveCopyTitle" xml:space="preserve"><value>Mo&amp;ve or copy</value></data>
+  <data name="MoveCopyMode" xml:space="preserve"><value>Ac&amp;tion</value></data>
+  <data name="MoveCopySource" xml:space="preserve"><value>Take &amp;from</value></data>
+  <data name="MoveCopyCount" xml:space="preserve"><value>&amp;Characters</value></data>
+  <data name="MoveCopyTarget" xml:space="preserve"><value>&amp;Put at</value></data>
+  <data name="MoveCopyPosition" xml:space="preserve"><value>Po&amp;sition</value></data>
+  <data name="MoveCopySeparator" xml:space="preserve"><value>Text &amp;between</value></data>
+  <data name="MoveCopyModeMove" xml:space="preserve"><value>Move</value></data>
+  <data name="MoveCopyModeCopy" xml:space="preserve"><value>Copy</value></data>
+  <data name="MoveCopySourceStart" xml:space="preserve"><value>Start of the name</value></data>
+  <data name="MoveCopySourceEnd" xml:space="preserve"><value>End of the name</value></data>
+  <data name="MoveCopyTargetStart" xml:space="preserve"><value>Start of the name</value></data>
+  <data name="MoveCopyTargetEnd" xml:space="preserve"><value>End of the name</value></data>
+  <data name="MoveCopyTargetPosition" xml:space="preserve"><value>A position</value></data>
+  <data name="MoveCopyNumberInvalid" xml:space="preserve"><value>Type a whole number from 1. Until then nothing is moved or copied.</value></data>
   <data name="AddTitle" xml:space="preserve"><value>&amp;Add</value></data>
   <data name="AddPrefix" xml:space="preserve"><value>&amp;Prefix</value></data>
   <data name="AddInsert" xml:space="preserve"><value>&amp;Insert</value></data>
