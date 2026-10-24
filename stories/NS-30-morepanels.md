@@ -1,6 +1,6 @@
 # NS-30: Panel for Remove
 
-Status: In Progress
+Status: In Review
 Depends on: NS-11, NS-20, NS-21, NS-22, NS-23
 Area: app
 
@@ -101,3 +101,4 @@ In the window (by hand, listed in the PR):
 - 2026-10-23: Name and Extension panels split out to NS-55; this story is now the Remove panel only (po).
 - 2026-10-23: criteria made testable (group rule, order, validation, letters), set Ready; build after NS-20 to NS-23 are merged (po).
 - 2026-10-24: In Progress (builder).
+- 2026-10-24: In Review (builder), PR #37.
