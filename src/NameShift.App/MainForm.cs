@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using NameShift.App.Controls;
 using NameShift.Ui;
@@ -32,10 +33,20 @@ internal sealed class MainForm : Form
     private readonly SplitContainer _rightSplit = new SplitContainer();
     private readonly ToolStripStatusLabel _statusText = new ToolStripStatusLabel();
     private readonly ToolStripProgressBar _progress = new ToolStripProgressBar { Style = ProgressBarStyle.Marquee, Visible = false };
+    private readonly IFolderSource _source;
+    private readonly string? _startArgument;
+    private readonly string _currentDirectory;
+    private readonly OpenSequence _opens = new OpenSequence();
+    private (string Folder, string FileName)? _pendingSelection;
     private bool _shownBusy;
 
-    public MainForm(IFolderSource source, IFileListSource fileListSource, IBatchRenamer renamer)
+    /// <param name="args">The command line: the first path argument opens at start (NS-47).</param>
+    /// <param name="currentDirectory">The directory the program started in, for a relative path argument.</param>
+    public MainForm(IFolderSource source, IFileListSource fileListSource, IBatchRenamer renamer, string[] args, string currentDirectory)
     {
+        _source = source;
+        _startArgument = OpenTarget.FirstPathArgument(args);
+        _currentDirectory = currentDirectory;
         _navigator = new FolderNavigator(source);
         _folderModel = new FolderTreeModel(source);
         _folderTree = new FolderTree(_folderModel, ShowStatus);
@@ -56,6 +67,7 @@ internal sealed class MainForm : Form
         Text = Strings.AppTitle;
         StartPosition = FormStartPosition.CenterScreen;
         BuildLayout();
+        AllowDropEverywhere(this);
         ApplyWindowSizes();
 
         _folderTree.FolderSelected += (_, path) => _navigator.SelectFromTree(path);
@@ -63,6 +75,9 @@ internal sealed class MainForm : Form
         _navigator.FolderChanged += OnFolderChanged;
         Actions.Changed += (_, _) => OnActionsChanged();
         Actions.FolderContentsChanged += OnFolderContentsChanged;
+
+        // After the file list's own handler (subscribed in its constructor), so the rows exist when one is selected.
+        FileListModel.Changed += (_, _) => TryApplyPendingSelection();
     }
 
     /// <summary>The current folder and its change event.</summary>
@@ -140,7 +155,16 @@ internal sealed class MainForm : Form
     protected override void OnShown(EventArgs e)
     {
         base.OnShown(e);
-        _navigator.Start();
+        if (_startArgument is null)
+        {
+            _navigator.Start();
+        }
+        else
+        {
+            // One navigation once the path is resolved: Documents is never shown first for nothing.
+            _ = OpenAsync(_startArgument);
+        }
+
         _ = Actions.LoadJournalAsync();
     }
 
@@ -243,6 +267,7 @@ internal sealed class MainForm : Form
 
     private void OnFolderChanged(object? sender, FolderChangedEventArgs e)
     {
+        _opens.Invalidate(); // a pending open from the command line or a drop is now stale
         _pathBar.ShowFolder(e.Path);
         ShowStatus("");
         _ = _folderTree.RevealAsync(e.Path);
@@ -282,6 +307,135 @@ internal sealed class MainForm : Form
             {
                 // A replaced tree node (a case-only rename) makes the TreeView highlight a sibling: select the shown one again.
                 await _folderTree.RevealAsync(shown);
+            }
+        }
+        catch (Exception)
+        {
+            // An exception escaping an async void handler would end the process.
+            ShowStatus(Strings.SomethingWentWrong);
+        }
+    }
+
+    /// <summary>Opens a path from the command line or a drop. Resolves off the UI thread; never throws.</summary>
+    private async Task OpenAsync(string text)
+    {
+        try
+        {
+            int ticket = _opens.Begin();
+            OpenRequest request = await Task.Run(() => OpenTarget.Resolve(text, _currentDirectory, _source));
+            if (IsDisposed)
+            {
+                return;
+            }
+
+            // A late resolve never moves a locked window nor undoes a navigation made meanwhile.
+            OpenAction action = _opens.Complete(ticket, request, Actions.IsBusy, _navigator.CurrentFolder != null);
+            if (action == OpenAction.Discard)
+            {
+                return;
+            }
+
+            // Folder is never null after Open; the second test is only for the compiler's null analysis.
+            if (action != OpenAction.Open || request.Folder is null)
+            {
+                if (action == OpenAction.OpenStartFolder)
+                {
+                    _navigator.Start();
+                }
+
+                // After the folder change: FolderChanged clears the status bar.
+                if (request.Message != null)
+                {
+                    ShowStatus(request.Message);
+                }
+
+                return;
+            }
+
+            _pendingSelection = request.FileName is null ? null : (request.Folder, request.FileName);
+            string? current = _navigator.CurrentFolder;
+            _navigator.SelectFromTree(request.Folder);
+            if (current != null && PathInput.SameFolder(current, request.Folder))
+            {
+                // No FolderChanged for the folder already shown: select now (or once its listing ends).
+                TryApplyPendingSelection();
+            }
+        }
+        catch (Exception)
+        {
+            // Runs fire-and-forget or from an async void handler: an escaping exception would end the process.
+            ShowStatus(Strings.SomethingWentWrong);
+        }
+    }
+
+    /// <summary>Selects the file asked for once its folder is listed; drops the request when the user moved on.</summary>
+    private void TryApplyPendingSelection()
+    {
+        if (_pendingSelection is not { } pending || FileListModel.State == FileListState.Loading)
+        {
+            return;
+        }
+
+        _pendingSelection = null;
+        string? listed = FileListModel.FolderPath;
+        if (FileListModel.State != FileListState.Loaded || listed is null || !PathInput.SameFolder(listed, pending.Folder))
+        {
+            return;
+        }
+
+        // A file the list does not show (hidden, or removed) leaves nothing selected.
+        int row = FileListModel.FindRow(pending.FileName);
+        if (row >= 0)
+        {
+            _fileList.SelectRow(row);
+        }
+    }
+
+    /// <summary>Every control accepts a dropped folder or file: the tree, the list, the path bar and the panels.</summary>
+    private void AllowDropEverywhere(Control control)
+    {
+        control.AllowDrop = true;
+        control.DragEnter += OnDragOver;
+        control.DragOver += OnDragOver;
+        control.DragDrop += OnDragDrop;
+        foreach (Control child in control.Controls)
+        {
+            AllowDropEverywhere(child);
+        }
+    }
+
+    private void OnDragOver(object? sender, DragEventArgs e)
+    {
+        DragDropEffects effect = DragDropEffects.None;
+        if (!Actions.IsBusy && e.Data != null && e.Data.GetDataPresent(DataFormats.FileDrop))
+        {
+            if ((e.AllowedEffect & DragDropEffects.Copy) != 0)
+            {
+                effect = DragDropEffects.Copy;
+            }
+            else if ((e.AllowedEffect & DragDropEffects.Link) != 0)
+            {
+                effect = DragDropEffects.Link;
+            }
+        }
+
+        e.Effect = effect;
+    }
+
+    private async void OnDragDrop(object? sender, DragEventArgs e)
+    {
+        try
+        {
+            if (Actions.IsBusy || e.Data?.GetData(DataFormats.FileDrop) is not string[] paths)
+            {
+                return;
+            }
+
+            // Only the first item counts. OpenAsync returns at its first await, so Explorer is never held.
+            string? first = paths.FirstOrDefault(p => !string.IsNullOrEmpty(p));
+            if (first != null)
+            {
+                await OpenAsync(first);
             }
         }
         catch (Exception)

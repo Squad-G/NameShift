@@ -63,6 +63,23 @@ internal sealed class FileList : UserControl
         }
     }
 
+    /// <summary>Selects only this row, focuses it and scrolls it into view; a row outside the list is ignored.</summary>
+    public void SelectRow(int row)
+    {
+        if (IsDisposed || !_list.IsHandleCreated || row < 0 || row >= _list.VirtualListSize)
+        {
+            return;
+        }
+
+        SetAllRowsSelected(false);
+        _list.SelectedIndices.Add(row);
+        _list.FocusedItem = _list.Items[row];
+        _list.EnsureVisible(row);
+
+        // The list's selection events schedule this too; one read updates the model and the "1 of M" count.
+        ScheduleSelectionRead();
+    }
+
     protected override void Dispose(bool disposing)
     {
         if (disposing)
