@@ -1,7 +1,7 @@
 # NS-63: Run the engine tests on .NET Framework 4.8 too
 
 Status: Ready
-Depends on: NS-1
+Depends on: NS-1, NS-28
 Area: engine
 
 ## Why
@@ -15,7 +15,9 @@ two runtimes (Unicode data, string and culture behaviour, regex) would reach use
    there (same packages and versions, `Nullable`, `TreatWarningsAsErrors`).
 2. Given `dotnet build -c Release` and `dotnet test -c Release --no-build`, then both pass with no warnings, and the test
    run shows every Core test once per target framework (the two counts are equal).
-3. Given a test that fails only on net48, then the cause is decided case by case in this story, never by deleting or
+3. Expected: none. On `dev` before NS-28, the whole Core suite (640 tests) builds and passes on net48 with only the two
+   property changes of criterion 1 (checked in the PR #39 review), so the builder must not invent a case. Only if a test
+   does fail only on net48 (for example one of NS-28's), the cause is decided case by case in this story, never by deleting or
    skipping the test: (a) if users would see the difference (the app runs on net48), the rule is fixed in
    `NameShift.Core` so both runtimes agree, with the test kept as it is; (b) if the difference is only in the runtime's
    Unicode data for a rare character, the test uses a character that both runtimes classify the same way, and a line in the
@@ -26,8 +28,8 @@ two runtimes (Unicode data, string and culture behaviour, regex) would reach use
 5. Given the test runs, then `NameShift.Core.Tests` needs no `#if` on the target framework, unless one test is
    unavoidably different (then it is named in the PR).
 6. Given the text that describes the test projects: `CLAUDE.md` lists `tests/NameShift.Core.Tests` as `net10.0, xUnit`
-   (the repo has no CI files today), then it is changed to `net10.0 and net48, xUnit` in the same PR by the lead (a builder
-   and the `po` do not edit `CLAUDE.md`); `README.md` is checked for the same text.
+   (the repo has no CI files today), then the builder changes it to `net10.0 and net48, xUnit` in this story's own PR (the
+   builder's brief allows this one line; the `po` does not edit `CLAUDE.md`); `README.md` is checked for the same text.
 
 ## Out of scope
 - New product behaviour (except the fixes of criterion 3a).

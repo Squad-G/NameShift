@@ -40,7 +40,7 @@ IDs), not the rank: the rank is the row order.
 | 24 | [NS-24 RegEx rule](NS-24-regex.md) | Done | NS-1 |
 | 64 | [NS-64 Tests with a lone surrogate must really use one](NS-64-surrogatetests.md) | Ready | NS-21 |
 | 28 | [NS-28 Append folder name rule](NS-28-foldername.md) | Ready | NS-1 |
-| 63 | [NS-63 Run the engine tests on .NET Framework 4.8 too](NS-63-coretestsnet48.md) | Ready | NS-1 |
+| 63 | [NS-63 Run the engine tests on .NET Framework 4.8 too](NS-63-coretestsnet48.md) | Ready | NS-1, NS-28 |
 | 25 | [NS-25 Move or copy parts of the name](NS-25-moveparts.md) | Ready | NS-1 |
 | 26 | [NS-26 Auto date rule (file dates)](NS-26-autodate.md) | Ready | NS-1 |
 | 31 | [NS-31 Panels for RegEx and Move/Copy](NS-31-lastpanels.md) | Ready | NS-11, NS-24, NS-25 |

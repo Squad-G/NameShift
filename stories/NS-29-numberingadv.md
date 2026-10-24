@@ -53,6 +53,16 @@ Reading (`TryParse`; surrounding white space is ignored, any other white space i
     and for `int.MaxValue` in Hexadecimal, Decimal and Letters, `TryParse(Format(v))` gives `v` (one test loops,
     for both cases).
 
+Edge cases of `NumberText` (called directly):
+12a. `Format` with a negative value, an undefined `numerals` or a pad outside 0..255 throws `ArgumentOutOfRangeException`
+    (the rule never passes them: it checks the value first and the constructor checks the pad). Value 0 is fine in
+    Decimal (`0`) and Hexadecimal (`0`, pad 2 gives `00`); in Letters and Roman it throws `InvalidOperationException`
+    (criterion 5), as do Roman 4000 and `long.MaxValue`; Decimal and Hexadecimal accept `long.MaxValue`
+    (`9223372036854775807`, `7FFFFFFFFFFFFFFF`). Letters accept `long.MaxValue` without overflow or an endless loop.
+12b. `TryParse` with an undefined `numerals` throws `ArgumentOutOfRangeException`; with leading zeros of any length
+    (`0000000000007` in Decimal, `00000000000A` in Hexadecimal) it gives 7 and 10; with non-ASCII digits (the Arabic-Indic
+    `٣` or full-width `３`) it fails in Decimal and Hexadecimal; Roman `0` and `MMMM` fail; a null text fails.
+
 Construction:
 13. Given an undefined `numerals`, the constructor throws `ArgumentOutOfRangeException`; the pad range and the other
     checks of NS-17 are unchanged.

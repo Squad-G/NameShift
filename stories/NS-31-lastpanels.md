@@ -63,7 +63,9 @@ Both panels:
     "Replace&ment" (M), "&Ignore case" (I), "Include e&xtension" (X). Move/Copy: title "Mo&ve or copy" (V), "Ac&tion" (T),
     "Take &from" (F), "&Characters" (C), "&Put at" (P), "Po&sition" (S), "Text &between" (B). Inside each panel the
     letters are distinct and none repeats the title's. The panel titles then are R, C, E, A, N, M, X, G, V (Replace, Case,
-    Remove, Add, Numbering, Name, Extension, RegEx, Move/Copy), all distinct, and the test checks them. The words in the
+    Remove, Add, Numbering, Name, Extension, RegEx, Move/Copy), all distinct. The existing tests in `tests/NameShift.Ui.Tests/Rules/FirstPanelsTests.cs` are extended, not
+    copied: the panel list used by `Mnemonics_UniqueWithinEachPanel_TitlesDistinct` gains the two new panels and
+    `NewPanels_UseTheStoryLetters` (which asserts the seven titles `R C E A N M X`) gains `G V` (NS-59 adds `D F`). The words in the
     drop-down lists have no mnemonic.
 
 In the window (by hand, listed in the PR):

@@ -18,15 +18,16 @@ How it works: the rule takes `count` characters from the start or the end of the
 cuts the taken text out and keeps the rest (the "remainder"); Copy leaves the base name whole as the remainder. It then
 puts the taken text at the start or the end of the remainder, or at a 1-based position inside the remainder (position
 p leaves p - 1 characters in front, as in Add, NS-4; a position past the end means the end). The separator goes between
-the taken text and the remainder, on the side that touches it, and only when the remainder is not empty (and, for a
-position, only when text follows the inserted text). Counts are UTF-16 characters; a cut never splits a surrogate pair
+the taken text and the remainder, only when the remainder is not empty. At a position inside the remainder (text
+follows) it goes after the taken text; at the end of the remainder (position at or past its length) it goes before the
+taken text, so a position past the end gives the same result as target End. Counts are UTF-16 characters; a cut never splits a surrogate pair
 (the whole pair is taken, as in NS-20), and a position that falls inside a pair moves to just after it.
 1. Given `2024report.txt`, Move, source Start, count 4, target End, separator `_`, then `report_2024.txt`.
 2. Given `report_2024.txt`, Copy, source End, count 4, target Start, separator `-`, then `2024-report_2024.txt`.
 3. Given `abcdef.txt`, Move, source Start, count 2, target Position 3, no separator, then `cdabef.txt` (remainder `cdef`,
-   two characters stay in front). With separator `-`, then `cdab-ef.txt`. With position 5 (the end of the remainder), then
-   `cdefab.txt` with no separator; with position 99, the same; with position 1, then `ab-cdef.txt` when the separator
-   is `-` (the same as target Start).
+   two characters stay in front). With separator `-`, then `cdab-ef.txt`. With position 5 (the end of the remainder) or
+   99 and no separator, then `cdefab.txt`; with the separator `-`, then `cdef-ab.txt` for both (the same as target End).
+   With position 1 and `-`, then `ab-cdef.txt` (the same as target Start). With position 4 and `-` (three characters stay in front), then `cdeab-f.txt`.
 4. Given a count larger than the base name (`abc.txt`, Copy, source Start, count 10, target End, separator `-`), then the
    whole base name is taken: `abc-abc.txt`. Given the same with Move, then the remainder is empty and the name is
    unchanged, with no separator: `abc.txt`.
@@ -59,7 +60,9 @@ position, only when text follows the inserted text). Counts are UTF-16 character
 - Position counted how? **Decision:** from the start of the remainder, 1-based, as in Add and Numbering, so the same
   number means the same place everywhere (po, 2026-10-24).
 - Where does the separator go? **Decision:** between the taken text and the remainder, only when both are not empty, so a
-  separator never dangles at an edge (po, 2026-10-24; the same rule as Numbering in Insert mode, NS-17).
+  separator never dangles at an edge. It sits on the side of the taken text that touches the remainder, so a position at
+  the end behaves exactly like target End (`cdef-ab`) and position 1 like target Start (po, 2026-10-24, revised after the
+  PR #39 review).
 - Move to the same side? **Decision:** allowed and still adds the separator (criterion 6), so the rule has no special case
   (po, 2026-10-24).
 - Count larger than the name? **Decision:** the whole base name is taken, as the first version of this story said (po,

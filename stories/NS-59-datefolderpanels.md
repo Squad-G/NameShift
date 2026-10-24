@@ -52,8 +52,8 @@ Append folder name panel (`FolderNamePanelModel`, stage FolderName, 10):
 Both panels:
 11. Given the host model built from all eleven models (any order given), then it lists them in pipeline order: RegEx (1),
     Name (2), Replace (3), Case (4), Remove (5), Move/Copy (6), Add (7), Auto date (8), Numbering (9), Append folder name
-    (10), Extension (11). `RulePanels.Create()` in the App returns exactly these eleven entries (checked by hand if the
-    App has no test project).
+    (10), Extension (11). The second sentence is a hand check, not a test: `RulePanels.Create()` in the App
+    returns exactly these eleven entries (the App has no test project); the PR lists it under the hand checks.
 12. Given the item `a.jpg` in `C:\Photos\Paris`, modified 2024-03-09 14:05:07, and a host with the Add panel (`Suffix` =
     `-x`), the Auto date panel (`Placement` Suffix), the Numbering panel (Suffix, defaults) and the Append folder name
     panel (`Placement` Suffix), all enabled, then the result is `a-x_2024-03-09_1_Paris.jpg`.
@@ -61,7 +61,8 @@ Both panels:
     "&Place" (P), "Text &between" (B). Append folder name: title "Append &folder name" (F), "&Place" (P), "Folder &levels"
     (L), "Text &between" (B). Inside each panel the letters are distinct and none repeats the title's. The eleven panel
     titles then are R, C, E, A, N, M, X, G, V, D, F (Replace, Case, Remove, Add, Numbering, Name, Extension, RegEx,
-    Move/Copy, Auto date, Append folder name), all distinct, and the test checks them. The words in the drop-down lists
+    Move/Copy, Auto date, Append folder name), all distinct. The same two tests of `FirstPanelsTests.cs` (named in NS-31
+    criterion 14) gain the two panels and the letters `D F`. The words in the drop-down lists
     and the example label have no mnemonic.
 
 In the window (by hand, listed in the PR):
