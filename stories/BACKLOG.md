@@ -68,13 +68,13 @@ IDs), not the rank: the rank is the row order.
 | 74 | [NS-74 Sub-folders: recursive, cancellable listing](NS-74-subfolderlisting.md) | Ready | NS-33, NS-66, NS-73 |
 | 70 | [NS-70 Filter row above the file list](NS-70-filterrow.md) | Ready | NS-33 |
 | 37 | [NS-37 Remember last settings](NS-37-settings.md) | Ready | NS-36, NS-72 |
+| 42 | [NS-42 Command line: undo the last batch](NS-42-cliundo.md) | Ready | NS-38, NS-9, NS-43 |
+| 39 | [NS-39 Command line: quiet and verbose output](NS-39-clidry.md) | Ready | NS-38, NS-43, NS-42 |
+| 40 | [NS-40 Command line: Add and Numbering options](NS-40-clirules.md) | Ready | NS-38, NS-12, NS-53, NS-61, NS-43, NS-42, NS-39 |
+| 69 | [NS-69 Command line: use a saved preset](NS-69-clipreset.md) | Ready | NS-38, NS-36, NS-43, NS-72, NS-42, NS-39, NS-40 |
 | 78 | [NS-78 Sub-folders box and Folder column](NS-78-subfolderbox.md) | Draft | NS-70, NS-74 |
-| 42 | [NS-42 Command line: undo the last batch](NS-42-cliundo.md) | Draft | NS-38, NS-9, NS-43 |
-| 40 | [NS-40 Command line: Add and Numbering options](NS-40-clirules.md) | Draft | NS-38, NS-12, NS-53, NS-61, NS-43 |
-| 39 | [NS-39 Command line: quiet and verbose output](NS-39-clidry.md) | Draft | NS-38, NS-43 |
 | 75 | [NS-75 Command line: Name, Extension and Remove options](NS-75-clirules2.md) | Draft | NS-40, NS-55, NS-30 |
 | 76 | [NS-76 Command line: RegEx, Move/Copy, Auto date and Folder name options](NS-76-clirules3.md) | Draft | NS-40, NS-31, NS-59 |
-| 69 | [NS-69 Command line: use a saved preset](NS-69-clipreset.md) | Draft | NS-38, NS-36, NS-43, NS-72 |
 | 34 | [NS-34 Copy or move to another folder (engine and executor)](NS-34-copymove.md) | Cancelled | NS-8, NS-9 |
 | 35 | [NS-35 Copy/move to location panel](NS-35-copymoveui.md) | Cancelled | NS-34, NS-15 |
 | 41 | [NS-41 Command line: recursion and filters](NS-41-clifilters.md) | Draft | NS-38, NS-32, NS-33, NS-74 |
