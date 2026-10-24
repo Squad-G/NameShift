@@ -30,3 +30,6 @@ Install NameShift like any Windows app.
 - 2026-10-18: created (po).
 - 2026-10-18: Explorer entry added to scope by David's decision (po).
 - 2026-10-18: criterion 8 added: ship `NameShift.exe.config` and every library the app needs (tech-lead, from the NS-10 review).
+- 2026-10-24: stays Draft: waits on NS-49 (criterion 7) and its split. Open question for David: ship the installer
+  first without the right-click entry (criteria 1 to 6, 8 and 9), or wait for NS-49? po default: wait, the entry was
+  his explicit request (po).
