@@ -1,6 +1,6 @@
 # NS-28: Append folder name rule
 
-Status: In Progress
+Status: In Review
 Depends on: NS-1
 Area: engine
 
@@ -57,3 +57,4 @@ only part that changes. Folder names are used as given (their case is kept).
 - 2026-10-18: created (po).
 - 2026-10-23: criteria made testable (order, placement, root and network paths, limits), set Ready (po).
 - 2026-10-24: In Progress (builder).
+- 2026-10-24: In Review (builder), PR #40.
