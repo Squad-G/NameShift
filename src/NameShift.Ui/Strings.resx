@@ -64,6 +64,23 @@
   <data name="CaseModeUpper" xml:space="preserve"><value>UPPER CASE</value></data>
   <data name="CaseModeTitle" xml:space="preserve"><value>Title Case</value></data>
   <data name="CaseModeSentence" xml:space="preserve"><value>Sentence case</value></data>
+  <data name="NameTitle" xml:space="preserve"><value>Na&amp;me</value></data>
+  <data name="NameMode" xml:space="preserve"><value>Mod&amp;e</value></data>
+  <data name="NameText" xml:space="preserve"><value>&amp;Text</value></data>
+  <data name="NameModeKeep" xml:space="preserve"><value>Keep</value></data>
+  <data name="NameModeFixed" xml:space="preserve"><value>Fixed text</value></data>
+  <data name="NameModeRemove" xml:space="preserve"><value>Remove name</value></data>
+  <data name="NameModeReverse" xml:space="preserve"><value>Reverse</value></data>
+  <data name="ExtensionTitle" xml:space="preserve"><value>E&amp;xtension</value></data>
+  <data name="ExtensionMode" xml:space="preserve"><value>&amp;Mode</value></data>
+  <data name="ExtensionText" xml:space="preserve"><value>&amp;Text</value></data>
+  <data name="ExtensionModeSame" xml:space="preserve"><value>Same</value></data>
+  <data name="ExtensionModeLower" xml:space="preserve"><value>Lower case</value></data>
+  <data name="ExtensionModeUpper" xml:space="preserve"><value>Upper case</value></data>
+  <data name="ExtensionModeFixed" xml:space="preserve"><value>Fixed</value></data>
+  <data name="ExtensionModeExtra" xml:space="preserve"><value>Extra</value></data>
+  <data name="ExtensionModeRemove" xml:space="preserve"><value>Remove</value></data>
+  <data name="ExtensionNote" xml:space="preserve"><value>Only renames the file. It does not convert its content.</value></data>
   <data name="AddTitle" xml:space="preserve"><value>&amp;Add</value></data>
   <data name="AddPrefix" xml:space="preserve"><value>&amp;Prefix</value></data>
   <data name="AddInsert" xml:space="preserve"><value>&amp;Insert</value></data>
