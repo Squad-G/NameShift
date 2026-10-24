@@ -1,6 +1,6 @@
 # NS-54: Visual polish
 
-Status: In Review
+Status: Done
 Depends on: NS-15, NS-55, NS-30
 Area: app
 
@@ -108,3 +108,4 @@ No change in behaviour:
 - 2026-10-24: David chose the default look; criteria rewritten to be testable (Ui `Spacing`, `AccentColor`, source scans) and the rest by hand; set Ready (po).
 - 2026-10-24: In Progress (builder).
 - 2026-10-24: In Review (builder), PR #61.
+- 2026-10-24: Done (tech-lead), PR #61 merged; hand checks pending for David: the look at 100, 150 and 200 % display scale and in a high-contrast theme (aligned edges, even gaps, one font, one accent, readable titles, crisp icons, nothing clipped). For the po: AC 7's wording ("the title is bold") reads as if inactive titles were bold too; the build keeps inactive titles regular so bold still marks the active panel.

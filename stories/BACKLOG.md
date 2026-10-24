@@ -57,7 +57,7 @@ IDs), not the rank: the rank is the row order.
 | 67 | [NS-67 Hard cases on disk: read-only, in use, vanishing drive](NS-67-diskhardcases.md) | Done | NS-9, NS-15 |
 | 73 | [NS-73 One planner for the window and the command line](NS-73-renameplanner.md) | Done | NS-13, NS-52, NS-15 |
 | 38 | [NS-38 Command line: apply rules to a folder](NS-38-clicore.md) | Done | NS-8, NS-9, NS-12, NS-13, NS-73 |
-| 54 | [NS-54 Visual polish](NS-54-visual-polish.md) | In Review | NS-15, NS-55, NS-30 |
+| 54 | [NS-54 Visual polish](NS-54-visual-polish.md) | Done | NS-15, NS-55, NS-30 |
 | 60 | [NS-60 Numbering rule: restart in each folder](NS-60-numberingfolders.md) | Ready | NS-17, NS-29 |
 | 33 | [NS-33 Filters: settings model and filtered file list](NS-33-filterui.md) | Ready | NS-32, NS-51, NS-66, NS-73 |
 | 36 | [NS-36 Presets: format and store](NS-36-presets.md) | Ready | NS-12, NS-55, NS-30, NS-31, NS-59 |
