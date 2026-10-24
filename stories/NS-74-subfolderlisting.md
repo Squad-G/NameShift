@@ -1,6 +1,6 @@
 # NS-74: Sub-folders: recursive, cancellable listing
 
-Status: Ready
+Status: In Progress
 Depends on: NS-33, NS-66, NS-73
 Area: app
 
@@ -137,3 +137,4 @@ Relative folder and rename:
   `ExistingNamesByFolder`, `FilterPanelModel` and `FileListOrder`; order moved to the source, the model gets
   `IncludeSubfolders`/`SetIncludeSubfoldersAsync`, the tree refresh lists every folder; the controls moved to NS-78; set
   Ready (po).
+- 2026-10-24: In Progress (builder).
