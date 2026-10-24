@@ -8,6 +8,7 @@ namespace NameShift.Ui.Tests;
 public sealed class OpenTargetTests
 {
     private const string Work = @"C:\Work";
+    private const string Variable = "NAMESHIFT_TEST_NS47_OPEN";
 
     private readonly FakeFolderSource _source = new FakeFolderSource();
 
@@ -17,6 +18,7 @@ public sealed class OpenTargetTests
         new object?[] { new[] { @"D:\Pics" }, @"D:\Pics" },
         new object?[] { new[] { @"D:\Pics", @"E:\Other" }, @"D:\Pics" },
         new object?[] { new[] { "--verbose", @"D:\Pics" }, @"D:\Pics" },
+        new object?[] { new[] { " --verbose", @"D:\Pics" }, @"D:\Pics" },
         new object?[] { new[] { "" }, null },
         new object?[] { new[] { "   " }, null },
         new object?[] { new[] { "", @"D:\Pics" }, @"D:\Pics" },
@@ -84,10 +86,31 @@ public sealed class OpenTargetTests
     [Fact]
     public void PercentNotExpanded()
     {
-        // TEMP is set on every Windows machine: expanding it would look for another folder.
         _source.Folders.Add(@"C:\%TEMP%");
 
+        // TEMP is set on every Windows machine: expanding it would look for another folder.
         AssertFolder(@"C:\%TEMP%", Resolve(@"C:\%TEMP%"));
+    }
+
+    [Theory]
+    [InlineData(@"C:\%" + Variable + "%", @"C:\%" + Variable + "%")]
+    [InlineData("%" + Variable + "%", @"C:\Work\%" + Variable + "%")]
+    public void PercentNotExpanded_OwnVariable(string text, string expected)
+    {
+        // A variable this class owns (set and restored here): expanding it would give C:\Expanded or C:\Work\Expanded.
+        _source.Folders.Add(expected);
+        _source.Folders.Add(@"C:\Expanded");
+        _source.Folders.Add(@"C:\Work\Expanded");
+        string? before = Environment.GetEnvironmentVariable(Variable);
+        Environment.SetEnvironmentVariable(Variable, "Expanded");
+        try
+        {
+            AssertFolder(expected, Resolve(text));
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(Variable, before);
+        }
     }
 
     [Theory]
@@ -197,6 +220,7 @@ public sealed class OpenTargetTests
     [Theory]
     [InlineData("")]
     [InlineData("Work")]
+    [InlineData(@"\\server")]
     public void BadCurrentDirectory_Invalid(string currentDirectory)
     {
         AssertInvalid(OpenTarget.Resolve("Pics", currentDirectory, _source));

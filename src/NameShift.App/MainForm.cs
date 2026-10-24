@@ -36,6 +36,7 @@ internal sealed class MainForm : Form
     private readonly IFolderSource _source;
     private readonly string? _startArgument;
     private readonly string _currentDirectory;
+    private readonly OpenSequence _opens = new OpenSequence();
     private (string Folder, string FileName)? _pendingSelection;
     private bool _shownBusy;
 
@@ -161,7 +162,7 @@ internal sealed class MainForm : Form
         else
         {
             // One navigation once the path is resolved: Documents is never shown first for nothing.
-            _ = OpenAsync(_startArgument, isStart: true);
+            _ = OpenAsync(_startArgument);
         }
 
         _ = Actions.LoadJournalAsync();
@@ -266,6 +267,7 @@ internal sealed class MainForm : Form
 
     private void OnFolderChanged(object? sender, FolderChangedEventArgs e)
     {
+        _opens.Invalidate(); // a pending open from the command line or a drop is now stale
         _pathBar.ShowFolder(e.Path);
         ShowStatus("");
         _ = _folderTree.RevealAsync(e.Path);
@@ -315,21 +317,27 @@ internal sealed class MainForm : Form
     }
 
     /// <summary>Opens a path from the command line or a drop. Resolves off the UI thread; never throws.</summary>
-    private async Task OpenAsync(string text, bool isStart)
+    private async Task OpenAsync(string text)
     {
         try
         {
+            int ticket = _opens.Begin();
             OpenRequest request = await Task.Run(() => OpenTarget.Resolve(text, _currentDirectory, _source));
-            // A drop resolved while a Rename or Revert started must not move the locked window.
-            if (IsDisposed || (!isStart && Actions.IsBusy))
+            if (IsDisposed)
             {
                 return;
             }
 
-            if (request.Folder is null)
+            // A late resolve never moves a locked window nor undoes a navigation made meanwhile.
+            OpenAction action = _opens.Complete(ticket, request, Actions.IsBusy, _navigator.CurrentFolder != null);
+            if (action == OpenAction.Discard)
             {
-                // At start, fall back to the usual folder unless the user already picked one meanwhile.
-                if (isStart && _navigator.CurrentFolder is null)
+                return;
+            }
+
+            if (action != OpenAction.Open || request.Folder is null)
+            {
+                if (action == OpenAction.OpenStartFolder)
                 {
                     _navigator.Start();
                 }
@@ -426,7 +434,7 @@ internal sealed class MainForm : Form
             string? first = paths.FirstOrDefault(p => !string.IsNullOrEmpty(p));
             if (first != null)
             {
-                await OpenAsync(first, isStart: false);
+                await OpenAsync(first);
             }
         }
         catch (Exception)
