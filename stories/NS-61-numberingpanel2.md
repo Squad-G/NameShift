@@ -1,6 +1,6 @@
 # NS-61: Numbering panel: number system
 
-Status: In Progress
+Status: In Review
 Depends on: NS-53, NS-29
 Area: app
 
@@ -88,3 +88,4 @@ In the window (by hand, listed in the PR):
 - 2026-10-24: created when NS-29 was split (po).
 - 2026-10-24: restart checkbox left out until NS-33; criteria made testable against the NS-29 story and `NumberingPanelModel`; set Ready (NS-29 is merged) (po).
 - 2026-10-24: In Progress (builder).
+- 2026-10-24: In Review (builder), PR #50.
