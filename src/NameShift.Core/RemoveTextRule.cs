@@ -68,7 +68,7 @@ public sealed class RemoveTextRule : IRenameRule
 
     private string CropBeforeMarker(string s)
     {
-        var at = FindMarker(s, CropBefore, 0);
+        var at = FindOccurrence(s, CropBefore, 0);
         if (at < 0)
         {
             return s;
@@ -79,7 +79,7 @@ public sealed class RemoveTextRule : IRenameRule
 
     private string CropAfterMarker(string s)
     {
-        var at = FindMarker(s, CropAfter, 0);
+        var at = FindOccurrence(s, CropAfter, 0);
         if (at < 0)
         {
             return s;
@@ -98,7 +98,7 @@ public sealed class RemoveTextRule : IRenameRule
         var result = new StringBuilder();
         var copied = 0;
         var from = 0;
-        var at = FindMarker(s, Text, from);
+        var at = FindOccurrence(s, Text, from);
         while (at >= 0)
         {
             var end = at + Text.Length;
@@ -113,7 +113,7 @@ public sealed class RemoveTextRule : IRenameRule
                 from = end;
             }
 
-            at = from > s.Length ? -1 : FindMarker(s, Text, from);
+            at = FindOccurrence(s, Text, from);
         }
 
         return result.Append(s, copied, s.Length - copied).ToString();
@@ -158,7 +158,7 @@ public sealed class RemoveTextRule : IRenameRule
 
     /// <summary>The first match of <paramref name="marker"/> at or after <paramref name="from"/> that does not cut a
     /// surrogate pair in two, or -1.</summary>
-    private int FindMarker(string s, string marker, int from)
+    private int FindOccurrence(string s, string marker, int from)
     {
         if (marker.Length == 0)
         {
@@ -168,7 +168,7 @@ public sealed class RemoveTextRule : IRenameRule
         var at = s.IndexOf(marker, from, Comparison);
         while (at >= 0 && (SplitsPair(s, at) || SplitsPair(s, at + marker.Length)))
         {
-            at = at + 1 > s.Length ? -1 : s.IndexOf(marker, at + 1, Comparison);
+            at = s.IndexOf(marker, at + 1, Comparison);
         }
 
         return at;

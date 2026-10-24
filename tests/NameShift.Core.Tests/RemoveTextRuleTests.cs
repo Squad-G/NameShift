@@ -224,6 +224,15 @@ public sealed class RemoveTextRuleTests
     public void Run_Characters_RemovesAWholeSurrogatePair() =>
         Assert.Equal("ab.txt", RunOne(new RemoveTextRule(characters: "\U0001F600"), "a\U0001F600b.txt").NewName);
 
+    // Lone surrogates cannot go through [InlineData]: attribute strings are stored as UTF-8 and become U+FFFD.
+    [Fact]
+    public void Run_Text_PairSplittingCandidate_SearchGoesOnToTheNextMatch() =>
+        Assert.Equal("\U0001F600.txt", RunOne(new RemoveTextRule(text: "\uD83D"), "\U0001F600\uD83D.txt").NewName);
+
+    [Fact]
+    public void Run_Text_PairSplittingCandidate_NextSearchStartsOneCharacterLater() =>
+        Assert.Equal("\U0001F600.txt", RunOne(new RemoveTextRule(text: "\uDE00\uDE00"), "\U0001F600\uDE00\uDE00.txt").NewName);
+
     [Fact]
     public void Run_Characters_SameHighSurrogate_OtherEmoji_Untouched()
     {

@@ -33,7 +33,7 @@ IDs), not the rank: the rank is the row order.
 | 58 | [NS-58 Steady 10,000-file listing test](NS-58-flakyperf.md) | Done | NS-51 |
 | 16 | [NS-16 Replace rule: keep the case pattern of the found text](NS-16-replacecase.md) | Done | NS-2, NS-12 |
 | 55 | [NS-55 Panels for Name and Extension](NS-55-namepanels.md) | Done | NS-11, NS-18, NS-19, NS-16 |
-| 21 | [NS-21 Remove: characters, text, crop before/after](NS-21-removetext.md) | In Review | NS-1 |
+| 21 | [NS-21 Remove: characters, text, crop before/after](NS-21-removetext.md) | Done | NS-1 |
 | 22 | [NS-22 Remove: digits, symbols, accents, high characters](NS-22-removeclasses.md) | Ready | NS-1 |
 | 23 | [NS-23 Remove: trim, leading dots, double spaces](NS-23-removetidy.md) | Ready | NS-1 |
 | 30 | [NS-30 Panel for Remove](NS-30-morepanels.md) | Ready | NS-11, NS-20, NS-21, NS-22, NS-23 |
