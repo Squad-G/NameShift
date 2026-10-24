@@ -406,6 +406,9 @@ public static class Strings
 
     public static string NumberingStartInvalidRoman => Get(nameof(NumberingStartInvalidRoman));
 
+    /// <summary>Res&amp;tart in each folder</summary>
+    public static string NumberingRestartPerFolder => Get(nameof(NumberingRestartPerFolder));
+
     public static string ButtonRename => Get(nameof(ButtonRename));
 
     public static string ButtonRevert => Get(nameof(ButtonRevert));

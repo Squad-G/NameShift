@@ -50,6 +50,126 @@ public sealed class NumberingPanelModelTests
         Assert.Equal(9, (int)rule.Stage);
     }
 
+    [Fact]
+    public void RestartPerFolder_DefaultFalse_IsDefault()
+    {
+        var model = new NumberingPanelModel();
+
+        Assert.False(model.RestartPerFolder);
+        Assert.True(model.IsDefault);
+    }
+
+    [Fact]
+    public void RestartPerFolder_Set_RaisesOnce_NotDefault()
+    {
+        var model = new NumberingPanelModel();
+        int raised = 0;
+        model.Changed += (_, _) => raised++;
+
+        model.RestartPerFolder = true;
+
+        Assert.Equal(1, raised);
+        Assert.False(model.IsDefault);
+
+        model.RestartPerFolder = true;
+
+        Assert.Equal(1, raised);
+    }
+
+    [Fact]
+    public void Reset_ClearsRestartPerFolder()
+    {
+        var model = new NumberingPanelModel { RestartPerFolder = true };
+
+        model.Reset();
+
+        Assert.False(model.RestartPerFolder);
+        Assert.True(model.IsDefault);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void BuildRule_PassesRestartPerFolder(bool restart)
+    {
+        var model = new NumberingPanelModel
+        {
+            Mode = NumberingMode.Insert, StartText = "5", StepText = "2", PadText = "3", Separator = "-",
+            InsertPositionText = "2", RestartPerFolder = restart,
+        };
+
+        var rule = Assert.IsType<NumberingRule>(model.BuildRule());
+
+        Assert.Equal(restart, rule.BreakPerFolder);
+        Assert.Equal(NumberingMode.Insert, rule.Mode);
+        Assert.Equal(5, rule.Start);
+        Assert.Equal(2, rule.Step);
+        Assert.Equal(3, rule.Pad);
+        Assert.Equal("-", rule.Separator);
+        Assert.Equal(2, rule.InsertPosition);
+    }
+
+    [Fact]
+    public void RestartPerFolder_TwoFolders_Names()
+    {
+        var items = new[]
+        {
+            new RenameItem("a.txt", @"C:\x"), new RenameItem("b.txt", @"C:\x"),
+            new RenameItem("a.txt", @"C:\y"), new RenameItem("b.txt", @"C:\y"),
+        };
+
+        Assert.Equal(new[] { "a_1.txt", "b_2.txt", "a_1.txt", "b_2.txt" }, NamesWith(true, items));
+        Assert.Equal(new[] { "a_1.txt", "b_2.txt", "a_3.txt", "b_4.txt" }, NamesWith(false, items));
+    }
+
+    [Fact]
+    public void RestartPerFolder_OneFolder_SameNames()
+    {
+        var items = new[]
+        {
+            new RenameItem("a.txt", @"C:\x"), new RenameItem("b.txt", @"C:\x"),
+            new RenameItem("c.txt", @"C:\x"), new RenameItem("d.txt", @"C:\x"),
+        };
+
+        string[] on = NamesWith(true, items);
+
+        Assert.Equal(new[] { "a_1.txt", "b_2.txt", "c_3.txt", "d_4.txt" }, on);
+        Assert.Equal(on, NamesWith(false, items));
+    }
+
+    [Fact]
+    public void RestartPerFolder_SavedAndLoaded()
+    {
+        var model = new NumberingPanelModel { RestartPerFolder = true };
+        IReadOnlyDictionary<string, string> saved = model.SaveSettings();
+
+        model.Reset();
+        Assert.False(model.RestartPerFolder);
+
+        model.LoadSettings(saved);
+
+        Assert.True(model.RestartPerFolder);
+    }
+
+    [Fact]
+    public void OldPresetWithoutRestart_LoadsFalse()
+    {
+        var model = new NumberingPanelModel { RestartPerFolder = true };
+        var old = new Dictionary<string, string>(StringComparer.Ordinal) { ["StepText"] = "2" };
+
+        model.LoadSettings(old);
+
+        Assert.False(model.RestartPerFolder);
+        Assert.Equal("2", model.StepText);
+    }
+
+    private static string[] NamesWith(bool restart, RenameItem[] items)
+    {
+        var model = new NumberingPanelModel { RestartPerFolder = restart };
+        var pipeline = new RenamePipeline(new[] { model.BuildRule()! });
+        return pipeline.Run(items).Select(r => r.NewName).ToArray();
+    }
+
     [Theory]
     [InlineData(NumberingMode.Prefix)]
     [InlineData(NumberingMode.Suffix)]

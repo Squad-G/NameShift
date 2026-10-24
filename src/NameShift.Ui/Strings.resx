@@ -191,6 +191,7 @@
   <data name="NumberingStartInvalidHexadecimal" xml:space="preserve"><value>Type a hexadecimal number from 0 to 7FFFFFFF (digits 0-9 and A-F). Until then numbering is skipped.</value></data>
   <data name="NumberingStartInvalidLetters" xml:space="preserve"><value>Type letters from a (a, b, ... z, aa, ab ...). Until then numbering is skipped.</value></data>
   <data name="NumberingStartInvalidRoman" xml:space="preserve"><value>Type a Roman numeral from I to MMMCMXCIX (1 to 3999). Until then numbering is skipped.</value></data>
+  <data name="NumberingRestartPerFolder" xml:space="preserve"><value>Res&amp;tart in each folder</value></data>
   <data name="ButtonRename" xml:space="preserve"><value>Rename</value></data>
   <data name="ButtonRevert" xml:space="preserve"><value>Revert</value></data>
   <data name="ButtonReset" xml:space="preserve"><value>Reset</value></data>
