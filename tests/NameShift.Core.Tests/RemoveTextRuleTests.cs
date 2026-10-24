@@ -341,16 +341,35 @@ public sealed class RemoveTextRuleTests
         Assert.Equal(5, (int)RuleStage.Remove);
     }
 
-    [Theory]
-    [InlineData("\uD800")]
-    [InlineData("\0")]
-    public void Apply_NeverThrows_OnOddValues(string odd)
+    // Not [InlineData]: xUnit stores attribute strings as UTF-8, which turns a lone surrogate into U+FFFD, so the test
+    // would never see one. The odd values are C# literals here, which the compiler keeps as they are.
+    [Fact]
+    public void Apply_NeverThrows_OnLoneHighSurrogate() => AssertOddValueIsHandled("\uD800");
+
+    [Fact]
+    public void Apply_NeverThrows_OnLoneLowSurrogate() => AssertOddValueIsHandled("\uDC00");
+
+    [Fact]
+    public void Apply_NeverThrows_OnNul() => AssertOddValueIsHandled("\0");
+
+    /// <summary>Runs the rule with <paramref name="odd"/> as text, characters and both crops on a name that contains it,
+    /// and on an emoji name. The pipeline catches a rule's exception and returns the original name, so Status is checked
+    /// on every run.</summary>
+    private static void AssertOddValueIsHandled(string odd)
     {
         var whole = new RemoveTextRule(odd, odd, wholeWord: true, cropBefore: odd, cropAfter: odd, keepMarker: true);
         var plain = new RemoveTextRule(odd, odd, cropBefore: odd, cropAfter: odd);
+        var withOdd = "a" + odd + "b.txt";
+        const string emoji = "a\U0001F600b.txt";
 
-        Assert.True(LoneSurrogates(RunOne(whole, "a\uD800b.txt").NewName) <= 1);
-        Assert.True(LoneSurrogates(RunOne(plain, "a\uD800b.txt").NewName) <= 1);
-        Assert.Equal(0, LoneSurrogates(RunOne(plain, "a\U0001F600b.txt").NewName));
+        foreach (var (rule, name, maxLone) in new[]
+        {
+            (whole, withOdd, 1), (plain, withOdd, 1), (whole, emoji, 0), (plain, emoji, 0),
+        })
+        {
+            var result = RunOne(rule, name);
+            Assert.NotEqual(RenameStatus.Error, result.Status);
+            Assert.True(LoneSurrogates(result.NewName) <= maxLone, $"{LoneSurrogates(result.NewName)} lone surrogates");
+        }
     }
 }
