@@ -1,6 +1,6 @@
 # NS-16: Replace rule: keep the case pattern of the found text
 
-Status: In Progress
+Status: In Review
 Depends on: NS-2, NS-12
 Area: engine, app
 
@@ -64,3 +64,4 @@ from the letters of each found text (non-letters are skipped); every match is ju
 - 2026-10-23: back to Draft, blocked on the Alt-letter question; leading non-letter case added (po, from the PR #24 review).
 - 2026-10-23: David chose per-panel mnemonics; letter C and the test change (criterion 12) added; set Ready (po).
 - 2026-10-23: In Progress (builder).
+- 2026-10-23: In Review (builder), PR #27.
