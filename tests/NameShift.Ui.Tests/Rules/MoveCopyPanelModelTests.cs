@@ -158,6 +158,10 @@ public sealed class MoveCopyPanelModelTests
     }
 
     [Fact]
+    public void CountText_KeptAsTyped() =>
+        Assert.Equal(" 2 ", new MoveCopyPanelModel { CountText = " 2 " }.CountText);
+
+    [Fact]
     public void Strings_NumberInvalid_Wording()
     {
         Assert.Equal(
