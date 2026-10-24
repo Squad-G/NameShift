@@ -1,6 +1,6 @@
 # NS-25: Move or copy parts of the name
 
-Status: In Progress
+Status: In Review
 Depends on: NS-1
 Area: engine
 
