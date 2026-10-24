@@ -22,7 +22,8 @@ public sealed class RemovePositionRule : IRenameRule
     /// <summary>Characters removed from the end; null, 0 or negative removes nothing.</summary>
     public int? Last { get; }
 
-    /// <summary>1-based start of the removed range (inclusive); the range applies only when From is at least 1 and To is at least From.</summary>
+    /// <summary>1-based start of the removed range (inclusive); the range applies only when From is at least 1 and To
+    /// is at least From.</summary>
     public int? From { get; }
 
     /// <summary>1-based end of the removed range (inclusive), clamped to the length.</summary>

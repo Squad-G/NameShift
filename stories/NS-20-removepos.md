@@ -1,6 +1,6 @@
 # NS-20: Remove: first n, last n, from-to
 
-Status: In Review
+Status: Done
 Depends on: NS-1
 Area: engine
 
@@ -26,7 +26,7 @@ n, last n, then from-to. Counts are UTF-16 characters, as in Add.
 9. Given a cut that would split a surrogate pair (an emoji + `a`, first 1), then the whole pair is removed (`a`): the
    result never holds half a character.
 10. Given a hidden dotfile `.gitignore`, first 1, then `gitignore` (the whole name is the base, NS-1); given a folder
-    `Folder 1.2`, last 2, then `Folder 1.` (the whole name is the base).
+    `Folder 1.2`, last 2, then `Folder 1` (the whole name is the base).
 
 ## Out of scope
 - The Remove panel (NS-30).
@@ -44,3 +44,5 @@ n, last n, then from-to. Counts are UTF-16 characters, as in Add.
 - 2026-10-23: criteria made testable, order and surrogate handling decided, set Ready (po).
 - 2026-10-23: In Progress (builder).
 - 2026-10-23: In Review (builder), PR #32.
+- 2026-10-24: criterion 10 example corrected: `Folder 1.2` minus its last 2 characters is `Folder 1`, not `Folder 1.` (tech-lead, from the PR #32 review; code and test already right).
+- 2026-10-24: Done (tech-lead), PR #32 merged into dev.
