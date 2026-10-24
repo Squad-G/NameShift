@@ -1,6 +1,6 @@
 # NS-38: Command line: apply rules to a folder
 
-Status: In Progress
+Status: In Review
 Depends on: NS-8, NS-9, NS-12, NS-13, NS-73
 Area: app
 
@@ -110,3 +110,4 @@ Console:
 - 2026-10-24: after review: complete exit codes, shared planner (NS-73) and source-scan guard, public `ActionText`, rule
   errors, PE and WinForms test, input errors; depends on NS-73 (po).
 - 2026-10-24: In Progress (builder).
+- 2026-10-24: In Review (builder), PR #60.
