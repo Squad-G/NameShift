@@ -1,6 +1,6 @@
 # NS-65: README layout matches the repository
 
-Status: In Review
+Status: Done
 Depends on:
 Area: docs
 
@@ -42,3 +42,4 @@ project or folder, in this order, with a short plain description:
 - 2026-10-24: created and set Ready (po).
 - 2026-10-24: In Progress (builder).
 - 2026-10-24: In Review (builder), PR #55.
+- 2026-10-24: Done (tech-lead), PR #55 merged.
