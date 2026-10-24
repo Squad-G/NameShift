@@ -34,7 +34,14 @@ Model (`FileListModel`):
    nothing selected (or everything selected) the batch is still the whole list, now in the new order.
 8. Given a sort, then `Batch` is rebuilt for the new `Items` so `PreviewModel.TryGetRow` stays consistent, `Changed` and
    `SelectionChanged` are not raised, and one new event (`OrderChanged`) is raised once. A test with a counting
-   `PreviewModel` shows exactly one new preview run (no debounce) per sort, not one per event.
+   `PreviewModel` shows exactly one new preview run (no debounce) per sort, not one per event. The consumers of
+   `OrderChanged` are named: `PreviewModel` subscribes to it (today it listens to `Changed` and `SelectionChanged` only) and
+   recomputes as for a selection change but without the debounce, and `MainActions` subscribes to it and clears the
+   Rename lock of NS-57 (today it clears the lock on `Files.Changed`, `SelectionChanged` and `RulesChanged` only), because a
+   new order changes the numbering preview.
+8b. Test for the lock: given Rename has just run (the lock of NS-57 is on, same folder reloaded, rules kept) and then the
+   user sorts, then once the new preview is applied `CanRename` is true when the names still change; without the sort it
+   stays false.
 9. Given the model exposes the selected rows (a `SelectedRows` list: empty for none, every row for all), then after a sort it
    holds the new row indexes of the same items, so the control can re-select them (the whole-list batch alone cannot tell
    "none" from "all").
@@ -50,7 +57,8 @@ Window (by hand, listed in the PR):
 14. The sorted column's header shows a small up (ascending) or down (descending) arrow, drawn with the header's own sort
     flag (no text change, so the column names in `Strings` stay as they are); a freshly loaded folder shows no arrow.
 15. After a sort, the previously selected rows are selected again (and the first of them scrolled into view), the "N of M
-    files" count is unchanged, Rename stays disabled until the new preview is applied and then enables as before.
+    files" count is unchanged, Rename is disabled while the new preview is pending and enabled again once it is applied
+    (also right after a Rename, criterion 8b).
 16. Works at 150 % and 200 % scale and with a Windows contrast theme (the arrow comes from the system header).
 
 ## Out of scope
@@ -74,3 +82,4 @@ Window (by hand, listed in the PR):
 ## Log
 - 2026-10-24: split out of NS-46 (po).
 - 2026-10-24: criteria made testable; set Ready (po).
+- 2026-10-24: after review: `OrderChanged` consumers named (`PreviewModel`, `MainActions` clears the NS-57 Rename lock) and a test added (po).

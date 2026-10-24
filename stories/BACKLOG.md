@@ -55,21 +55,23 @@ IDs), not the rank: the rank is the row order.
 | 66 | [NS-66 Column sorting](NS-66-columnsort.md) | Ready | NS-51, NS-14, NS-13 |
 | 48 | [NS-48 Hard cases: names that look the same](NS-48-hardcases.md) | Ready | NS-6 |
 | 67 | [NS-67 Hard cases on disk: read-only, in use, vanishing drive](NS-67-diskhardcases.md) | Ready | NS-9, NS-15 |
-| 38 | [NS-38 Command line: apply rules to a folder](NS-38-clicore.md) | Ready | NS-8, NS-9, NS-12, NS-13 |
+| 73 | [NS-73 One planner for the window and the command line](NS-73-renameplanner.md) | Ready | NS-13, NS-52, NS-15 |
+| 38 | [NS-38 Command line: apply rules to a folder](NS-38-clicore.md) | Ready | NS-8, NS-9, NS-12, NS-13, NS-73 |
 | 54 | [NS-54 Visual polish](NS-54-visual-polish.md) | Ready | NS-15, NS-55, NS-30 |
 | 60 | [NS-60 Numbering rule: restart in each folder](NS-60-numberingfolders.md) | Ready | NS-17, NS-29 |
-| 33 | [NS-33 Filters and sub-folders: model and listing](NS-33-filterui.md) | Ready | NS-32, NS-51, NS-66 |
+| 33 | [NS-33 Filters: settings model and filtered file list](NS-33-filterui.md) | Ready | NS-32, NS-51, NS-66, NS-73 |
 | 36 | [NS-36 Presets: format and store](NS-36-presets.md) | Ready | NS-12, NS-55, NS-30, NS-31, NS-59 |
-| 70 | [NS-70 Filter row above the file list](NS-70-filterrow.md) | Draft | NS-33 |
+| 74 | [NS-74 Sub-folders: recursive, cancellable listing](NS-74-subfolderlisting.md) | Draft | NS-33, NS-66, NS-73 |
+| 70 | [NS-70 Filter row above the file list](NS-70-filterrow.md) | Draft | NS-33, NS-74 |
 | 71 | [NS-71 Numbering panel: restart in each folder](NS-71-numberingrestart.md) | Draft | NS-60, NS-61 |
 | 72 | [NS-72 Presets menu: save, load and delete](NS-72-presetmenu.md) | Draft | NS-36, NS-15 |
 | 37 | [NS-37 Remember last settings](NS-37-settings.md) | Draft | NS-36, NS-72 |
 | 34 | [NS-34 Copy or move to another folder (engine and executor)](NS-34-copymove.md) | Cancelled | NS-8, NS-9 |
 | 35 | [NS-35 Copy/move to location panel](NS-35-copymoveui.md) | Cancelled | NS-34, NS-15 |
-| 39 | [NS-39 Command line: dry run, conflicts and exit codes](NS-39-clidry.md) | Draft | NS-38 |
+| 39 | [NS-39 Command line: quiet and verbose output](NS-39-clidry.md) | Draft | NS-38 |
 | 40 | [NS-40 Command line: rules given as options](NS-40-clirules.md) | Draft | NS-38, NS-12 |
 | 69 | [NS-69 Command line: use a saved preset](NS-69-clipreset.md) | Draft | NS-38, NS-36 |
-| 41 | [NS-41 Command line: recursion and filters](NS-41-clifilters.md) | Draft | NS-38, NS-32 |
+| 41 | [NS-41 Command line: recursion and filters](NS-41-clifilters.md) | Draft | NS-38, NS-32, NS-33, NS-74 |
 | 45 | [NS-45 Safer Revert: detect changed files](NS-45-revertsafe.md) | Draft | NS-9 |
 | 42 | [NS-42 Command line: undo the last batch](NS-42-cliundo.md) | Draft | NS-38, NS-45 |
 | 43 | [NS-43 Command line: help and version](NS-43-clihelp.md) | Draft | NS-38 |

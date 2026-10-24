@@ -14,24 +14,32 @@ Look decided by David (2026-10-24): Windows system colours plus one accent from 
 and 12 px, original icons drawn in code. Logic that can be tested goes in `NameShift.Ui`; the App only draws.
 
 Spacing:
-1. `NameShift.Ui` gets `Spacing` with `public const int Small = 4, Medium = 8, Large = 12` (96-DPI logical pixels, scaled
-   with `LogicalToDeviceUnits` as today). Every `Padding(` and `Margin` in `src/NameShift.App` takes its numbers from
-   `Spacing` (0 is allowed as a literal). A test in `NameShift.Ui.Tests` reads the `.cs` files of `src/NameShift.App`
-   (found by walking up from the test folder to the folder holding `NameShift.sln`) and fails on any digit other than 0
-   inside a `Padding(` or `Margin` expression, naming the file and line.
-2. Given the migration, then panel and control sizes (widths, heights, column widths) are not part of this: only gaps and
-   padding. The window's layout is otherwise unchanged.
+1. `NameShift.Ui` gets `Spacing` with `public const int Small = 4, Medium = 8, Large = 12` (96-DPI logical pixels). Every
+   gap is `LogicalToDeviceUnits(Spacing.X)` (or `Spacing.Large + Spacing.Medium` where 20 is needed, below). A test in
+   `NameShift.Ui.Tests` reads the `.cs` files of `src/NameShift.App` (found by walking up from the test folder to the folder
+   holding `NameShift.slnx`; the test fails, it does not skip, when that file is not found) and fails on any digit other
+   than a lone `0` inside the argument list of a `new Padding(...)` expression (up to its matching closing parenthesis),
+   naming the file and line. `Padding.Empty`, `Spacing.` names and `LogicalToDeviceUnits(Spacing.Small)` pass. Calls to
+   `SetIconPadding(control, 2)` are not `new Padding(` expressions and are not scanned (the 2 px icon gap is kept).
+2. Mapping of today's values, owned by this story (a shift of at most 2 px, and the unscaled values now scale with the
+   display): `3` (the margins and the frame padding) becomes `Small` (4); `6` (`MainForm.cs:194`) and `8` (`MainForm.cs:201`,
+   `PathBar.cs:41`) become `Medium` (8); the `20` that leaves room for the error icon becomes `Spacing.Large +
+   Spacing.Medium`; `4` stays `Small`. The unscaled literals of `PathBar.cs` and `MainForm.cs` are wrapped in
+   `LogicalToDeviceUnits`, so at 150 % and 200 % they grow as the rest does (an intended correction, not a regression).
+   Sizes (widths, heights, column widths, splitter distances) are not part of this story and stay as they are.
 
 Font:
 3. Given the main window and every dialog, then the font is `SystemFonts.MessageBoxFont` (Segoe UI at the system size),
-   set once on `MainForm` and inherited. The same test scan fails on a font family name literal (`"Segoe UI"`, `"Arial"`,
-   `"Microsoft Sans Serif"`, ...) or `new Font("` anywhere in the App sources.
+   set once on `MainForm` and inherited. The same test scan (same root, same failure rule) fails on `new Font(` whose first
+   argument is a string literal and on `new FontFamily(` anywhere in the App sources. `new Font(_list.Font, FontStyle.Bold)`
+   (a derived font) is allowed.
 
 Colours:
 4. Given any colour in the App, then it comes from `SystemColors`, from the accent (criterion 5), or from the two named
    status colours in one `Palette` class (the green and the red of NS-13/NS-52 with their 4.5:1 contrast and high-contrast
-   fallback, unchanged). The same test scan fails on `Color.FromArgb`, `Color.Red`-style named colours or `ColorTranslator`
-   outside `Palette.cs`.
+   fallback, unchanged; they move out of `FileList.cs` into `Palette.cs`). The same test scan fails, outside `Palette.cs`,
+   on `Color.FromArgb`, `Color.FromName`, `ColorTranslator` and any `Color.<Name>` other than `Color.Empty` and
+   `Color.Transparent` (so `Color.Red` fails, `SystemColors.X` is fine).
 5. `NameShift.Ui` gets `AccentColor` with pure integer logic (colours as ARGB `int`, no System.Drawing):
    - `Derive(int windowsAccentArgb, int highlightArgb, bool highContrast)` returns `highlightArgb` when `highContrast` is
      true or the accent is 0 (unreadable); else the accent made darker, in steps, until its contrast ratio against white
@@ -42,9 +50,10 @@ Colours:
      returned unchanged with alpha `0xFF`; high contrast returns the highlight; accent 0 returns the highlight.
    - In the App a small `AccentSource` reads the accent from the current user's `DWM\ColorizationColor` registry value
      (read only, no write, nothing sent anywhere) and falls back to `SystemColors.Highlight` when it is missing or unreadable.
-6. The accent is used in exactly three places: the border and title colour of the active rule panel (NS-11), the Rename
-   button's icon, and the focus/hover edge of the three action buttons if a custom one is drawn. Never as the only cue:
-   the active panel keeps its bold title and its screen-reader description (NS-11).
+6. The accent is used in two places: the border and title colour of the active rule panel (NS-11) and the Rename button's
+   icon. Testable rule: the same scan finds `AccentSource` in `Palette.cs`, `RulePanelFrame.cs` and `ButtonIcons.cs`
+   only (a fourth file fails). It is never the only cue: the active panel keeps its bold title and its screen-reader
+   description (NS-11, by hand).
 
 Panels:
 7. Given a rule panel, then inactive panels have a subtle border (`SystemColors.ControlDark`) and the title is bold at the
@@ -60,8 +69,9 @@ Icons:
 No change in behaviour:
 10. Given the same folder and rules as before, then the preview, conflicts, selection, rename and revert results are
     identical: all existing tests pass unchanged.
-11. Given the Release output folder of the App (the published files, in bytes), then its size after the story is at most
-    0.5 MB larger; the PR states both numbers.
+11. Given `dotnet build -c Release`, then the total size of the `*.exe`, `*.dll` and `*.config` files in
+    `src/NameShift.App/bin/Release/net48` (no `.pdb`, no `.xml`, no test projects, no `NameShiftCmd.exe`) after the story is
+    at most 0.5 MB larger than before; the PR states both numbers (by hand).
 12. By hand, at 100 % and 200 % scale, in the light theme and in a high-contrast theme (checklist in the PR; David's
     check): aligned edges, even gaps, one font, one accent, readable titles, crisp icons, nothing clipped.
 
@@ -85,11 +95,14 @@ No change in behaviour:
 - Keep the green and red status colours? **Decision:** yes, in one `Palette` class; they carry meaning (changed, error) and
   were chosen for contrast (po, 2026-10-24).
 - Tests that read source files? **Decision:** accepted for the three rules of this story (spacing, fonts, colours), so
-  the style cannot drift; they are skipped with a clear message when the sources are not found (po, 2026-10-24).
+  the style cannot drift; they fail with a clear message when `NameShift.slnx` or the sources are not found, never skip
+  (the test projects have no run-time skip) (po, 2026-10-24).
 
 ## Log
 - 2026-10-18: created (po).
 - 2026-10-18: criteria 1-5 and 7 tightened: size measured on the Release output folder (no installer yet), spacing, font, colour, title and icon checks made testable (po, from the PR #19 review).
 - 2026-10-23: reordered after NS-30; kept Draft on purpose (po).
 - 2026-10-24: the panels it waited for are Done (all eleven). Kept Draft until David chose the look.
+- 2026-10-24: after review: `NameShift.slnx`, fail not skip, exact scan tokens, `SetIconPadding` exempt, mapping of today's
+  3/6/8/20 values, accent rule made a scan, size files defined (po).
 - 2026-10-24: David chose the default look; criteria rewritten to be testable (Ui `Spacing`, `AccentColor`, source scans) and the rest by hand; set Ready (po).

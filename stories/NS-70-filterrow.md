@@ -1,11 +1,12 @@
 # NS-70: Filter row above the file list
 
 Status: Draft
-Depends on: NS-33
+Depends on: NS-33, NS-74
 Area: app
 
 ## Why
-The window controls for the filters and the sub-folders option (part b of the original NS-33). Set Ready when NS-33 is merged.
+The window controls for the filters and the sub-folders option (part b of the original NS-33). Set Ready when NS-33 and
+NS-74 are merged.
 
 ## Acceptance criteria
 Layout decided by David (2026-10-24): one compact row above the file list: a mask box, Files and Folders check boxes,

@@ -21,7 +21,8 @@ Apply a preset saved in the window from a script. (Split from NS-38; waits for p
 - Anything not listed above.
 
 ## Decisions
-- Why a separate story? **Decision:** presets (NS-36) wait on a question for David; the CLI must not (po, 2026-10-24).
+- Why a separate story? **Decision:** the first CLI story (NS-38) must not wait for presets (NS-36), which are built in
+  the same round; this one follows both (po, 2026-10-24).
 
 ## Log
 - 2026-10-24: split out of NS-38 and NS-40 (po).

@@ -1,7 +1,7 @@
 # NS-37: Remember last settings
 
 Status: Draft
-Depends on: NS-36
+Depends on: NS-36, NS-72
 Area: app
 
 ## Why

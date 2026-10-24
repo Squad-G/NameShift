@@ -29,6 +29,11 @@ case, for the new names, the existing names of the folder and the batch's origin
    three checks flags it, and it is not touched. (Already true: this criterion pins it with a test for the three checks
    on a 250-character name.)
 
+## Notes
+- Two real files named `café.txt` in NFC and NFD form in one folder would hide each other once one of them is renamed
+  away (the check keys them as one name). This is safe: the executor's real disk check (NS-8) still refuses a rename onto an
+  existing entry. Accepted.
+
 ## Out of scope
 - Disk behaviour (read-only, in use, drive vanishing): NS-67.
 - Changing the file's name to its NFC form on purpose (a rule for it, if ever wanted, is a new story).
@@ -46,3 +51,4 @@ case, for the new names, the existing names of the folder and the batch's origin
 ## Log
 - 2026-10-18: created (po).
 - 2026-10-24: criteria made testable, disk cases split to NS-67; set Ready (po).
+- 2026-10-24: after review: note on NFC/NFD twins added (po).

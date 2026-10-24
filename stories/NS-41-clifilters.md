@@ -1,7 +1,7 @@
 # NS-41: Command line: recursion and filters
 
 Status: Draft
-Depends on: NS-38, NS-32
+Depends on: NS-38, NS-32, NS-33, NS-74
 Area: app
 
 ## Why

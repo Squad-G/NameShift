@@ -1,7 +1,7 @@
 # NS-40: Command line: rules given as options
 
 Status: Draft
-Depends on: NS-38, NS-12 (all rule panels)
+Depends on: NS-38, NS-12
 Area: app
 
 ## Why
