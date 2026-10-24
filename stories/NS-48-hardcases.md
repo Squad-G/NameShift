@@ -1,6 +1,6 @@
 # NS-48: Hard cases: names that look the same
 
-Status: In Progress
+Status: In Review
 Depends on: NS-6
 Area: engine
 
@@ -53,3 +53,4 @@ case, for the new names, the existing names of the folder and the batch's origin
 - 2026-10-24: criteria made testable, disk cases split to NS-67; set Ready (po).
 - 2026-10-24: after review: note on NFC/NFD twins added (po).
 - 2026-10-24: In Progress (builder).
+- 2026-10-24: In Review (builder), PR #57.
