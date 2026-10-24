@@ -1,6 +1,6 @@
 # NS-24: RegEx rule
 
-Status: Ready
+Status: Done
 Depends on: NS-1
 Area: engine
 
@@ -78,3 +78,6 @@ extension afterwards, as `ReplaceRule` does).
 ## Log
 - 2026-10-18: created (po).
 - 2026-10-23: criteria made testable (options, validation, timeout, group syntax, edge cases), set Ready (po).
+- 2026-10-24: In Progress (builder).
+- 2026-10-24: In Review (builder), PR #38.
+- 2026-10-24: Done (tech-lead), PR #38 merged into dev; review nits folded (no-Multiline test, 100 ms timeout pinned).
