@@ -244,7 +244,7 @@ internal sealed class FolderTree : UserControl
     /// without it nothing changes and a level that is not rendered ends the walk.</summary>
     private TreeNode? FindTreeNode(FolderNode target, bool render = true)
     {
-        var chain = new System.Collections.Generic.Stack<FolderNode>();
+        var chain = new Stack<FolderNode>();
         for (FolderNode? n = target; n != null; n = n.Parent)
         {
             chain.Push(n);
