@@ -18,6 +18,21 @@ public sealed class NamePanelModelTests
         string[] texts = NamePanelModel.Modes.Select(NameModeText.For).ToArray();
         Assert.All(texts, t => Assert.False(string.IsNullOrEmpty(t)));
         Assert.Equal(texts.Length, texts.Distinct().Count());
+        Assert.Equal(Strings.NameModeKeep, NameModeText.For(NameMode.Keep));
+        Assert.Equal(Strings.NameModeFixed, NameModeText.For(NameMode.Fixed));
+        Assert.Equal(Strings.NameModeRemove, NameModeText.For(NameMode.Remove));
+        Assert.Equal(Strings.NameModeReverse, NameModeText.For(NameMode.Reverse));
+    }
+
+    [Fact]
+    public void IndexOf_RoundTripsEveryMode_AndRejectsUnlisted()
+    {
+        for (int i = 0; i < NamePanelModel.Modes.Count; i++)
+        {
+            Assert.Equal(i, NamePanelModel.IndexOf(NamePanelModel.Modes[i]));
+        }
+
+        Assert.Equal(-1, NamePanelModel.IndexOf((NameMode)99));
     }
 
     [Theory]

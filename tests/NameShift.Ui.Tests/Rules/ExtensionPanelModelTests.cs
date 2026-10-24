@@ -18,6 +18,23 @@ public sealed class ExtensionPanelModelTests
         string[] texts = ExtensionPanelModel.Modes.Select(ExtensionModeText.For).ToArray();
         Assert.All(texts, t => Assert.False(string.IsNullOrEmpty(t)));
         Assert.Equal(texts.Length, texts.Distinct().Count());
+        Assert.Equal(Strings.ExtensionModeSame, ExtensionModeText.For(ExtensionMode.Same));
+        Assert.Equal(Strings.ExtensionModeLower, ExtensionModeText.For(ExtensionMode.Lower));
+        Assert.Equal(Strings.ExtensionModeUpper, ExtensionModeText.For(ExtensionMode.Upper));
+        Assert.Equal(Strings.ExtensionModeFixed, ExtensionModeText.For(ExtensionMode.Fixed));
+        Assert.Equal(Strings.ExtensionModeExtra, ExtensionModeText.For(ExtensionMode.Extra));
+        Assert.Equal(Strings.ExtensionModeRemove, ExtensionModeText.For(ExtensionMode.Remove));
+    }
+
+    [Fact]
+    public void IndexOf_RoundTripsEveryMode_AndRejectsUnlisted()
+    {
+        for (int i = 0; i < ExtensionPanelModel.Modes.Count; i++)
+        {
+            Assert.Equal(i, ExtensionPanelModel.IndexOf(ExtensionPanelModel.Modes[i]));
+        }
+
+        Assert.Equal(-1, ExtensionPanelModel.IndexOf((ExtensionMode)99));
     }
 
     [Theory]

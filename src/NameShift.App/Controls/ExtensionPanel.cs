@@ -13,7 +13,10 @@ internal sealed class ExtensionPanel : UserControl
     private readonly ExtensionPanelModel _model;
     private readonly ComboBox _mode = new ComboBox();
     private readonly TextBox _text = new TextBox();
+    private const int NoteLogicalWidth = 220;
+
     private readonly Label _textLabel;
+    private readonly Label _note = new Label();
 
     public ExtensionPanel(ExtensionPanelModel model)
     {
@@ -53,17 +56,24 @@ internal sealed class ExtensionPanel : UserControl
 
         Label textLabel = RulePanelLayout.AddLabeledRow(table, Strings.ExtensionText, _text);
 
-        var note = new Label
-        {
-            Text = Strings.ExtensionNote,
-            AutoSize = true,
-            UseMnemonic = false,
-            ForeColor = SystemColors.GrayText,
-        };
-        RulePanelLayout.AddSpanningRow(table, note);
+        _note.Text = Strings.ExtensionNote;
+        _note.AutoSize = true;
+        _note.UseMnemonic = false;
+        _note.ForeColor = SystemColors.GrayText;
+        ApplyNoteWidth();
+        RulePanelLayout.AddSpanningRow(table, _note);
         Controls.Add(table);
         return textLabel;
     }
+
+    protected override void OnDpiChangedAfterParent(EventArgs e)
+    {
+        base.OnDpiChangedAfterParent(e);
+        ApplyNoteWidth();
+    }
+
+    /// <summary>Lets the note wrap within the width of the other panels.</summary>
+    private void ApplyNoteWidth() => _note.MaximumSize = new Size(LogicalToDeviceUnits(NoteLogicalWidth), 0);
 
     private void OnModeSelected(object? sender, EventArgs e)
     {
