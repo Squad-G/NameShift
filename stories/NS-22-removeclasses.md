@@ -1,6 +1,6 @@
 # NS-22: Remove: digits, symbols, accents, high characters
 
-Status: Ready
+Status: Done
 Depends on: NS-1
 Area: engine
 
@@ -70,3 +70,6 @@ runtime's Unicode data (the tests run on net10.0, the app on .NET Framework 4.8)
 ## Log
 - 2026-10-18: created (po).
 - 2026-10-23: criteria made testable (classes defined, order, lone surrogate, normalisation), set Ready (po).
+- 2026-10-23: In Progress (builder).
+- 2026-10-23: In Review (builder), PR #35.
+- 2026-10-24: Done (tech-lead), PR #35 merged into dev.
