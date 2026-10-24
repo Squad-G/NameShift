@@ -1,6 +1,6 @@
 # NS-46: Clear row messages
 
-Status: Ready
+Status: In Progress
 Depends on: NS-52
 Area: app
 
@@ -62,3 +62,4 @@ In the window (by hand, listed in the PR):
 ## Log
 - 2026-10-18: created (po).
 - 2026-10-24: sorting split out to NS-66; exact wording written and criteria made testable against `ConflictText`; set Ready (po).
+- 2026-10-24: In Progress (builder).
