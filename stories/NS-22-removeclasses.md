@@ -18,10 +18,15 @@ result.
    (`P*` and `S*`: `!`, `@`, `#`, `-`, `_`, `.`, `+`, `€`, `©`), never letters, digits, spaces or combining marks. A
    dot inside the base name goes too (`a.b.txt` has the base `a.b`, so `ab.txt`); the extension's dot stays.
 3. Given `café.txt` (with the precomposed `é` U+00E9) and accents, then `cafe.txt`; given `cafe` + U+0301 (combining
-   acute), then `cafe.txt` as well. Letters are decomposed (Unicode FormD), the non-spacing marks (category `Mn`) are
-   dropped, and the rest is recomposed (FormC). `ß`, `ø`, `đ` and `æ` have no decomposition and stay as they are.
-4. Given a name with no accent, then the accents part leaves the text exactly as it was: a name already in
-   decomposed form with no marks is not normalised, and the result is `Unchanged` when nothing else applies.
+   acute), then `cafe.txt` as well. Letters are decomposed (Unicode FormD), the marks in the Combining Diacritical
+   Marks block (U+0300 to U+036F, all non-spacing) are dropped, and the rest is recomposed (FormC). `ß`, `ø`, `đ` and
+   `æ` have no decomposition and stay as they are. Also `Ñandú` gives `Nandu`, and a Vietnamese `ệ` gives `e`.
+4. Given a name with no mark in U+0300 to U+036F, then the accents part leaves the text exactly as it was, with no
+   normalisation at all. Test inputs, each with accents on and nothing else, each giving `Unchanged`: decomposed
+   Hangul U+1112 U+1161 U+11AB + `.txt` (FormC would join it into one syllable, so a rule that always recomposes
+   fails), and `か` + U+3099 + `.txt` (a Japanese voiced mark, which is not an accent).
+   Given the mixed names `한é.txt` and `éが.txt`, then `한e.txt` and `eが.txt`: the marks of other scripts survive
+   the decompose and recompose round trip.
 5. Given a name with a lone surrogate (an unpaired half of an emoji, possible in an NTFS name) and accents, then the
    accents part does nothing and does not throw (`string.Normalize` throws on it: the rule catches that case before
    it can), and the other options still apply.
@@ -58,6 +63,9 @@ runtime's Unicode data (the tests run on net10.0, the app on .NET Framework 4.8)
   `EmptyName` (po, 2026-10-23).
 - Normalisation form? **Decision:** FormD then FormC, only when a mark was removed, so untouched names are never
   rewritten (po, 2026-10-23).
+- Which marks count as accents? **Decision:** only U+0300 to U+036F (Combining Diacritical Marks). Dropping every
+  non-spacing mark would change Japanese voiced marks (`が` to `か`) and Indic vowel signs, which break words; the
+  feature is about Latin, Greek and Cyrillic accents (po, 2026-10-23, from the PR #31 review).
 
 ## Log
 - 2026-10-18: created (po).

@@ -8,6 +8,7 @@ Area: engine
 Add the name of the parent folder(s) to a file name, for example to tell the photos of two trips apart.
 
 ## Acceptance criteria
+A new public enum `FolderNamePlacement { Prefix, Suffix }` in Core, and
 `FolderNameRule(FolderNamePlacement placement = Prefix, int levels = 1, string separator = "_")`, stage FolderName
 (10, after Numbering). The folders come from `RenameItem.FolderPath` (the item's containing folder; for a folder item,
 its parent). Both `\` and `/` separate the segments, empty segments and a trailing separator are ignored. `Prefix` puts

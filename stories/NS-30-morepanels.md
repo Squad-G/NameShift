@@ -41,9 +41,12 @@ In `NameShift.Ui` (tests in `NameShift.Ui.Tests`):
    leave ` a.txt`); `IMG_ Photo 1.jpg` with `FirstText` = 4, `Digits` and `Trim` gives `Photo.jpg`.
 6. Given an unusable position text (`0`, `-2`, `abc`, `1.5`), then the model marks it (`FirstInvalid`, `LastInvalid`,
    `FromInvalid`, `ToInvalid`) and `BuildRule` skips that part of the position rule without throwing. A text is
-   invalid when it is not empty or white space and `TextPosition.Parse` gives null. Given From and To where only one
-   is typed, or From is after To, then the range is not applied and the model marks both fields (`FromInvalid` and
-   `ToInvalid` true). Given an empty field, then it is never marked unless the range rule above says so.
+   invalid when it is not empty or white space and `TextPosition.Parse` gives null. For `First` and `Last`, that is the
+   whole rule. For the range, one rule: it applies only when both texts parse and From is not after To; when it
+   cannot apply and at least one of the two texts is typed (not empty or white space), then both `FromInvalid` and
+   `ToInvalid` are true; when both are empty, neither is. Examples: From `abc` with To `5`, then both marked (and the
+   reverse: From `5` with To `abc`); From `3` with To empty, then both marked; From `5` with To `2`, then both
+   marked; From `2` with To `5`, then neither.
 7. Given `Characters` or `Text` typed with white space around it, then it is passed as typed (a space can be the
    thing to remove); an empty value means no part.
 8. Given the options that need a text, then the model exposes `WholeWordApplies` (true when `Text` is not empty),
@@ -65,10 +68,10 @@ In `NameShift.Ui` (tests in `NameShift.Ui.Tests`):
     "&Digits" (D), "&Symbols" (S), "Acce&nts" (N), "Hi&gh characters" (G); Tidy: "T&rim spaces" (R), "Leading d&ots"
     (O), "Double s&paces" (P). All 19 letters are distinct inside the panel and none repeats the title's E. The panel
     titles then are R, C, E, A, N, M, X (Replace, Case, Remove, Add, Numbering, Name, Extension), all distinct. The
-    four group captions ("Position", "Text", "Characters", "Tidy") have no mnemonic.
+    four group captions ("Position", "Text", "Character types", "Tidy") have no mnemonic.
 
 In the window (by hand, listed in the PR):
-14. The panel groups its settings under the four captions in the order Position, Text, Characters, Tidy; invalid
+14. The panel groups its settings under the four captions in the order Position, Text, Character types, Tidy; invalid
     position fields show the error icon and an accessible description, not colour alone (the `RulePanelLayout.Mark`
     helper of NS-53); the tab order follows the visual order; the panel fits at 100 % and 200 % scale (the stack
     scrolls when the window is small); a screen reader reads the title, each label and the disabled state.

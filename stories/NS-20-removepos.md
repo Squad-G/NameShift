@@ -35,7 +35,7 @@ n, last n, then from-to. Counts are UTF-16 characters, as in Add.
 ## Decisions
 - Positions are 1-based and inclusive, as in Add (po, 2026-10-18).
 - One class for three parts? **Decision:** yes, one rule with three optional parts, as Add does; the panel (NS-30)
-  builds one rule per group (po, 2026-10-23).
+  builds one `RemoveGroupRule` from the four Remove rules (po, 2026-10-23).
 - Split surrogate pair? **Decision:** remove the whole pair, since an unpaired surrogate makes an invalid name (po,
   2026-10-23).
 
