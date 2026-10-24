@@ -64,7 +64,7 @@ public sealed class FirstPanelsTests
             {
                 Strings.NumberingMode, Strings.NumberingStart, Strings.NumberingStep, Strings.NumberingPad,
                 Strings.NumberingSeparator, Strings.NumberingPosition, Strings.NumberingSystem,
-                Strings.NumberingCase,
+                Strings.NumberingCase, Strings.NumberingRestartPerFolder,
             }),
             (Strings.NameTitle, new[] { Strings.NameMode, Strings.NameText }),
             (Strings.ExtensionTitle, new[] { Strings.ExtensionMode, Strings.ExtensionText }),
@@ -125,6 +125,14 @@ public sealed class FirstPanelsTests
                 Strings.NumberingSystemRoman, Strings.NumberingCaseUpper, Strings.NumberingCaseLower,
             },
             word => Assert.DoesNotContain("&", word));
+    }
+
+    [Fact]
+    public void NumberingRestart_UsesLetterT()
+    {
+        Assert.Equal('T', MnemonicCheck.LetterOf(Strings.NumberingRestartPerFolder));
+        Assert.Equal("Res&tart in each folder", Strings.NumberingRestartPerFolder);
+        Assert.Equal("Restart in each folder", RulePanelText.PlainTitle(Strings.NumberingRestartPerFolder));
     }
 
     [Fact]
@@ -497,6 +505,7 @@ public sealed class FirstPanelsTests
         Change(new FolderNamePanelModel(), m => m.Separator = "x"),
         Change(new NumberingPanelModel(), m => m.Numerals = NumeralSystem.Hexadecimal),
         Change(new NumberingPanelModel(), m => m.UpperCase = false),
+        Change(new NumberingPanelModel(), m => m.RestartPerFolder = true),
     };
 
     [Theory]
