@@ -50,8 +50,8 @@ IDs), not the rank: the rank is the row order.
 | 61 | [NS-61 Numbering panel: number system](NS-61-numberingpanel2.md) | Done | NS-53, NS-29 |
 | 47 | [NS-47 Open a folder from the command line or by drag and drop](NS-47-openpath.md) | Done | NS-10, NS-51 |
 | 46 | [NS-46 Clear row messages](NS-46-rowhelp.md) | Done | NS-52 |
-| 32 | [NS-32 Filters: mask, regex, kinds and length](NS-32-filterengine.md) | Ready | NS-1 |
-| 65 | [NS-65 README layout matches the repository](NS-65-readmelayout.md) | Ready | |
+| 32 | [NS-32 Filters: mask, regex, kinds and length](NS-32-filterengine.md) | Done | NS-1 |
+| 65 | [NS-65 README layout matches the repository](NS-65-readmelayout.md) | Done | |
 | 66 | [NS-66 Column sorting](NS-66-columnsort.md) | Ready | NS-51, NS-14, NS-13 |
 | 48 | [NS-48 Hard cases: names that look the same](NS-48-hardcases.md) | Ready | NS-6 |
 | 67 | [NS-67 Hard cases on disk: read-only, in use, vanishing drive](NS-67-diskhardcases.md) | Ready | NS-9, NS-15 |
