@@ -25,14 +25,16 @@
   <data name="ColumnName" xml:space="preserve"><value>Name</value></data>
   <data name="ColumnNewName" xml:space="preserve"><value>New Name</value></data>
   <data name="ColumnStatus" xml:space="preserve"><value>Status</value></data>
-  <data name="ConflictInvalidCharacter" xml:space="preserve"><value>Not allowed in a name: {0}</value></data>
-  <data name="ConflictReservedName" xml:space="preserve"><value>Reserved by Windows: {0}</value></data>
-  <data name="ConflictTrailingDotOrSpace" xml:space="preserve"><value>Ends with a dot or a space</value></data>
-  <data name="ConflictEmptyName" xml:space="preserve"><value>Name is empty</value></data>
-  <data name="ConflictNameTooLong" xml:space="preserve"><value>Name is too long</value></data>
-  <data name="ConflictDuplicateTarget" xml:space="preserve"><value>Same new name as another file</value></data>
-  <data name="ConflictTargetExists" xml:space="preserve"><value>A file with this name already exists</value></data>
-  <data name="ConflictPathTooLong" xml:space="preserve"><value>Full path is too long</value></data>
+  <data name="ConflictInvalidCharacterOne" xml:space="preserve"><value>Windows does not allow this character in a name: {0}</value></data>
+  <data name="ConflictInvalidCharacter" xml:space="preserve"><value>Windows does not allow these characters in a name: {0}</value></data>
+  <data name="ConflictReservedName" xml:space="preserve"><value>Windows reserves the name {0}: change it</value></data>
+  <data name="ConflictReservedNameNoDetail" xml:space="preserve"><value>Windows reserves this name: change it</value></data>
+  <data name="ConflictTrailingDotOrSpace" xml:space="preserve"><value>A name cannot end with a dot or a space: remove it</value></data>
+  <data name="ConflictEmptyName" xml:space="preserve"><value>The new name is empty: keep some text in the name</value></data>
+  <data name="ConflictNameTooLong" xml:space="preserve"><value>The name is longer than {0} characters: shorten it</value></data>
+  <data name="ConflictDuplicateTarget" xml:space="preserve"><value>Another item gets the same new name: change one of them</value></data>
+  <data name="ConflictTargetExists" xml:space="preserve"><value>An item with this name already exists in the folder: choose another name</value></data>
+  <data name="ConflictPathTooLong" xml:space="preserve"><value>The full path would be longer than {0} characters: shorten the name</value></data>
   <data name="ConflictSeparator" xml:space="preserve"><value>; </value></data>
   <data name="ConflictSummaryOne" xml:space="preserve"><value>1 conflict</value></data>
   <data name="ConflictSummaryMany" xml:space="preserve"><value>{0} conflicts</value></data>

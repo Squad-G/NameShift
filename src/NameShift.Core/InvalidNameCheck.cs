@@ -8,7 +8,7 @@ namespace NameShift.Core;
 public sealed class InvalidNameCheck : IConflictCheck
 {
     /// <summary>The longest name NTFS accepts, in UTF-16 units.</summary>
-    private const int MaxNameLength = 255;
+    public const int MaxNameLength = 255;
 
     private static readonly IReadOnlyList<Conflict> None = Array.Empty<Conflict>();
 

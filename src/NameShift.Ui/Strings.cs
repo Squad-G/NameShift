@@ -54,20 +54,34 @@ public static class Strings
 
     public static string ColumnStatus => Get(nameof(ColumnStatus));
 
+    /// <summary>"Windows does not allow this character in a name: {0}" (one character).</summary>
+    public static string ConflictInvalidCharacterOne => Get(nameof(ConflictInvalidCharacterOne));
+
+    /// <summary>"Windows does not allow these characters in a name: {0}" (two or more characters, or none).</summary>
     public static string ConflictInvalidCharacter => Get(nameof(ConflictInvalidCharacter));
 
+    /// <summary>"Windows reserves the name {0}: change it".</summary>
     public static string ConflictReservedName => Get(nameof(ConflictReservedName));
 
+    /// <summary>"Windows reserves this name: change it" (no name known).</summary>
+    public static string ConflictReservedNameNoDetail => Get(nameof(ConflictReservedNameNoDetail));
+
+    /// <summary>"A name cannot end with a dot or a space: remove it".</summary>
     public static string ConflictTrailingDotOrSpace => Get(nameof(ConflictTrailingDotOrSpace));
 
+    /// <summary>"The new name is empty: keep some text in the name".</summary>
     public static string ConflictEmptyName => Get(nameof(ConflictEmptyName));
 
+    /// <summary>"The name is longer than {0} characters: shorten it" ({0} is InvalidNameCheck.MaxNameLength).</summary>
     public static string ConflictNameTooLong => Get(nameof(ConflictNameTooLong));
 
+    /// <summary>"Another item gets the same new name: change one of them".</summary>
     public static string ConflictDuplicateTarget => Get(nameof(ConflictDuplicateTarget));
 
+    /// <summary>"An item with this name already exists in the folder: choose another name".</summary>
     public static string ConflictTargetExists => Get(nameof(ConflictTargetExists));
 
+    /// <summary>"The full path would be longer than {0} characters: shorten the name" ({0} is PathLengthCheck.MaxPathLength).</summary>
     public static string ConflictPathTooLong => Get(nameof(ConflictPathTooLong));
 
     public static string ConflictSeparator => Get(nameof(ConflictSeparator));

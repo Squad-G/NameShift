@@ -34,6 +34,14 @@ public sealed class PathLengthCheckTests
     }
 
     [Fact]
+    public void MaxPathLength_Is259()
+    {
+        Assert.Equal(259, PathLengthCheck.MaxPathLength);
+        Assert.Empty(CheckOne(Changed(Folder(200), Name(PathLengthCheck.MaxPathLength - 201))));
+        Assert.Equal([TooLong], CheckOne(Changed(Folder(200), Name(PathLengthCheck.MaxPathLength - 200))));
+    }
+
+    [Fact]
     public void Check_FullPathOver259_FlagsPathTooLong() =>
         Assert.Equal([TooLong], CheckOne(Changed(Folder(200), Name(60))));
 

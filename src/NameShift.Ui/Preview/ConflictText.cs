@@ -10,7 +10,10 @@ namespace NameShift.Ui.Preview;
 /// <summary>The words for conflicts: the Status cell and the summary line. The one place the messages are built.</summary>
 public static class ConflictText
 {
-    /// <summary>The message of one conflict, from Strings.resx; its detail escaped.</summary>
+    /// <summary>
+    /// The message of one conflict, from Strings.resx: the problem, then what to do. The detail is escaped; the limits
+    /// are read from the checks and written in the invariant culture.
+    /// </summary>
     public static string Message(Conflict conflict)
     {
         if (conflict == null)
@@ -22,21 +25,34 @@ public static class ConflictText
         switch (conflict.Code)
         {
             case ConflictCode.InvalidCharacter:
-                return string.Format(culture, Strings.ConflictInvalidCharacter, EscapeEach(conflict.Detail));
+                string characters = conflict.Detail ?? "";
+                return string.Format(
+                    culture,
+                    characters.Length == 1 ? Strings.ConflictInvalidCharacterOne : Strings.ConflictInvalidCharacter,
+                    EscapeEach(characters));
             case ConflictCode.ReservedName:
-                return string.Format(culture, Strings.ConflictReservedName, Escape(conflict.Detail ?? ""));
+                string name = conflict.Detail ?? "";
+                return name.Length == 0
+                    ? Strings.ConflictReservedNameNoDetail
+                    : string.Format(culture, Strings.ConflictReservedName, Escape(name));
             case ConflictCode.TrailingDotOrSpace:
                 return Strings.ConflictTrailingDotOrSpace;
             case ConflictCode.EmptyName:
                 return Strings.ConflictEmptyName;
             case ConflictCode.NameTooLong:
-                return Strings.ConflictNameTooLong;
+                return string.Format(
+                    culture,
+                    Strings.ConflictNameTooLong,
+                    InvalidNameCheck.MaxNameLength.ToString(CultureInfo.InvariantCulture));
             case ConflictCode.DuplicateTarget:
                 return Strings.ConflictDuplicateTarget;
             case ConflictCode.TargetExists:
                 return Strings.ConflictTargetExists;
             case ConflictCode.PathTooLong:
-                return Strings.ConflictPathTooLong;
+                return string.Format(
+                    culture,
+                    Strings.ConflictPathTooLong,
+                    PathLengthCheck.MaxPathLength.ToString(CultureInfo.InvariantCulture));
             default:
                 throw new ArgumentOutOfRangeException(nameof(conflict), conflict.Code, "Unknown conflict code.");
         }

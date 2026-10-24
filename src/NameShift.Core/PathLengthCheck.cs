@@ -7,7 +7,7 @@ namespace NameShift.Core;
 public sealed class PathLengthCheck : IConflictCheck
 {
     /// <summary>The longest full path Windows programs accept without long-path support: MAX_PATH (260) minus the terminator.</summary>
-    private const int MaxPathLength = 259;
+    public const int MaxPathLength = 259;
 
     private static readonly IReadOnlyList<Conflict> None = Array.Empty<Conflict>();
 
