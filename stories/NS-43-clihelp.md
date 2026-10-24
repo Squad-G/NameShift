@@ -1,6 +1,6 @@
 # NS-43: Command line: help, version, console text and the exit code of a crash
 
-Status: In Review
+Status: Done
 Depends on: NS-38
 Area: app
 
@@ -127,3 +127,5 @@ Console text:
   no-console tolerance, usage versus help lines, data sources for the help tests, merged tests listed (po).
 - 2026-10-24: In Progress (builder).
 - 2026-10-24: In Review (builder), PR #67.
+- 2026-10-24: Done (tech-lead), PR #67; hand checks pending for David: the four shells (names on screen, console code
+  page restored); --version prints 1.0.0 until David decides the release process.
