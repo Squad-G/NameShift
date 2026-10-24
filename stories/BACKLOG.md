@@ -54,7 +54,7 @@ IDs), not the rank: the rank is the row order.
 | 65 | [NS-65 README layout matches the repository](NS-65-readmelayout.md) | Done | |
 | 66 | [NS-66 Column sorting](NS-66-columnsort.md) | Done | NS-51, NS-14, NS-13 |
 | 48 | [NS-48 Hard cases: names that look the same](NS-48-hardcases.md) | Done | NS-6 |
-| 67 | [NS-67 Hard cases on disk: read-only, in use, vanishing drive](NS-67-diskhardcases.md) | In Review | NS-9, NS-15 |
+| 67 | [NS-67 Hard cases on disk: read-only, in use, vanishing drive](NS-67-diskhardcases.md) | Done | NS-9, NS-15 |
 | 73 | [NS-73 One planner for the window and the command line](NS-73-renameplanner.md) | Ready | NS-13, NS-52, NS-15 |
 | 38 | [NS-38 Command line: apply rules to a folder](NS-38-clicore.md) | Ready | NS-8, NS-9, NS-12, NS-13, NS-73 |
 | 54 | [NS-54 Visual polish](NS-54-visual-polish.md) | Ready | NS-15, NS-55, NS-30 |

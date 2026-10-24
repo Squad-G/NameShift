@@ -1,6 +1,6 @@
 # NS-67: Hard cases on disk: read-only, in use, vanishing drive
 
-Status: In Review
+Status: Done
 Depends on: NS-9, NS-15
 Area: app
 
@@ -62,3 +62,4 @@ not supported).
   need not exist (po).
 - 2026-10-24: In Progress (builder).
 - 2026-10-24: In Review (builder), PR #58.
+- 2026-10-24: Done (tech-lead), PR #58 merged; hand checks for David: rename a file open in Word and read the status sentence; rename and revert a read-only file.
