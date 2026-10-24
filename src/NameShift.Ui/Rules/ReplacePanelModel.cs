@@ -9,6 +9,7 @@ public sealed class ReplacePanelModel : RulePanelModel
     private string _with = "";
     private bool _matchCase;
     private bool _includeExtension;
+    private bool _keepCase;
 
     public ReplacePanelModel()
         : base(RuleStage.Replace, Strings.ReplaceTitle)
@@ -39,12 +40,18 @@ public sealed class ReplacePanelModel : RulePanelModel
         set => SetField(ref _includeExtension, value);
     }
 
+    public bool KeepCase
+    {
+        get => _keepCase;
+        set => SetField(ref _keepCase, value);
+    }
+
     public override bool IsDefault =>
-        Find.Length == 0 && With.Length == 0 && !MatchCase && !IncludeExtension;
+        Find.Length == 0 && With.Length == 0 && !MatchCase && !IncludeExtension && !KeepCase;
 
     /// <summary>The rule, or null while Find is empty (the rule would do nothing).</summary>
     public override IRenameRule? BuildRule() =>
-        Find.Length == 0 ? null : new ReplaceRule(Find, With, MatchCase, IncludeExtension);
+        Find.Length == 0 ? null : new ReplaceRule(Find, With, MatchCase, IncludeExtension, KeepCase);
 
     protected override void ResetSettings()
     {
@@ -52,5 +59,6 @@ public sealed class ReplacePanelModel : RulePanelModel
         With = "";
         MatchCase = false;
         IncludeExtension = false;
+        KeepCase = false;
     }
 }

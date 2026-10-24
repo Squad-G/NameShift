@@ -27,7 +27,7 @@ Use the first three rules from the window.
 - Panels write into the model at once on every change and resync from the model on Changed; no timer here, NS-13 debounces (tech-lead, 2026-10-18).
 - An unusable Add position is marked with an ErrorProvider icon and the box's accessible description, not colour alone; the label reads "Characters left after" when counting from the end, keeping the same mnemonic (tech-lead, 2026-10-18).
 - Layout: one shared two-column table helper (RulePanelLayout), only system colours and fonts, the position box sized from its font (tech-lead, 2026-10-18).
-- Mnemonics are unique across the window; the letters are fixed in the brief and checked by a test (tech-lead, 2026-10-18).
+- Mnemonics are unique across the window; the letters are fixed in the brief and checked by a test (tech-lead, 2026-10-18). Superseded by NS-16: unique within each panel, panel titles distinct (David, 2026-10-23).
 
 ## Log
 - 2026-10-18: created (po).

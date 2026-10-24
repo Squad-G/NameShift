@@ -7,18 +7,19 @@ namespace NameShift.Core;
 public sealed class ReplaceRule : IRenameRule
 {
     /// <summary>Creates the rule; <paramref name="with"/> may be empty (the found text is removed).</summary>
-    public ReplaceRule(string find, string with, bool matchCase = false, bool includeExtension = false)
+    public ReplaceRule(string find, string with, bool matchCase = false, bool includeExtension = false, bool keepCase = false)
     {
         Find = find ?? throw new ArgumentNullException(nameof(find));
         With = with ?? throw new ArgumentNullException(nameof(with));
         MatchCase = matchCase;
         IncludeExtension = includeExtension;
+        KeepCase = keepCase;
     }
 
     /// <summary>The text to look for, matched literally.</summary>
     public string Find { get; }
 
-    /// <summary>The replacement, inserted exactly as typed.</summary>
+    /// <summary>The replacement; inserted as typed unless <see cref="KeepCase"/>.</summary>
     public string With { get; }
 
     /// <summary>False (default): the match ignores case (ordinal, never culture-dependent).</summary>
@@ -26,6 +27,10 @@ public sealed class ReplaceRule : IRenameRule
 
     /// <summary>False (default): only the base name is searched; true: the whole name, extension included.</summary>
     public bool IncludeExtension { get; }
+
+    /// <summary>False (default): the replacement is inserted as typed. True: it follows each found text's case pattern
+    /// (all upper: upper-cased; capitalised: <see cref="CaseRule"/>'s capitalise; anything else: as typed).</summary>
+    public bool KeepCase { get; }
 
     /// <inheritdoc />
     public RuleStage Stage => RuleStage.Replace;
@@ -68,6 +73,66 @@ public sealed class ReplaceRule : IRenameRule
         return result.Append(text, start, text.Length - start).ToString();
     }
 
-    /// <summary>The text inserted for one match. Today always <see cref="With"/>; NS-16 adds the keep-case option here.</summary>
-    private string ReplacementFor(string found) => With;
+    private enum FoundCase
+    {
+        AsTyped,
+        Upper,
+        Capitalised,
+    }
+
+    /// <summary>The text inserted for one match: <see cref="With"/>, shaped by the found text when <see cref="KeepCase"/>.</summary>
+    private string ReplacementFor(string found)
+    {
+        if (!KeepCase || With.Length == 0)
+        {
+            return With;
+        }
+
+        switch (PatternOf(found))
+        {
+            case FoundCase.Upper: return With.ToUpperInvariant();
+            case FoundCase.Capitalised: return CaseRule.Capitalise(With);
+            default: return With;
+        }
+    }
+
+    /// <summary>Reads the letters only: two or more, all upper = Upper; first upper and the rest lower (or a single
+    /// upper letter) = Capitalised; anything else, including no letters, = AsTyped.</summary>
+    private static FoundCase PatternOf(string found)
+    {
+        var letters = 0;
+        var upper = 0;
+        var lowerAfterFirst = 0;
+        var firstIsUpper = false;
+        foreach (var c in found)
+        {
+            if (!char.IsLetter(c))
+            {
+                continue;
+            }
+
+            if (letters == 0)
+            {
+                firstIsUpper = char.IsUpper(c);
+            }
+            else if (char.IsLower(c))
+            {
+                lowerAfterFirst++;
+            }
+
+            if (char.IsUpper(c))
+            {
+                upper++;
+            }
+
+            letters++;
+        }
+
+        if (letters >= 2 && upper == letters)
+        {
+            return FoundCase.Upper;
+        }
+
+        return firstIsUpper && lowerAfterFirst == letters - 1 ? FoundCase.Capitalised : FoundCase.AsTyped;
+    }
 }

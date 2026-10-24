@@ -53,6 +53,7 @@
   <data name="ReplaceFind" xml:space="preserve"><value>&amp;Find</value></data>
   <data name="ReplaceWith" xml:space="preserve"><value>&amp;With</value></data>
   <data name="ReplaceMatchCase" xml:space="preserve"><value>&amp;Match case</value></data>
+  <data name="ReplaceKeepCase" xml:space="preserve"><value>Match the &amp;case of the found text</value></data>
   <data name="ReplaceIncludeExtension" xml:space="preserve"><value>Include e&amp;xtension</value></data>
   <data name="CaseTitle" xml:space="preserve"><value>&amp;Case</value></data>
   <data name="CaseMode" xml:space="preserve"><value>M&amp;ode</value></data>
