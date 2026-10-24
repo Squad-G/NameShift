@@ -17,7 +17,8 @@ extension afterwards, as `ReplaceRule` does).
 1. Given pattern `IMG_(\d+)` and replacement `Photo $1` on `IMG_042.jpg`, then `Photo 042.jpg`. Given a named group,
    `(?<n>\d+)` with `x${n}`, on `a12.txt`, then `ax12.txt`.
 2. Given an invalid pattern (`(`, `[a-`, `*a`), then `RegexRule.Validate(pattern)` returns a non-empty message (the
-   parser's own message; its wording differs between runtimes and language packs) and the constructor throws `ArgumentException`; a valid pattern gives `Validate` null.
+   parser's own message; its wording differs between runtimes and language packs) and the constructor throws
+   `ArgumentException`; a valid pattern gives `Validate` null.
    The check belongs to the panel (NS-31), which marks the pattern field once and builds no rule: a bad pattern never
    produces a per-file error. Given a null pattern or replacement, the constructor throws `ArgumentNullException`.
 3. Given `includeExtension` off (default), then the extension is never searched or changed: pattern `txt` on

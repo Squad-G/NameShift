@@ -12,9 +12,9 @@ keep catching a slow listing (an accidental quadratic loop) without failing on a
 
 ## Background (current code)
 `tests/NameShift.Ui.Tests/DiskFileListSourceTests.cs` creates 10,000 empty files outside the timed part, then times
-`DiskFileListSource.ListEntries` plus `FileListOrder.Sort` once with a `Stopwatch` and asserts `< 2 s`. It runs on net10.0
-and net48 and in parallel with the other test classes of the project. NS-51 criterion 6 ("lists in under 2 seconds,
-the window stays responsive") is a product promise checked by hand; this test is only its guard.
+`DiskFileListSource.ListEntries` plus `FileListOrder.Sort` once with a `Stopwatch` and asserts `< 2 s`. It runs on
+net10.0 and net48 and in parallel with the other test classes of the project. NS-51 criterion 6 ("lists in under 2
+seconds, the window stays responsive") is a product promise checked by hand; this test is only its guard.
 
 ## Acceptance criteria
 1. Given the test, then it keeps its two parts, listing then sorting 10,000 files, and still asserts that all 10,000
@@ -26,7 +26,8 @@ the window stays responsive") is a product promise checked by hand; this test is
    it is a regression guard, not the product promise). A quadratic listing or sort on 10,000 entries still exceeds it.
 4. Given a failure, then the message includes all three times, so a real regression and a noisy run can be told apart.
 5. Given the test name, then it is renamed `ListEntries_TenThousandFiles_StaysFast` (the old name promises 2 s, which
-   it no longer asserts). Nothing else in the other tests of the file changes (the `GenerousBudget` constant of criterion 3 is the only addition).
+   it no longer asserts). Nothing else in the other tests of the file changes (the `GenerousBudget` constant of
+   criterion 3 is the only addition).
 6. Given `dotnet test -c Release` run five times in a row on a development machine, then this test passes all five
    times on net10.0 and net48 (the builder reports the five results in the PR).
 7. Given NS-51 criterion 6, then it is unchanged: the 2 s promise stays a hand check.
