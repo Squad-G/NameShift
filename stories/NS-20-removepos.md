@@ -1,6 +1,6 @@
 # NS-20: Remove: first n, last n, from-to
 
-Status: Ready
+Status: In Progress
 Depends on: NS-1
 Area: engine
 
@@ -42,3 +42,4 @@ n, last n, then from-to. Counts are UTF-16 characters, as in Add.
 ## Log
 - 2026-10-18: created (po).
 - 2026-10-23: criteria made testable, order and surrogate handling decided, set Ready (po).
+- 2026-10-23: In Progress (builder).
