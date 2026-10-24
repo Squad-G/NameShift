@@ -1,6 +1,6 @@
 # NS-43: Command line: help, version, console text and the exit code of a crash
 
-Status: Ready
+Status: Done
 Depends on: NS-38
 Area: app
 
@@ -46,7 +46,7 @@ Help and version:
 7. Given the parser, then it exposes the words it dispatches on as one list, `CommandLineParser.Words` (internal, with
    `InternalsVisibleTo("NameShift.Cmd.Tests")`): the verbs, every option and its short form, and the help and version
    words including `/?`; the `--case` values are not in it (the help lists them in the `--case` line, checked once by
-   hand). The dispatch and the option-word guard (`IsOptionWord`) read this same list, so a new option cannot be parsed
+   hand). The option-word guard (`IsOptionWord`) reads this list, and the list is built from the same constants the dispatch compares against, so a new option cannot be parsed
    without being in it. A test fails when a word of the list is missing from the help text (`HelpMain` for verbs and
    global words, `HelpApply` for `apply` options).
 8. Given the exit codes, then each code has its own entry, `Strings.ExitCode0` to `Strings.ExitCode4` (the one-line
@@ -81,9 +81,9 @@ Console text:
     implementation over `System.Console`, and an internal entry method that takes it and that `Program.Main` calls
     (visible to `NameShift.Cmd.Tests`, as in criterion 7). A unit test with a fake that throws checks that a throwing
     set and a throwing restore are both ignored and the command still returns its code.
-13. Given a net48 test starts the built exe on a temp folder holding `é.TXT` and `日本語.TXT` with
+13. Given a net48 test starts the built exe on a temp folder holding `ÉCOLE.TXT` and `日本語ABC.TXT` (written as unicode escapes in the tests) with
     `apply <folder> --case lower --dry-run`, then for output redirected to a pipe and (a second test) to a file
-    (`cmd /c "... > file"`) the raw bytes decode as UTF-8 to `é.TXT -> é.txt` and `日本語.TXT -> 日本語.txt`, and the first
+    (`cmd /c "... > file"`) the raw bytes decode as UTF-8 to `ÉCOLE.TXT -> école.TXT` and `日本語ABC.TXT -> 日本語abc.TXT` (`--case lower` leaves the extension alone, so names with no case would give "Nothing to rename."), and the first
     bytes are not `EF BB BF`. The library (`CommandRunner`) still takes and writes `TextWriter`s, knows nothing of
     encodings and never reads input.
 14. By hand, written in the PR: in cmd (`chcp 437` and `chcp 65001`), in Windows PowerShell 5.1 and in PowerShell 7,
@@ -125,3 +125,7 @@ Console text:
   test tied to the parser; set Ready (po).
 - 2026-10-24: after the PR #63 review: no version-match test (release scripts are David's), encoding order and
   no-console tolerance, usage versus help lines, data sources for the help tests, merged tests listed (po).
+- 2026-10-24: In Progress (builder).
+- 2026-10-24: In Review (builder), PR #67.
+- 2026-10-24: Done (tech-lead), PR #67; hand checks pending for David: the four shells (names on screen, console code
+  page restored); --version prints 1.0.0 until David decides the release process.

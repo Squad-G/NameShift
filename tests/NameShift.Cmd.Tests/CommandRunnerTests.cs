@@ -135,7 +135,7 @@ public sealed class CommandRunnerTests : IDisposable
         var run = Cmd.RunOnDisk(_temp, "apply", folder, "--case", "lower");
 
         Assert.Equal(1, run.Code);
-        Assert.Equal(Cmd.Written(Strings.NoFolder + " " + Strings.Usage), run.Error);
+        Assert.Equal(Cmd.Written(Strings.NoFolder + " " + Strings.Usage + " " + Strings.HelpPointer), run.Error);
         Assert.Equal("", run.Output);
         Assert.Equal(new[] { "IMG_001.JPG" }, _temp.FileNames());
         Assert.False(Directory.Exists(_temp.History));
@@ -149,7 +149,7 @@ public sealed class CommandRunnerTests : IDisposable
         var run = Cmd.RunOnDisk(_temp, "apply", _temp.Files, "--replace", "IMG", "--dry-run");
 
         Assert.Equal(1, run.Code);
-        Assert.Equal(Cmd.Written(Strings.ReplaceNeedsValues + " " + Strings.Usage), run.Error);
+        Assert.Equal(Cmd.Written(Strings.ReplaceNeedsValues + " " + Strings.Usage + " " + Strings.HelpPointer), run.Error);
         Assert.Equal("", run.Output);
         Assert.Equal(new[] { "IMG_001.JPG" }, _temp.FileNames());
         Assert.False(Directory.Exists(_temp.History));
@@ -193,15 +193,15 @@ public sealed class CommandRunnerTests : IDisposable
     }
 
     [Fact]
-    public void UnexpectedException_Exit4_SaysSomethingWentWrong()
+    public void ListingThrows_Exit3_NothingRenamed()
     {
         var renamer = new FakeBatchRenamer();
         var files = new ThrowingFileListSource();
 
         var run = Cmd.Run(renamer, _temp.Files, new[] { "apply", _temp.Files, "--case", "lower" }, files);
 
-        Assert.Equal(4, run.Code);
-        Assert.Equal(Cmd.Written(UiStrings.ActionUnexpected), run.Error);
+        Assert.Equal(3, run.Code);
+        Assert.Equal(Cmd.Written(Strings.UnexpectedBeforeRename), run.Error);
         Assert.Equal("", run.Output);
         Assert.Equal(0, renamer.RenameCalls);
     }
@@ -213,7 +213,7 @@ public sealed class CommandRunnerTests : IDisposable
         _temp.File("IMG_001.JPG");
         var renamer = new FakeBatchRenamer { Result = CmdResults.Succeeded(1) };
         var error = new StringWriter(CultureInfo.InvariantCulture);
-        var runner = new CommandRunner(new ThrowingWriter(), error, _temp.Files, renamer, new DiskFileListSource(), Cmd.EnUs);
+        var runner = new CommandRunner(new ThrowingWriter(), error, _temp.Files, renamer, new DiskFileListSource(), Cmd.EnUs, "1.2.3");
 
         int code = runner.Run(new[] { "apply", _temp.Files, "--case", "lower" });
 
@@ -223,12 +223,58 @@ public sealed class CommandRunnerTests : IDisposable
     }
 
     [Fact]
-    public void BothStreamsFail_StillExit4()
+    public void BothStreamsFail_ListingThrows_Exit3()
     {
         var runner = new CommandRunner(
-            new ThrowingWriter(), new ThrowingWriter(), _temp.Files, new FakeBatchRenamer(), new ThrowingFileListSource(), Cmd.EnUs);
+            new ThrowingWriter(), new ThrowingWriter(), _temp.Files, new FakeBatchRenamer(), new ThrowingFileListSource(), Cmd.EnUs, "1.2.3");
+
+        Assert.Equal(3, runner.Run(new[] { "apply", _temp.Files, "--case", "lower" }));
+    }
+
+    [Fact]
+    public void RenamerThrows_ErrorStreamFails_StillExit4()
+    {
+        _temp.File("IMG_001.JPG");
+        var renamer = new FakeBatchRenamer { Throws = new InvalidOperationException("A bug in the renamer.") };
+        var runner = new CommandRunner(
+            new StringWriter(CultureInfo.InvariantCulture), new ThrowingWriter(), _temp.Files, renamer, new DiskFileListSource(), Cmd.EnUs, "1.2.3");
 
         Assert.Equal(4, runner.Run(new[] { "apply", _temp.Files, "--case", "lower" }));
+        Assert.Equal(1, renamer.RenameCalls);
+    }
+
+    [Fact]
+    public void DryRunOutputFails_Exit3()
+    {
+        // A dry run never calls the renamer, so a failing output stream cannot have renamed anything.
+        _temp.File("IMG_001.JPG");
+        var renamer = new FakeBatchRenamer();
+        var error = new StringWriter(CultureInfo.InvariantCulture);
+        var runner = new CommandRunner(new ThrowingWriter(), error, _temp.Files, renamer, new DiskFileListSource(), Cmd.EnUs, "1.2.3");
+
+        int code = runner.Run(new[] { "apply", _temp.Files, "--case", "lower", "--dry-run" });
+
+        Assert.Equal(3, code);
+        Assert.Equal(0, renamer.RenameCalls);
+        Assert.Equal(Cmd.Written(Strings.UnexpectedBeforeRename), error.ToString());
+        Assert.Equal(new[] { "IMG_001.JPG" }, _temp.FileNames());
+    }
+
+    [Fact]
+    public void Crash_NeverPrintsTheExceptionText()
+    {
+        var listing = Cmd.Run(new FakeBatchRenamer(), _temp.Files, new[] { "apply", _temp.Files, "--case", "lower" }, new ThrowingFileListSource());
+        _temp.File("IMG_001.JPG");
+        var renaming = Cmd.Run(
+            new FakeBatchRenamer { Throws = new InvalidOperationException("A bug in the listing.") },
+            _temp.Files,
+            new[] { "apply", _temp.Files, "--case", "lower" });
+
+        foreach (string text in new[] { listing.Output, listing.Error, renaming.Output, renaming.Error })
+        {
+            Assert.DoesNotContain("A bug in the listing.", text, StringComparison.Ordinal);
+            Assert.DoesNotContain("   at ", text, StringComparison.Ordinal);
+        }
     }
 
     private sealed class ThrowingFileListSource : IFileListSource
@@ -264,7 +310,7 @@ public sealed class CommandRunnerTests : IDisposable
 
         var run = Cmd.Run(renamer, _temp.Files, new[] { "apply" });
 
-        AssertInputError(run, Strings.NoFolder + " " + Strings.Usage, renamer);
+        AssertInputError(run, Strings.NoFolder + " " + Strings.Usage + " " + Strings.HelpPointer, renamer);
     }
 
     [Fact]
@@ -458,12 +504,13 @@ public sealed class CommandRunnerTests : IDisposable
         var output = new StringWriter(CultureInfo.InvariantCulture);
         var renamer = new FakeBatchRenamer();
         var files = new DiskFileListSource();
-        Assert.Throws<ArgumentNullException>(() => new CommandRunner(null!, output, "C:\\", renamer, files, Cmd.EnUs));
-        Assert.Throws<ArgumentNullException>(() => new CommandRunner(output, null!, "C:\\", renamer, files, Cmd.EnUs));
-        Assert.Throws<ArgumentNullException>(() => new CommandRunner(output, output, null!, renamer, files, Cmd.EnUs));
-        Assert.Throws<ArgumentNullException>(() => new CommandRunner(output, output, "C:\\", null!, files, Cmd.EnUs));
-        Assert.Throws<ArgumentNullException>(() => new CommandRunner(output, output, "C:\\", renamer, null!, Cmd.EnUs));
-        Assert.Throws<ArgumentNullException>(() => new CommandRunner(output, output, "C:\\", renamer, files, null!));
-        Assert.Throws<ArgumentNullException>(() => new CommandRunner(output, output, "C:\\", renamer, files, Cmd.EnUs).Run(null!));
+        Assert.Throws<ArgumentNullException>(() => new CommandRunner(null!, output, "C:\\", renamer, files, Cmd.EnUs, "1.2.3"));
+        Assert.Throws<ArgumentNullException>(() => new CommandRunner(output, null!, "C:\\", renamer, files, Cmd.EnUs, "1.2.3"));
+        Assert.Throws<ArgumentNullException>(() => new CommandRunner(output, output, null!, renamer, files, Cmd.EnUs, "1.2.3"));
+        Assert.Throws<ArgumentNullException>(() => new CommandRunner(output, output, "C:\\", null!, files, Cmd.EnUs, "1.2.3"));
+        Assert.Throws<ArgumentNullException>(() => new CommandRunner(output, output, "C:\\", renamer, null!, Cmd.EnUs, "1.2.3"));
+        Assert.Throws<ArgumentNullException>(() => new CommandRunner(output, output, "C:\\", renamer, files, null!, "1.2.3"));
+        Assert.Throws<ArgumentNullException>(() => new CommandRunner(output, output, "C:\\", renamer, files, Cmd.EnUs, null!));
+        Assert.Throws<ArgumentNullException>(() => new CommandRunner(output, output, "C:\\", renamer, files, Cmd.EnUs, "1.2.3").Run(null!));
     }
 }

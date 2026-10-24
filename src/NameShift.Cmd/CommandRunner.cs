@@ -24,6 +24,8 @@ public sealed class CommandRunner
     private readonly IBatchRenamer _renamer;
     private readonly IFileListSource _files;
     private readonly CultureInfo _culture;
+    private readonly string _version;
+    private bool _renamerCalled;
 
     /// <param name="output">Results (exit code 0).</param>
     /// <param name="error">Errors and every other result.</param>
@@ -31,8 +33,9 @@ public sealed class CommandRunner
     /// <param name="renamer">The only way to rename: runs the plan and records it for Revert.</param>
     /// <param name="files">Lists the folder.</param>
     /// <param name="culture">Formats the counts of the window's sentences.</param>
+    /// <param name="version">The text <c>--version</c> prints after <c>NameShift</c>.</param>
     public CommandRunner(TextWriter output, TextWriter error, string currentDirectory, IBatchRenamer renamer,
-        IFileListSource files, CultureInfo culture)
+        IFileListSource files, CultureInfo culture, string version)
     {
         _output = output ?? throw new ArgumentNullException(nameof(output));
         _error = error ?? throw new ArgumentNullException(nameof(error));
@@ -40,6 +43,7 @@ public sealed class CommandRunner
         _renamer = renamer ?? throw new ArgumentNullException(nameof(renamer));
         _files = files ?? throw new ArgumentNullException(nameof(files));
         _culture = culture ?? throw new ArgumentNullException(nameof(culture));
+        _version = version ?? throw new ArgumentNullException(nameof(version));
     }
 
     /// <summary>For tests only: replaces <see cref="ApplyOptions.BuildRules"/> (a rule error cannot be produced by
@@ -47,15 +51,17 @@ public sealed class CommandRunner
     internal Func<ApplyOptions, IReadOnlyList<IRenameRule>> BuildRules { get; set; } = o => o.BuildRules();
 
     /// <summary>The real thing: the disk's listing, the journaled renamer with its history in
-    /// <paramref name="historyRoot"/>, and the current culture.</summary>
-    public static CommandRunner ForDisk(TextWriter output, TextWriter error, string currentDirectory, string historyRoot) =>
+    /// <paramref name="historyRoot"/>, and the current culture. <paramref name="version"/> is what <c>--version</c> prints.</summary>
+    public static CommandRunner ForDisk(
+        TextWriter output, TextWriter error, string currentDirectory, string historyRoot, string version) =>
         new CommandRunner(
             output,
             error,
             currentDirectory,
             new JournaledBatchRenamer(new JournaledRenamer(historyRoot)),
             new DiskFileListSource(),
-            CultureInfo.CurrentCulture);
+            CultureInfo.CurrentCulture,
+            version);
 
     /// <summary>Runs one command line; returns the exit code (an <see cref="ExitCode"/>), always 0 to 4.</summary>
     public int Run(IReadOnlyList<string> args)
@@ -65,35 +71,66 @@ public sealed class CommandRunner
             throw new ArgumentNullException(nameof(args));
         }
 
+        _renamerCalled = false;
         try
         {
             return RunCommand(args);
         }
         catch (Exception)
         {
-            // The one deliberate catch-all (a renamer bug, a closed output pipe...): the disk state is unknown, so the
-            // user must look, and a script still gets one of the documented exit codes.
+            // The one deliberate catch-all (a renamer bug, a closed output pipe...). Before the renamer was called
+            // nothing can have been renamed (exit 3); from the call on the disk state is unknown, so the user must
+            // look (exit 4). A script still gets one of the documented exit codes, and the exception text is never
+            // written.
+            bool renamerCalled = _renamerCalled;
             try
             {
-                _error.WriteLine(NameShift.Ui.Strings.ActionUnexpected);
+                _error.WriteLine(renamerCalled ? NameShift.Ui.Strings.ActionUnexpected : Strings.UnexpectedBeforeRename);
             }
             catch (Exception)
             {
                 // The error stream is gone too: the exit code is all that is left.
             }
 
-            return (int)ExitCode.NeedsAttention;
+            return (int)(renamerCalled ? ExitCode.NeedsAttention : ExitCode.NotRenamed);
         }
     }
 
     private int RunCommand(IReadOnlyList<string> args)
     {
-        if (!CommandLineParser.TryParse(args, out ApplyOptions? options, out string parseError))
+        ParsedCommand command = CommandLineParser.Parse(args);
+        switch (command.Kind)
         {
-            return Fail(parseError, ExitCode.InputError);
+            case CommandKind.Help:
+                return WriteLines(HelpText.Main());
+            case CommandKind.ApplyHelp:
+                return WriteLines(HelpText.Apply());
+            case CommandKind.Version:
+                _output.WriteLine(Format(Strings.VersionLine, _version));
+                return (int)ExitCode.Success;
+            case CommandKind.Error:
+                return Fail(command.Error, ExitCode.InputError);
+            case CommandKind.Apply:
+                return RunApply(command.Options!);
+            default:
+                throw new InvalidOperationException("Unknown command kind: " + command.Kind);
+        }
+    }
+
+    /// <summary>Help text to the output stream: exit 0. Never lists, plans or renames.</summary>
+    private int WriteLines(IReadOnlyList<string> lines)
+    {
+        foreach (string line in lines)
+        {
+            _output.WriteLine(line);
         }
 
-        if (!TryFolder(options!.FolderText, out string folder, out string folderError))
+        return (int)ExitCode.Success;
+    }
+
+    private int RunApply(ApplyOptions options)
+    {
+        if (!TryFolder(options.FolderText, out string folder, out string folderError))
         {
             return Fail(folderError, ExitCode.InputError);
         }
@@ -165,7 +202,8 @@ public sealed class CommandRunner
     /// <summary>Renames the plan's own results and conflicts through the journal, and reports in the window's words.</summary>
     private int Rename(RenamePlan plan)
     {
-        // An exception here reaches Run's catch-all: exit 4, the disk state is unknown.
+        // From here on the disk state is unknown: an exception reaches Run's catch-all as exit 4.
+        _renamerCalled = true;
         RenameRunResult result = _renamer.Rename(plan.Results, plan.Conflicts);
         ActionReport report = ActionText.ForRename(result, _culture);
         ExitCode code = ExitCodes.For(result);

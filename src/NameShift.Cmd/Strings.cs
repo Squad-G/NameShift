@@ -63,6 +63,42 @@ public static class Strings
     /// <summary>"{0}: {1}": a file name, then its conflicts or its rule error.</summary>
     public static string ItemLine => Get(nameof(ItemLine));
 
+    /// <summary>"For help, run: NameShiftCmd --help": ends every usage error.</summary>
+    public static string HelpPointer => Get(nameof(HelpPointer));
+
+    /// <summary>"NameShift hit an unexpected problem. No file was renamed.": a crash before the renamer was called.</summary>
+    public static string UnexpectedBeforeRename => Get(nameof(UnexpectedBeforeRename));
+
+    /// <summary>"NameShift {0}": the version line.</summary>
+    public static string VersionLine => Get(nameof(VersionLine));
+
+    /// <summary>The wrapped usage of apply, several lines, in the helps.</summary>
+    public static string HelpUsageApply => Get(nameof(HelpUsageApply));
+
+    /// <summary>The main help between its usage and the apply options: commands, global options, examples.</summary>
+    public static string HelpMain => Get(nameof(HelpMain));
+
+    /// <summary>The options of apply and one example.</summary>
+    public static string HelpApply => Get(nameof(HelpApply));
+
+    /// <summary>"Exit codes:": the title of the exit code table.</summary>
+    public static string HelpExitCodes => Get(nameof(HelpExitCodes));
+
+    /// <summary>The meaning of exit code 0.</summary>
+    public static string ExitCode0 => Get(nameof(ExitCode0));
+
+    /// <summary>The meaning of exit code 1.</summary>
+    public static string ExitCode1 => Get(nameof(ExitCode1));
+
+    /// <summary>The meaning of exit code 2.</summary>
+    public static string ExitCode2 => Get(nameof(ExitCode2));
+
+    /// <summary>The meaning of exit code 3.</summary>
+    public static string ExitCode3 => Get(nameof(ExitCode3));
+
+    /// <summary>The meaning of exit code 4.</summary>
+    public static string ExitCode4 => Get(nameof(ExitCode4));
+
     private static string Get(string key) =>
         Manager.GetString(key, CultureInfo.CurrentUICulture)
         ?? throw new InvalidOperationException("Missing string resource: " + key);

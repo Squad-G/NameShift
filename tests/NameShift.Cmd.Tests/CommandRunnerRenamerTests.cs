@@ -201,7 +201,7 @@ public sealed class CommandRunnerRenamerTests : IDisposable
     }
 
     [Fact]
-    public void RenamerThrows_Exit4_SaysSomethingWentWrong()
+    public void RenamerThrows_Exit4_ActionUnexpected()
     {
         _temp.File("IMG_001.JPG");
         var renamer = new FakeBatchRenamer { Throws = new InvalidOperationException("A bug in the renamer.") };
