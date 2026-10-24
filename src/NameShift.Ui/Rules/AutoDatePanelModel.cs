@@ -133,6 +133,39 @@ public sealed class AutoDatePanelModel : RulePanelModel
         return new AutoDateRule(Source, Format, Placement, Separator);
     }
 
+    /// <inheritdoc />
+    public override IReadOnlyDictionary<string, string> SaveSettings() => new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        [nameof(Source)] = Source.ToString(),
+        [nameof(Format)] = Format,
+        [nameof(Placement)] = Placement.ToString(),
+        [nameof(Separator)] = Separator,
+    };
+
+    /// <inheritdoc />
+    protected override void ApplySettings(IReadOnlyDictionary<string, string> settings)
+    {
+        if (TryGetEnum(settings, nameof(Source), out DateSource source) && IndexOf(source) >= 0)
+        {
+            Source = source;
+        }
+
+        if (TryGetText(settings, nameof(Format), out string format))
+        {
+            Format = format;
+        }
+
+        if (TryGetEnum(settings, nameof(Placement), out DatePlacement placement) && IndexOf(placement) >= 0)
+        {
+            Placement = placement;
+        }
+
+        if (TryGetText(settings, nameof(Separator), out string separator))
+        {
+            Separator = separator;
+        }
+    }
+
     protected override void ResetSettings()
     {
         Source = DateSource.Modified;

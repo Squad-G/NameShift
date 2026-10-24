@@ -243,6 +243,66 @@ public sealed class NumberingPanelModel : RulePanelModel
             Numerals, UpperCase);
     }
 
+    /// <inheritdoc />
+    public override IReadOnlyDictionary<string, string> SaveSettings() => new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        [nameof(Numerals)] = Numerals.ToString(),
+        [nameof(UpperCase)] = BoolText(UpperCase),
+        [nameof(StartText)] = StartText,
+        [nameof(Mode)] = Mode.ToString(),
+        [nameof(StepText)] = StepText,
+        [nameof(PadText)] = PadText,
+        [nameof(Separator)] = Separator,
+        [nameof(InsertPositionText)] = InsertPositionText,
+    };
+
+    /// <inheritdoc />
+    /// <remarks>A preset with a system other than Decimal and no StartText key gets the start the panel itself
+    /// shows after switching to that system (Roman: "I"), and that system's usual case when UpperCase is missing.</remarks>
+    protected override void ApplySettings(IReadOnlyDictionary<string, string> settings)
+    {
+        // Numerals first: its setter rewrites StartText and resets UpperCase, so the saved case and start come after it.
+        if (TryGetEnum(settings, nameof(Numerals), out NumeralSystem numerals) && IndexOf(numerals) >= 0)
+        {
+            Numerals = numerals;
+        }
+
+        if (TryGetBool(settings, nameof(UpperCase), out bool upperCase))
+        {
+            UpperCase = upperCase;
+        }
+
+        if (TryGetText(settings, nameof(StartText), out string startText))
+        {
+            StartText = startText;
+        }
+
+        if (TryGetEnum(settings, nameof(Mode), out NumberingMode mode) && IndexOf(mode) >= 0)
+        {
+            Mode = mode;
+        }
+
+        if (TryGetText(settings, nameof(StepText), out string stepText))
+        {
+            StepText = stepText;
+        }
+
+        if (TryGetText(settings, nameof(PadText), out string padText))
+        {
+            PadText = padText;
+        }
+
+        if (TryGetText(settings, nameof(Separator), out string separator))
+        {
+            Separator = separator;
+        }
+
+        if (TryGetText(settings, nameof(InsertPositionText), out string insertPositionText))
+        {
+            InsertPositionText = insertPositionText;
+        }
+    }
+
     protected override void ResetSettings()
     {
         Mode = NumberingMode.Suffix;

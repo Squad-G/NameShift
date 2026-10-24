@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Globalization;
 using NameShift.Core;
 
@@ -71,6 +73,39 @@ public sealed class RegexPanelModel : RulePanelModel
         }
 
         return new RegexRule(Pattern, Replacement, IgnoreCase, IncludeExtension);
+    }
+
+    /// <inheritdoc />
+    public override IReadOnlyDictionary<string, string> SaveSettings() => new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        [nameof(Pattern)] = Pattern,
+        [nameof(Replacement)] = Replacement,
+        [nameof(IgnoreCase)] = BoolText(IgnoreCase),
+        [nameof(IncludeExtension)] = BoolText(IncludeExtension),
+    };
+
+    /// <inheritdoc />
+    protected override void ApplySettings(IReadOnlyDictionary<string, string> settings)
+    {
+        if (TryGetText(settings, nameof(Pattern), out string pattern))
+        {
+            Pattern = pattern;
+        }
+
+        if (TryGetText(settings, nameof(Replacement), out string replacement))
+        {
+            Replacement = replacement;
+        }
+
+        if (TryGetBool(settings, nameof(IgnoreCase), out bool ignoreCase))
+        {
+            IgnoreCase = ignoreCase;
+        }
+
+        if (TryGetBool(settings, nameof(IncludeExtension), out bool includeExtension))
+        {
+            IncludeExtension = includeExtension;
+        }
     }
 
     protected override void ResetSettings()

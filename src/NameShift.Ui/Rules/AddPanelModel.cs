@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using NameShift.Core;
 
 namespace NameShift.Ui.Rules;
@@ -73,6 +75,51 @@ public sealed class AddPanelModel : RulePanelModel
     {
         var rule = new AddRule(Prefix, Insert, InsertPosition, InsertFromEnd, Suffix, WordSpace);
         return rule.Enabled ? rule : null;
+    }
+
+    /// <inheritdoc />
+    public override IReadOnlyDictionary<string, string> SaveSettings() => new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        [nameof(Prefix)] = Prefix,
+        [nameof(Insert)] = Insert,
+        [nameof(InsertPositionText)] = InsertPositionText,
+        [nameof(InsertFromEnd)] = BoolText(InsertFromEnd),
+        [nameof(Suffix)] = Suffix,
+        [nameof(WordSpace)] = BoolText(WordSpace),
+    };
+
+    /// <inheritdoc />
+    protected override void ApplySettings(IReadOnlyDictionary<string, string> settings)
+    {
+        if (TryGetText(settings, nameof(Prefix), out string prefix))
+        {
+            Prefix = prefix;
+        }
+
+        if (TryGetText(settings, nameof(Insert), out string insert))
+        {
+            Insert = insert;
+        }
+
+        if (TryGetText(settings, nameof(InsertPositionText), out string insertPositionText))
+        {
+            InsertPositionText = insertPositionText;
+        }
+
+        if (TryGetBool(settings, nameof(InsertFromEnd), out bool insertFromEnd))
+        {
+            InsertFromEnd = insertFromEnd;
+        }
+
+        if (TryGetText(settings, nameof(Suffix), out string suffix))
+        {
+            Suffix = suffix;
+        }
+
+        if (TryGetBool(settings, nameof(WordSpace), out bool wordSpace))
+        {
+            WordSpace = wordSpace;
+        }
     }
 
     protected override void ResetSettings()

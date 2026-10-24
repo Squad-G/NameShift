@@ -149,6 +149,51 @@ public sealed class MoveCopyPanelModel : RulePanelModel
         return new MoveCopyRule(Mode, Source, count, Target, PositionApplies ? Position : null, Separator);
     }
 
+    /// <inheritdoc />
+    public override IReadOnlyDictionary<string, string> SaveSettings() => new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        [nameof(Mode)] = Mode.ToString(),
+        [nameof(Source)] = Source.ToString(),
+        [nameof(Target)] = Target.ToString(),
+        [nameof(CountText)] = CountText,
+        [nameof(PositionText)] = PositionText,
+        [nameof(Separator)] = Separator,
+    };
+
+    /// <inheritdoc />
+    protected override void ApplySettings(IReadOnlyDictionary<string, string> settings)
+    {
+        if (TryGetEnum(settings, nameof(Mode), out MoveCopyMode mode) && IndexOf(mode) >= 0)
+        {
+            Mode = mode;
+        }
+
+        if (TryGetEnum(settings, nameof(Source), out MoveCopySource source) && IndexOf(source) >= 0)
+        {
+            Source = source;
+        }
+
+        if (TryGetEnum(settings, nameof(Target), out MoveCopyTarget target) && IndexOf(target) >= 0)
+        {
+            Target = target;
+        }
+
+        if (TryGetText(settings, nameof(CountText), out string countText))
+        {
+            CountText = countText;
+        }
+
+        if (TryGetText(settings, nameof(PositionText), out string positionText))
+        {
+            PositionText = positionText;
+        }
+
+        if (TryGetText(settings, nameof(Separator), out string separator))
+        {
+            Separator = separator;
+        }
+    }
+
     protected override void ResetSettings()
     {
         Mode = MoveCopyMode.Move;
