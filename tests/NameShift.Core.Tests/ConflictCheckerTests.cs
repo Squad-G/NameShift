@@ -133,4 +133,27 @@ public sealed class ConflictCheckerTests
         Assert.Equal(count / 2, Enumerable.Range(0, count).Count(i => report.ForItem(i).Count > 0));
         Assert.True(watch.Elapsed < TimeSpan.FromSeconds(1), watch.Elapsed.ToString());
     }
+
+    [Fact]
+    public void UnchangedLongName_NoCheckFlagsIt()
+    {
+        var folder = @"C:\" + new string('f', 20);
+        var longName = new string('a', 250);
+        var otherName = new string('b', 250);
+        var results = new[]
+        {
+            new RenameResult(new RenameItem(longName, folder), 0, longName, RenameStatus.Unchanged, null),
+            new RenameResult(new RenameItem("x.txt", folder), 1, otherName, RenameStatus.Changed, null),
+        };
+        var existing = new Dictionary<string, IReadOnlyCollection<string>>
+        {
+            [folder] = new[] { longName, "x.txt" },
+        };
+
+        var report = ConflictChecker.Run(
+            results, [new InvalidNameCheck(), new DuplicateTargetCheck(existing), new PathLengthCheck()]);
+
+        Assert.Empty(report.ForItem(0));
+        Assert.Equal([new Conflict(ConflictCode.PathTooLong)], report.ForItem(1));
+    }
 }

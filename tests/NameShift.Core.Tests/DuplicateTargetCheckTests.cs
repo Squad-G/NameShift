@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text;
 using Xunit;
 
 namespace NameShift.Core.Tests;
@@ -9,6 +11,10 @@ public sealed class DuplicateTargetCheckTests
     private const string Folder = @"C:\Test";
     private static readonly Conflict Dup = new(ConflictCode.DuplicateTarget);
     private static readonly Conflict Exists = new(ConflictCode.TargetExists);
+    private const string NfcCafe = "caf\u00e9.txt";
+    private const string NfdCafe = "cafe\u0301.txt";
+    private const string NfcCafeUpper = "CAF\u00c9.txt";
+    private const string NfdCafeUpper = "CAFE\u0301.txt";
 
     private static RenameResult R(int index, string name, string newName, string folder = Folder) =>
         new(new RenameItem(name, folder), index, newName,
@@ -189,4 +195,112 @@ public sealed class DuplicateTargetCheckTests
     [Fact]
     public void Check_RejectsNull() =>
         Assert.Throws<ArgumentNullException>(() => With().Check(null!));
+
+    [Fact]
+    public void Forms_AreDifferentStringsWithOneNfc()
+    {
+        Assert.NotEqual(NfcCafe, NfdCafe);
+        Assert.Equal(NfcCafe, NfdCafe.Normalize(NormalizationForm.FormC));
+    }
+
+    [Fact]
+    public void Check_TwoFormsOfOneName_FlagsBothDuplicateTarget() =>
+        AssertLists(
+            With("a.txt", "b.txt").Check([R(0, "a.txt", NfcCafe), R(1, "b.txt", NfdCafe)]),
+            [Dup], [Dup]);
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Check_OtherFormOfAnExistingEntry_FlagsTargetExists(bool entryIsNfc)
+    {
+        var entry = entryIsNfc ? NfcCafe : NfdCafe;
+        var target = entryIsNfc ? NfdCafe : NfcCafe;
+
+        AssertLists(With("a.txt", entry).Check([R(0, "a.txt", target)]), [[Exists]]);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    public void Check_FormsAndCaseDiffer_FlagsDuplicate(int pair)
+    {
+        var first = pair == 0 ? NfcCafeUpper : NfdCafeUpper;
+        var second = pair == 0 ? NfdCafe : NfcCafe;
+
+        AssertLists(
+            With("a.txt", "b.txt").Check([R(0, "a.txt", first), R(1, "b.txt", second)]),
+            [Dup], [Dup]);
+    }
+
+    [Fact]
+    public void Check_FormsAndCaseDiffer_ExistingEntry_FlagsTargetExists() =>
+        AssertLists(With("a.txt", NfdCafeUpper).Check([R(0, "a.txt", NfcCafe)]), [[Exists]]);
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Check_ChangeToTheOtherFormOnly_IsNotFlagged(bool fromNfc)
+    {
+        var from = fromNfc ? NfcCafe : NfdCafe;
+        var to = fromNfc ? NfdCafe : NfcCafe;
+
+        AssertLists(With(from).Check([R(0, from, to)]), [[]]);
+    }
+
+    [Fact]
+    public void Check_ChainThroughTheOtherForm_IsNotFlagged() =>
+        AssertLists(
+            With("a.txt", NfdCafe).Check([R(0, "a.txt", NfcCafe), R(1, NfdCafe, "z.txt")]),
+            [], []);
+
+    [Fact]
+    public void Check_LoneSurrogate_DoesNotThrow_ComparedAsIs()
+    {
+        var check = With("a.txt", "b.txt");
+
+        AssertLists(
+            check.Check([R(0, "a.txt", "x\uD800.txt"), R(1, "b.txt", "x\uD800.txt")]),
+            [Dup], [Dup]);
+        AssertLists(
+            check.Check([R(0, "a.txt", "x\uD800.txt"), R(1, "b.txt", "X\uD800.txt")]),
+            [Dup], [Dup]);
+    }
+
+    [Fact]
+    public void Check_LoneSurrogate_ExistingEntry()
+    {
+        var check = With("a.txt", "x\uDC00.txt");
+
+        AssertLists(check.Check([R(0, "a.txt", "X\uDC00.txt")]), [[Exists]]);
+        AssertLists(check.Check([R(0, "a.txt", "x\uDC01.txt")]), [[]]);
+    }
+
+    [Fact]
+    public void Check_CompatibilityForms_AreDifferent() =>
+        AssertLists(
+            With("a.txt", "b.txt").Check([R(0, "a.txt", "\uFB01le.txt"), R(1, "b.txt", "file.txt")]),
+            [], []);
+
+    [Fact]
+    public void Check_TenThousandNfdNames_UnderOneSecond()
+    {
+        const int Count = 10000;
+        var existing = new string[Count * 2];
+        var results = new RenameResult[Count];
+        for (var i = 0; i < Count; i++)
+        {
+            existing[i] = "a" + i + ".txt";
+            existing[Count + i] = "\u00e9x" + i;
+            results[i] = R(i, "a" + i + ".txt", "e\u0301" + i + ".txt");
+        }
+
+        var check = With(existing);
+        var watch = Stopwatch.StartNew();
+        var found = check.Check(results);
+        watch.Stop();
+
+        Assert.All(found, list => Assert.Empty(list));
+        Assert.True(watch.Elapsed < TimeSpan.FromSeconds(1), $"Took {watch.Elapsed}.");
+    }
 }
