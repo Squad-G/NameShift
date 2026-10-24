@@ -160,7 +160,6 @@ public sealed class DiskHardCaseTests : JournalTestBase
         Assert.Equal(["a", "b", "c"], Temp.Listing());
         Assert.Equal("a", Temp.Content("a"));
         Assert.Equal("c", Temp.Content("c"));
-        Assert.DoesNotContain(Disk.Moves, move => string.Equals(move.From, Temp.Full("c"), StringComparison.OrdinalIgnoreCase));
         Assert.Equal(
             [(Temp.Full("a"), Temp.Full("x")), (Temp.Full("b"), Temp.Full("y")), (Temp.Full("x"), Temp.Full("a"))],
             Disk.Moves);
