@@ -74,3 +74,4 @@ taken text, so a position past the end gives the same result as target End. Coun
 - 2026-10-18: created (po).
 - 2026-10-24: criteria made testable (enums, separator, positions, pairs, order), set Ready (po).
 - 2026-10-24: In Progress (builder).
+- 2026-10-24: In Review (builder), PR #43.
