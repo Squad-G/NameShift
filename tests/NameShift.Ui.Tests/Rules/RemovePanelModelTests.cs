@@ -313,6 +313,20 @@ public sealed class RemovePanelModelTests
     }
 
     [Theory]
+    [InlineData("1")]
+    [InlineData("12")]
+    [InlineData(" 3 ")]
+    public void FirstOrLast_Usable_NotMarked(string text)
+    {
+        var model = new RemovePanelModel { FirstText = text, LastText = text };
+
+        Assert.False(model.FirstInvalid);
+        Assert.False(model.LastInvalid);
+        Assert.NotNull(model.First);
+        Assert.NotNull(model.Last);
+    }
+
+    [Theory]
     [InlineData("")]
     [InlineData("   ")]
     public void FirstOrLast_Blank_NotMarked(string text)
