@@ -56,6 +56,27 @@ public sealed class NamePanelModel : RulePanelModel
     public override IRenameRule? BuildRule() =>
         Mode == NameMode.Keep ? null : new NameRule(Mode, Text);
 
+    /// <inheritdoc />
+    public override IReadOnlyDictionary<string, string> SaveSettings() => new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        [nameof(Mode)] = Mode.ToString(),
+        [nameof(Text)] = Text,
+    };
+
+    /// <inheritdoc />
+    protected override void ApplySettings(IReadOnlyDictionary<string, string> settings)
+    {
+        if (TryGetEnum(settings, nameof(Mode), out NameMode mode) && IndexOf(mode) >= 0)
+        {
+            Mode = mode;
+        }
+
+        if (TryGetText(settings, nameof(Text), out string text))
+        {
+            Text = text;
+        }
+    }
+
     protected override void ResetSettings()
     {
         Mode = NameMode.Keep;

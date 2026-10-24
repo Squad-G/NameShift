@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using NameShift.Core;
 
 namespace NameShift.Ui.Rules;
@@ -25,6 +26,17 @@ public interface IRulePanelModel
 
     /// <summary>Puts every setting back to its default and unchecks the panel; raises <see cref="Changed"/> once.</summary>
     void Reset();
+
+    /// <summary>Every setting (not <see cref="Enabled"/>) by property name, for a preset (NS-36): a bool as "true" or
+    /// "false", an enum by name, text as is. A new map on each call.</summary>
+    IReadOnlyDictionary<string, string> SaveSettings();
+
+    /// <summary>Puts every setting back to its default, then applies the known keys of the map in the model's own order
+    /// (where one setting changes another, the cause first). Unknown keys are ignored; a missing key, or an enum or bool
+    /// value the model does not know, leaves that setting at its default; text loads as it was saved. Never throws on
+    /// the content; raises <see cref="Changed"/> once; <see cref="Enabled"/> is not touched.</summary>
+    /// <exception cref="ArgumentNullException">The map is null.</exception>
+    void LoadSettings(IReadOnlyDictionary<string, string> settings);
 
     /// <summary>The Core rule for the current settings, or null when the settings give nothing to apply
     /// (e.g. an invalid required field). Never throws. Its Stage must equal this panel's Stage.</summary>

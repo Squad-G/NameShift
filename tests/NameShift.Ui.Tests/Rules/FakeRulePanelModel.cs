@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using NameShift.Core;
 using NameShift.Ui.Rules;
 
@@ -27,6 +28,17 @@ internal sealed class FakeRulePanelModel : RulePanelModel
     public override IRenameRule? BuildRule() => _build(Text);
 
     protected override void ResetSettings() => Text = "";
+
+    public override IReadOnlyDictionary<string, string> SaveSettings() =>
+        new Dictionary<string, string>(StringComparer.Ordinal) { [nameof(Text)] = Text };
+
+    protected override void ApplySettings(IReadOnlyDictionary<string, string> settings)
+    {
+        if (TryGetText(settings, nameof(Text), out string text))
+        {
+            Text = text;
+        }
+    }
 
     public static FakeRulePanelModel Replace() =>
         new FakeRulePanelModel(RuleStage.Replace, t => new ReplaceRule(t, "_"), "&Replace");

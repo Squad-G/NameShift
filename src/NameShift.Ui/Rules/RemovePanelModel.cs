@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using NameShift.Core;
 
@@ -199,6 +200,123 @@ public sealed class RemovePanelModel : RulePanelModel
         };
         parts.RemoveAll(p => !p.Enabled);
         return parts.Count == 0 ? null : new RemoveGroupRule(parts);
+    }
+
+    /// <inheritdoc />
+    public override IReadOnlyDictionary<string, string> SaveSettings() => new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        [nameof(FirstText)] = FirstText,
+        [nameof(LastText)] = LastText,
+        [nameof(FromText)] = FromText,
+        [nameof(ToText)] = ToText,
+        [nameof(Characters)] = Characters,
+        [nameof(Text)] = Text,
+        [nameof(WholeWord)] = BoolText(WholeWord),
+        [nameof(MatchCase)] = BoolText(MatchCase),
+        [nameof(CropBefore)] = CropBefore,
+        [nameof(CropAfter)] = CropAfter,
+        [nameof(KeepMarker)] = BoolText(KeepMarker),
+        [nameof(Digits)] = BoolText(Digits),
+        [nameof(Symbols)] = BoolText(Symbols),
+        [nameof(Accents)] = BoolText(Accents),
+        [nameof(HighCharacters)] = BoolText(HighCharacters),
+        [nameof(Trim)] = BoolText(Trim),
+        [nameof(LeadingDots)] = BoolText(LeadingDots),
+        [nameof(DoubleSpaces)] = BoolText(DoubleSpaces),
+    };
+
+    /// <inheritdoc />
+    protected override void ApplySettings(IReadOnlyDictionary<string, string> settings)
+    {
+        if (TryGetText(settings, nameof(FirstText), out string firstText))
+        {
+            FirstText = firstText;
+        }
+
+        if (TryGetText(settings, nameof(LastText), out string lastText))
+        {
+            LastText = lastText;
+        }
+
+        if (TryGetText(settings, nameof(FromText), out string fromText))
+        {
+            FromText = fromText;
+        }
+
+        if (TryGetText(settings, nameof(ToText), out string toText))
+        {
+            ToText = toText;
+        }
+
+        if (TryGetText(settings, nameof(Characters), out string characters))
+        {
+            Characters = characters;
+        }
+
+        if (TryGetText(settings, nameof(Text), out string text))
+        {
+            Text = text;
+        }
+
+        if (TryGetBool(settings, nameof(WholeWord), out bool wholeWord))
+        {
+            WholeWord = wholeWord;
+        }
+
+        if (TryGetBool(settings, nameof(MatchCase), out bool matchCase))
+        {
+            MatchCase = matchCase;
+        }
+
+        if (TryGetText(settings, nameof(CropBefore), out string cropBefore))
+        {
+            CropBefore = cropBefore;
+        }
+
+        if (TryGetText(settings, nameof(CropAfter), out string cropAfter))
+        {
+            CropAfter = cropAfter;
+        }
+
+        if (TryGetBool(settings, nameof(KeepMarker), out bool keepMarker))
+        {
+            KeepMarker = keepMarker;
+        }
+
+        if (TryGetBool(settings, nameof(Digits), out bool digits))
+        {
+            Digits = digits;
+        }
+
+        if (TryGetBool(settings, nameof(Symbols), out bool symbols))
+        {
+            Symbols = symbols;
+        }
+
+        if (TryGetBool(settings, nameof(Accents), out bool accents))
+        {
+            Accents = accents;
+        }
+
+        if (TryGetBool(settings, nameof(HighCharacters), out bool highCharacters))
+        {
+            HighCharacters = highCharacters;
+        }
+
+        if (TryGetBool(settings, nameof(Trim), out bool trim))
+        {
+            Trim = trim;
+        }
+
+        if (TryGetBool(settings, nameof(LeadingDots), out bool leadingDots))
+        {
+            LeadingDots = leadingDots;
+        }
+
+        if (TryGetBool(settings, nameof(DoubleSpaces), out bool doubleSpaces))
+        {
+            DoubleSpaces = doubleSpaces;
+        }
     }
 
     protected override void ResetSettings()

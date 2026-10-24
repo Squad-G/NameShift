@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using NameShift.Core;
 
 namespace NameShift.Ui.Rules;
@@ -52,6 +54,45 @@ public sealed class ReplacePanelModel : RulePanelModel
     /// <summary>The rule, or null while Find is empty (the rule would do nothing).</summary>
     public override IRenameRule? BuildRule() =>
         Find.Length == 0 ? null : new ReplaceRule(Find, With, MatchCase, IncludeExtension, KeepCase);
+
+    /// <inheritdoc />
+    public override IReadOnlyDictionary<string, string> SaveSettings() => new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        [nameof(Find)] = Find,
+        [nameof(With)] = With,
+        [nameof(MatchCase)] = BoolText(MatchCase),
+        [nameof(IncludeExtension)] = BoolText(IncludeExtension),
+        [nameof(KeepCase)] = BoolText(KeepCase),
+    };
+
+    /// <inheritdoc />
+    protected override void ApplySettings(IReadOnlyDictionary<string, string> settings)
+    {
+        if (TryGetText(settings, nameof(Find), out string find))
+        {
+            Find = find;
+        }
+
+        if (TryGetText(settings, nameof(With), out string withText))
+        {
+            With = withText;
+        }
+
+        if (TryGetBool(settings, nameof(MatchCase), out bool matchCase))
+        {
+            MatchCase = matchCase;
+        }
+
+        if (TryGetBool(settings, nameof(IncludeExtension), out bool includeExtension))
+        {
+            IncludeExtension = includeExtension;
+        }
+
+        if (TryGetBool(settings, nameof(KeepCase), out bool keepCase))
+        {
+            KeepCase = keepCase;
+        }
+    }
 
     protected override void ResetSettings()
     {

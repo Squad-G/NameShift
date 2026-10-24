@@ -56,6 +56,27 @@ public sealed class CasePanelModel : RulePanelModel
     public override IRenameRule? BuildRule() =>
         Mode == CaseMode.Same ? null : new CaseRule(Mode, CaseRule.ParseExceptions(ExceptionsText));
 
+    /// <inheritdoc />
+    public override IReadOnlyDictionary<string, string> SaveSettings() => new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        [nameof(Mode)] = Mode.ToString(),
+        [nameof(ExceptionsText)] = ExceptionsText,
+    };
+
+    /// <inheritdoc />
+    protected override void ApplySettings(IReadOnlyDictionary<string, string> settings)
+    {
+        if (TryGetEnum(settings, nameof(Mode), out CaseMode mode) && IndexOf(mode) >= 0)
+        {
+            Mode = mode;
+        }
+
+        if (TryGetText(settings, nameof(ExceptionsText), out string exceptionsText))
+        {
+            ExceptionsText = exceptionsText;
+        }
+    }
+
     protected override void ResetSettings()
     {
         Mode = CaseMode.Same;

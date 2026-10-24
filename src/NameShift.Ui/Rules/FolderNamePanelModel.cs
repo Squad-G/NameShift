@@ -75,6 +75,33 @@ public sealed class FolderNamePanelModel : RulePanelModel
     public override IRenameRule? BuildRule() =>
         Levels is int levels ? new FolderNameRule(Placement, levels, Separator) : null;
 
+    /// <inheritdoc />
+    public override IReadOnlyDictionary<string, string> SaveSettings() => new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        [nameof(Placement)] = Placement.ToString(),
+        [nameof(LevelsText)] = LevelsText,
+        [nameof(Separator)] = Separator,
+    };
+
+    /// <inheritdoc />
+    protected override void ApplySettings(IReadOnlyDictionary<string, string> settings)
+    {
+        if (TryGetEnum(settings, nameof(Placement), out FolderNamePlacement placement) && IndexOf(placement) >= 0)
+        {
+            Placement = placement;
+        }
+
+        if (TryGetText(settings, nameof(LevelsText), out string levelsText))
+        {
+            LevelsText = levelsText;
+        }
+
+        if (TryGetText(settings, nameof(Separator), out string separator))
+        {
+            Separator = separator;
+        }
+    }
+
     protected override void ResetSettings()
     {
         Placement = FolderNamePlacement.Prefix;
