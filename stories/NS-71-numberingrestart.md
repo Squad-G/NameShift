@@ -33,7 +33,7 @@ In `NumberingPanelModel` (on top of NS-61) and `NumberingPanel`:
    reset, load, true again), and an old preset without the value loads as false.
 
 ## Out of scope
-- The sub-folders option itself (NS-33, NS-70), the engine (NS-60).
+- The sub-folders option itself (listing NS-74, box NS-78), the engine (NS-60).
 
 ## Decisions
 - Disabled unless sub-folders are on? **Decision:** no, it is always available and harmless: a disabled box needs an
