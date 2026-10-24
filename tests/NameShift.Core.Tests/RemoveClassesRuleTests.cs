@@ -48,6 +48,9 @@ public sealed class RemoveClassesRuleTests
     [Theory]
     [InlineData("a!b@c#.txt", "abc.txt")]
     [InlineData("a-_.+\u20AC\u00A9b.txt", "ab.txt")]
+    [InlineData("a(b)c[d].txt", "abcd.txt")]
+    [InlineData("a\u201Cb\u201Dc\u00ABd\u00BBe.txt", "abcde.txt")]
+    [InlineData("a^b.txt", "ab.txt")]
     public void Run_Symbols_RemovesPunctuationAndSymbols(string name, string expected) =>
         Assert.Equal(expected, RunOne(new RemoveClassesRule(symbols: true), name).NewName);
 
@@ -229,6 +232,45 @@ public sealed class RemoveClassesRuleTests
     [Fact]
     public void Stage_IsRemove5() =>
         Assert.Equal(RuleStage.Remove, new RemoveClassesRule().Stage);
+
+    [Theory]
+    [InlineData("è.txt", "e.txt")]
+    [InlineData("à.txt", "a.txt")]
+    [InlineData("aͯ.txt", "a.txt")]
+    [InlineData("a˿.txt", "a˿.txt")]
+    [InlineData("aͰ.txt", "aͰ.txt")]
+    public void Run_Accents_RangeBoundaries(string name, string expected) =>
+        Assert.Equal(expected, RunOne(new RemoveClassesRule(accents: true), name).NewName);
+
+    [Fact]
+    public void Run_High_BoundaryIsAfterU007F() =>
+        Assert.Equal(
+            "a\u007Fbc.txt",
+            RunOne(new RemoveClassesRule(highCharacters: true), "a\u007Fb\u0080c.txt").NewName);
+
+    [Fact]
+    public void Run_Accents_UsesCanonicalFormsNotCompatibility() =>
+        Assert.Equal("ﬁe.txt", RunOne(new RemoveClassesRule(accents: true), "ﬁé.txt").NewName);
+
+    // U+FFFE makes string.Normalize throw; the accent step then does nothing and the other options still apply.
+    [Fact]
+    public void Run_Accents_InvalidCodePoint_DoesNothing_NoThrow()
+    {
+        var result = RunOne(new RemoveClassesRule(accents: true), "a￾́b.txt");
+
+        Assert.Null(result.Error);
+        Assert.Equal(RenameStatus.Unchanged, result.Status);
+        Assert.Equal("a￾́b.txt", result.NewName);
+    }
+
+    [Fact]
+    public void Run_InvalidCodePoint_OtherOptionsStillApply()
+    {
+        var result = RunOne(new RemoveClassesRule(true, true, true), "a1￾́_b.txt");
+
+        Assert.Null(result.Error);
+        Assert.Equal("a￾́b.txt", result.NewName);
+    }
 
     [Fact]
     public void Apply_NeverThrows_AllOptions()

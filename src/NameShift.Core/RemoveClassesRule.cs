@@ -1,3 +1,4 @@
+using System;
 using System.Globalization;
 using System.Text;
 
@@ -61,22 +62,30 @@ public sealed class RemoveClassesRule : IRenameRule
             return s;
         }
 
-        var decomposed = s.Normalize(NormalizationForm.FormD);
-        var result = new StringBuilder(decomposed.Length);
-        var removed = false;
-        foreach (var c in decomposed)
+        try
         {
-            if (c >= '\u0300' && c <= '\u036F')
+            var decomposed = s.Normalize(NormalizationForm.FormD);
+            var result = new StringBuilder(decomposed.Length);
+            var removed = false;
+            foreach (var c in decomposed)
             {
-                removed = true;
+                if (c >= '\u0300' && c <= '\u036F')
+                {
+                    removed = true;
+                }
+                else
+                {
+                    result.Append(c);
+                }
             }
-            else
-            {
-                result.Append(c);
-            }
-        }
 
-        return removed ? result.ToString().Normalize(NormalizationForm.FormC) : s;
+            return removed ? result.ToString().Normalize(NormalizationForm.FormC) : s;
+        }
+        catch (ArgumentException)
+        {
+            // Normalize rejects invalid code points such as U+FFFE: the accent step then does nothing.
+            return s;
+        }
     }
 
     private string RemoveUnits(string s)
