@@ -103,9 +103,11 @@ internal static class JpegBuilder
     public static int ValidExifEnd(bool bigEndian) =>
         Soi.Length + ExifSegmentLength(new TiffBuilder(bigEndian).Build());
 
-    public static byte[] Jfif => Segment(0xE0, Concat(Ascii("JFIF"), [0x00, 0x01, 0x02, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00]));
+    public static byte[] Jfif =>
+        Segment(0xE0, Concat(Ascii("JFIF"), [0x00, 0x01, 0x02, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00]));
 
-    public static byte[] Xmp => Segment(0xE1, Concat(Ascii("http://ns.adobe.com/xap/1.0/"), [0x00], Ascii("<x:xmpmeta/>")));
+    public static byte[] Xmp =>
+        Segment(0xE1, Concat(Ascii("http://ns.adobe.com/xap/1.0/"), [0x00], Ascii("<x:xmpmeta/>")));
 
     /// <summary>APP2 filler segments of exactly <paramref name="total"/> bytes (markers and lengths included): full
     /// segments, the last one sized to fit.</summary>

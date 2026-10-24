@@ -4,8 +4,9 @@ using System.IO;
 namespace NameShift.Core;
 
 /// <summary>Reads the date a photo was taken (EXIF DateTimeOriginal, tag 0x9003) from the start of a JPEG stream. The
-/// bytes are untrusted: every length and offset is checked before use, at most 262,144 bytes are consumed, only IFD0 and
-/// the Exif IFD are visited, and the only buffer sized from the file is one APP1 segment (at most 65,527 bytes).</summary>
+/// bytes are untrusted: every length and offset is checked before use, at most 262,144 bytes are consumed, only IFD0
+/// and the Exif IFD are visited, and the only buffer sized from the file is one APP1 segment (at most 65,527
+/// bytes).</summary>
 public static class PhotoDate
 {
     private const int Cap = 262144;

@@ -87,7 +87,8 @@ public class PhotoDateFuzzTests
                 int position = random.Next(file.Length);
                 byte value = (byte)random.Next(256);
                 file[position] = value;
-                where.Append(' ').Append(position).Append("=0x").Append(value.ToString("X2", CultureInfo.InvariantCulture));
+                where.Append(' ').Append(position).Append("=0x")
+                    .Append(value.ToString("X2", CultureInfo.InvariantCulture));
             }
 
             int maxPerRead = random.Next(1, 65);
