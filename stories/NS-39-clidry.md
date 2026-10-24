@@ -21,11 +21,11 @@ error stream. Unchanged files are never printed today.
 3. Given `--quiet` and a successful batch (exit 0), then nothing is written to either stream; `Nothing to rename.` is
    not written either. Given `--quiet` and a failure (exit 1, 2, 3 or 4), then the errors are written to the error
    stream exactly as without `--quiet` (every conflict, rule error, refusal, stranded item and history warning).
-4. Given `--verbose` and a real run, then each renamed file is written to the output stream as `old -> new` (file
-   names, list order, the same line format as the dry run) before the summary; the summary follows as today.
-5. Given `--verbose` and `--dry-run`, then the changed files are listed as today, then each file of the list whose
-   name stays the same is listed after them as `<name>: unchanged` (a new string); the same lines follow the
-   `old -> new` lines of a verbose real run. Files the CLI never renames (hidden, system, folders) are not listed in
+4. Given `--verbose` and a real run, then the output stream gets, in this order: each renamed file as `old -> new` (file
+   names, list order, the same line format as the dry run), then each file of the list whose name stays the same as
+   `<name>: unchanged` (a new string), then the summary as today.
+5. Given `--verbose` and `--dry-run`, then the changed files are listed as today, then the `<name>: unchanged` lines of
+   criterion 4 (and no summary, as today). Files the CLI never renames (hidden, system, folders) are not listed in
    any mode.
 6. Given no verbosity option, then the output is byte for byte what NS-38 wrote (a regression test on a dry run, a real
    run, a conflict, and `Nothing to rename.`).

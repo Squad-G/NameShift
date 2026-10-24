@@ -12,9 +12,15 @@ no product change.
 
 ## Background (what is known)
 - Tests run on net10.0 and net48 and in parallel across test classes; the suspects are tests that depend on time, threads
-  or a shared folder: `PreviewModelTests` (150 ms debounce, `FakeDelay`), `MainActionsTests` (async actions, 11 timing or
-  wait uses), `FolderTreeModelTests`, `FakeFileListSource`, `FakeFolderSource`, `FileListModelTests`,
-  `FolderNavigatorTests`, `DiskFileListSourceTests` (real folders under `%TEMP%\NameShift.Ui.Tests`).
+  or a shared folder: `PreviewModelTests` (150 ms debounce, `FakeDelay`), `MainActionsTests` (async actions, about ten
+  timing or wait uses), `FolderTreeModelTests`, `FakeFileListSource`, `FakeFolderSource`, `FileListModelTests`,
+  `FolderNavigatorTests`, `DiskFileListSourceTests` (real folders under `%TEMP%\NameShift.Ui.Tests`), and the tests that
+  scan the repository tree (`AppStyleScanTests`, `PlannerSourceScanTests`, `StyleScanner`), which read files while other
+  builds or worktrees write to them.
+- The suite is quick (about 1,100 tests, a few seconds), so 50 + 50 loops are realistic.
+- On net48 `--blame-hang` needs Sysinternals `procdump` to write a dump, and it is not installed here. The proof is the
+  blame sequence file (the last test started) and the `.trx`; a dump is welcome only when `procdump64.exe` is already on
+  `PATH` or `PROCDUMP_PATH`, and it is never committed or bundled.
 - "1000 of 1011" is a test host that stopped without a result for 11 tests: a crash (a stack overflow or an unhandled
   exception on a background thread kills the host on .NET Framework) or a deliberate abort, not a failed assertion.
 - Nothing is changed in `src/` by this story unless the cause is a real race in `NameShift.Ui` (then the fix is in
@@ -29,20 +35,23 @@ no product change.
    (a command in the PR is enough).
 2. Given a failure, hang or crash is caught, then the PR names the test (from the `.trx` or the blame sequence file),
    the cause (what the test assumed: an order, a delay, a thread, a shared folder, a leaked background task) and shows
-   the fix; a hang's dump or the blame's last-started test counts as the proof.
+   the fix; the blame's sequence file (its last-started test) and the `.trx` are the proof. When a hang leaves no
+   sequence file, the builder reruns that loop with `--logger "console;verbosity=detailed"` and the process killed after
+   the timeout, and names the last test that printed as started; a dump only if `procdump64.exe` is already available.
 3. Given a cause found, then the fix removes the assumption instead of hiding it: no longer retry, no longer sleep
-   longer, no `[Fact(Skip=...)]`, no turning off parallelism for the project (NS-58 already ruled these out). A test of a
+   longer, no `[Fact(Skip=...)]`, no turning off parallelism for the project, and no `[Collection]` that serialises a subset of
+   classes as a way around it (unless the tests really share process state, and the PR says why). A test of a
    timing path waits on the event it needs (a `TaskCompletionSource`, the existing `FakeDelay`) and never on the
    wall clock; a test that touches the disk uses its own unique temp folder and removes it in `Dispose`.
 4. Given nothing fails in the 100 runs of criterion 1, then the builder widens once (200 runs under load on net48,
-   plus `DOTNET_gcServer=0` and a one-core affinity run: `start /affinity 1`), and if it still does not reproduce,
+   plus a one-core affinity run, `start /affinity 1`, and a run with the thread pool starved), and if it still does not reproduce,
    makes an audit by reading every test that uses `Task`, `await`, `Thread`, `Timer`, `Sleep`, `Delay`, `Wait`,
    `.Result`, `Stopwatch` or the disk: each is either fixed under criterion 3 or listed in the PR as reviewed and
    deterministic with one line of why. The story is then done with a "not reproduced" note rather than left open.
 5. Given a test that can leak a background task (a started `Task` never awaited, an `async void`), then the PR lists
    it and fixes it so no task outlives its test (an exception in such a task can kill the net48 host).
 6. Given the fix, then the Ui tests on net48 pass 50 runs in a row alone and 20 runs in a row under load, with
-   `--blame-hang-timeout` set and no hang dump produced; the builder pastes the counts in the PR. Net10.0: 20 runs in
+   `--blame-hang-timeout` set and no hang reported; the builder pastes the counts in the PR. Net10.0: 20 runs in
    a row pass.
 7. Given the guard against a future hang, then `tests/NameShift.Ui.Tests` (and the other test projects, one line each)
    gets a documented way to find a hang quickly: the exact blame command is added to `CLAUDE.md`'s check section by the lead

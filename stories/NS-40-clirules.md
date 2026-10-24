@@ -33,7 +33,9 @@ Numbering (the Numbering panel):
    and `--number-case upper|lower`, then each sets the matching `NumberingPanelModel` property (`Mode`, `StartText`,
    `StepText`, `PadText`, `Separator`, `InsertPositionText`, `Numerals`, `UpperCase`). Examples:
    `--number-mode prefix --number-pad 3` gives `001_a.txt`, `002_b.txt`; `--number-system roman` gives `a_I.txt`,
-   `b_II.txt`. Words are compared ignoring case; `hex` is the only spelling of Hexadecimal.
+   `b_II.txt`. Words are compared ignoring case; `hex` is the only spelling of Hexadecimal. `--number-start` is read in the chosen
+   system, as the panel does (`--number-system roman --number-start V` starts at 5; with hex, `10` is 16); the CLI sets
+   `Numerals` before `StartText`, because the `Numerals` setter rewrites the start. A test for roman and for hex.
 6. Given a value the model refuses (`--number-start x`, `--number-pad 99`, `--number-system octal`, `--number-position 0`
    in insert mode, a start the chosen system cannot write), then exit 1 with the model's own error text
    (`StartError`, `StepError`, `PadError`, `InsertPositionError`) or, for an unknown word, the allowed values listed;
@@ -42,7 +44,7 @@ Numbering (the Numbering panel):
 7. Given any option, then it takes one value after the flag (`--insert` two, `--from-end`, `--word-space` and `--number`
    none), may come in any position, may not repeat (the usual "can be given only once" error), and a value that is
    an option word counts as missing (NS-38's guard: `--prefix --dry-run` is an error, not a prefix `--dry-run`). Other
-   values may start with a dash (`--separator -`).
+   values may start with a dash (`--number-separator -`).
 
 Same as the window, and the rest:
 8. Given each of criteria 1, 2, 4 and 5 (a table of cases covering every option), then a parity test (as NS-38:4) builds

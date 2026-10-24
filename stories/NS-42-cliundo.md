@@ -48,7 +48,10 @@ cannot be reverted (criteria 3 and 4 need to tell them apart). The source scan o
    error (exit 1, one line on the error stream as in NS-43:4) and nothing is reverted. `undo` has no folder: the journal
    knows its folders.
 9. Given `undo --help` (NS-43), then its usage, the `--dry-run` option and an example are written, exit 0; the main help
-   lists the verb (NS-43's help test fails otherwise) and the exit codes of this verb read as in NS-43:7.
+   lists the verb (NS-43's help test fails otherwise). The exit codes of `undo` extend NS-43's `Strings.ExitCode3` and
+   `Strings.ExitCode4` wording (the history cannot be used, or no file could be restored, for 3; some files not restored,
+   for 4), and NS-43:8's test reads the extended text. An exception from `LoadLastBatch()` (before `Revert()` is
+   called) is exit 3 with `Strings.UnexpectedBeforeRename`-style text for undo ("No file was changed."), as NS-43:9.
 10. Given any size of batch, then `undo` never prompts and never reads input (scripts never block). The window's Revert
     needs no confirmation either (NS-15).
 11. Given `undo` runs while no folder or file is given, then it works from any current directory (a test starts it in a
