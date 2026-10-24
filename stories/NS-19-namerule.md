@@ -1,6 +1,6 @@
 # NS-19: Name rule: keep, remove, fixed, reverse
 
-Status: Ready
+Status: Done
 Depends on: NS-1
 Area: engine
 
@@ -21,8 +21,7 @@ name only; the extension is never touched.
 6. Given reverse on `e` + combining acute (U+0301) + `x.txt`, then the accent stays on its letter (`x` then `e` + U+0301);
    given a surrogate pair (an emoji) in the base, then the pair stays whole and in order.
 7. Given reverse on a name that is one character or a palindrome (`aba.txt`), then it is unchanged.
-8. Given a typed value with Windows-invalid characters, then it is applied as typed and the invalid-name check
-   flags it.
+8. Given a typed Fixed value with Windows-invalid characters (for example `a?b`), then it is applied as typed and the invalid-name check flags it. Given a Fixed value of only whitespace (spaces, tabs), then it counts as empty: the name is unchanged and `Enabled` is false, as for an empty value (criterion 2). Given a value with other characters around spaces (` x `), then it is applied as typed, not trimmed.
 9. Given fixed `x` over a list `a.txt`, `b.txt`, then both become `x.txt` and the duplicate check flags them
    (the rule does not number them: that is Numbering).
 10. Given an unknown mode, then the constructor throws `ArgumentOutOfRangeException`.
@@ -42,7 +41,11 @@ name only; the extension is never touched.
   result is flagged `EmptyName` (po, 2026-10-23).
 - Fixed empty vs NS-18? **Decision:** both rules treat an empty Fixed value as "does nothing"; Remove is the way to
   empty a name or an extension (po, 2026-10-23).
+- Whitespace-only Fixed value? **Decision:** counts as empty, like NS-18, so a stray space never renames files to `   .jpg` or an empty folder name; text with other characters is not trimmed (po, 2026-10-23, from the PR #29 review).
 
 ## Log
 - 2026-10-18: created (po).
 - 2026-10-23: criteria made testable, empty-fixed decided, set Ready (po).
+- 2026-10-23: In Progress (builder).
+- 2026-10-23: In Review (builder), PR #29.
+- 2026-10-24: Done (tech-lead), PR #29 merged into dev.

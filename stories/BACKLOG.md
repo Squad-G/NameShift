@@ -28,7 +28,7 @@ IDs), not the rank: the rank is the row order.
 | 56 | [NS-56 Folder tree follows Rename and Revert](NS-56-treerefresh.md) | Done | NS-10, NS-15 |
 | 57 | [NS-57 Rename stays off until something changes](NS-57-renameonce.md) | Done | NS-15 |
 | 18 | [NS-18 Extension rule](NS-18-extension.md) | Done | NS-1 |
-| 19 | [NS-19 Name rule: keep, remove, fixed, reverse](NS-19-namerule.md) | Ready | NS-1 |
+| 19 | [NS-19 Name rule: keep, remove, fixed, reverse](NS-19-namerule.md) | Done | NS-1 |
 | 20 | [NS-20 Remove: first n, last n, from-to](NS-20-removepos.md) | Ready | NS-1 |
 | 16 | [NS-16 Replace rule: keep the case pattern of the found text](NS-16-replacecase.md) | Done | NS-2, NS-12 |
 | 55 | [NS-55 Panels for Name and Extension](NS-55-namepanels.md) | Ready | NS-11, NS-18, NS-19, NS-16 |
