@@ -932,6 +932,7 @@ public sealed class PreviewModelTests
 
         Assert.False(preview.IsCurrent);
         Assert.Equal(PreviewCellKind.None, preview.CellForRow(0).Kind);
+        _delay.ReleaseAll();
         await preview.Pending;
         Assert.True(preview.IsCurrent);
     }
