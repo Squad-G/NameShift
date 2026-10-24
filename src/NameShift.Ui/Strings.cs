@@ -364,6 +364,28 @@ public static class Strings
 
     public static string NumberingPositionInvalid => Get(nameof(NumberingPositionInvalid));
 
+    public static string NumberingSystem => Get(nameof(NumberingSystem));
+
+    public static string NumberingCase => Get(nameof(NumberingCase));
+
+    public static string NumberingSystemDecimal => Get(nameof(NumberingSystemDecimal));
+
+    public static string NumberingSystemHexadecimal => Get(nameof(NumberingSystemHexadecimal));
+
+    public static string NumberingSystemLetters => Get(nameof(NumberingSystemLetters));
+
+    public static string NumberingSystemRoman => Get(nameof(NumberingSystemRoman));
+
+    public static string NumberingCaseUpper => Get(nameof(NumberingCaseUpper));
+
+    public static string NumberingCaseLower => Get(nameof(NumberingCaseLower));
+
+    public static string NumberingStartInvalidHexadecimal => Get(nameof(NumberingStartInvalidHexadecimal));
+
+    public static string NumberingStartInvalidLetters => Get(nameof(NumberingStartInvalidLetters));
+
+    public static string NumberingStartInvalidRoman => Get(nameof(NumberingStartInvalidRoman));
+
     public static string ButtonRename => Get(nameof(ButtonRename));
 
     public static string ButtonRevert => Get(nameof(ButtonRevert));
