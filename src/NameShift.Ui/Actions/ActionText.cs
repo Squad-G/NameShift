@@ -14,7 +14,8 @@ internal static class ActionText
     /// <summary>The most items a dialog lists before "...and N more.".</summary>
     public const int DetailLines = 20;
 
-    /// <summary>Why Rename is disabled, from the snapshot on screen: conflicts, rule errors, both, or "".</summary>
+    /// <summary>Why Rename is disabled, from the snapshot on screen: conflicts, rule errors, both, or "" (nothing blocks it,
+    /// or there is nothing to rename).</summary>
     public static string Hint(PreviewSnapshot snapshot)
     {
         if (snapshot == null)
@@ -22,19 +23,20 @@ internal static class ActionText
             throw new ArgumentNullException(nameof(snapshot));
         }
 
-        bool conflicts = snapshot.HasConflicts;
-        bool errors = snapshot.ErrorCount > 0;
-        if (conflicts && errors)
+        switch (snapshot.Blocker)
         {
-            return Strings.RenameHintBoth;
+            case RenameBlocker.ConflictsAndRuleErrors:
+                return Strings.RenameHintBoth;
+            case RenameBlocker.Conflicts:
+                return Strings.RenameHintConflicts;
+            case RenameBlocker.RuleErrors:
+                return Strings.RenameHintErrors;
+            case RenameBlocker.None:
+            case RenameBlocker.NothingToRename:
+                return "";
+            default:
+                throw new ArgumentOutOfRangeException(nameof(snapshot), snapshot.Blocker, "Unknown blocker.");
         }
-
-        if (conflicts)
-        {
-            return Strings.RenameHintConflicts;
-        }
-
-        return errors ? Strings.RenameHintErrors : "";
     }
 
     /// <summary>"Rename 1,234 files?".</summary>
