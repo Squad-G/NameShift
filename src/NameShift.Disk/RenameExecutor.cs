@@ -11,6 +11,9 @@ namespace NameShift.Disk;
 /// deletes, copies or changes attributes.</summary>
 public sealed class RenameExecutor
 {
+    private const int ErrorSharingViolation = 32;
+    private const int ErrorLockViolation = 33;
+
     private readonly IFileSystem fileSystem;
     private readonly Func<string> newToken;
 
@@ -96,6 +99,13 @@ public sealed class RenameExecutor
 
     private static ExecutionResult Refused(ExecutionFailure failure) =>
         new(ExecutionOutcome.Refused, failure: failure);
+
+    /// <summary>True for a Windows sharing or lock violation: the low word of the HResult is the Win32 error code.</summary>
+    private static bool IsInUse(int hResult)
+    {
+        int code = hResult & 0xFFFF;
+        return code == ErrorSharingViolation || code == ErrorLockViolation;
+    }
 
     /// <summary>One Execute call: its renames, their folder keys and the state of each item.</summary>
     private sealed class Batch
@@ -242,7 +252,8 @@ public sealed class RenameExecutor
                 // nothing may escape before the disk is restored by the rollback.
                 return fileSystem.ExistsAny(step.ToPath)
                     ? new ExecutionFailure(FailureReason.TargetInTheWay, itemPath, step.ToPath, ex.Message, ex.HResult)
-                    : new ExecutionFailure(FailureReason.RenameFailed, itemPath, null, ex.Message, ex.HResult);
+                    : new ExecutionFailure(IsInUse(ex.HResult) ? FailureReason.ItemInUse : FailureReason.RenameFailed,
+                        itemPath, null, ex.Message, ex.HResult);
             }
 
             currentNames[step.RenameIndex] = Path.GetFileName(step.ToPath);

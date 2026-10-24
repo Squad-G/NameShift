@@ -106,6 +106,7 @@ public sealed class MainActionsDiskTests : IDisposable
 
         Assert.StartsWith("Nothing was renamed. ", report!.Status);
         Assert.Contains("b.txt", report.Status);
+        Assert.Equal("Nothing was renamed. b.txt is in use by another program: close it and try again.", report.Status);
         Assert.Null(report.Details);
         Assert.Equal(new[] { "a.txt", "b.txt", "c.txt" }, NamesOnDisk());
         Assert.Equal("content of a", Content("a.txt"));

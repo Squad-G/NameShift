@@ -213,6 +213,7 @@
   <data name="ItemGone" xml:space="preserve"><value>{0} is no longer there.</value></data>
   <data name="ItemBlocked" xml:space="preserve"><value>{0} cannot be renamed: {1} already exists.</value></data>
   <data name="ItemFailed" xml:space="preserve"><value>{0} could not be renamed: {1}</value></data>
+  <data name="ItemInUse" xml:space="preserve"><value>{0} is in use by another program: close it and try again.</value></data>
   <data name="RenameNoHistory" xml:space="preserve"><value>Nothing was renamed, because the history needed for Revert could not be saved: {0}</value></data>
   <data name="HistoryNotSaved" xml:space="preserve"><value>Revert is not available, because the history could not be saved: {0}</value></data>
   <data name="RenameAttentionOne" xml:space="preserve"><value>The rename failed and 1 item could not get its old name back. Check it now.</value></data>

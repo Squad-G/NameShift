@@ -195,6 +195,7 @@ public sealed class JournaledRenamer
                 plan.Skip(index, RevertSkipReason.NameTaken, failure.BlockingPath, failure.SystemMessage, failure.HResult);
                 break;
             case FailureReason.RenameFailed:
+            case FailureReason.ItemInUse:
                 plan.Skip(index, RevertSkipReason.RenameFailed, null, failure.SystemMessage, failure.HResult);
                 break;
             default:

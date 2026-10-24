@@ -132,6 +132,35 @@ public sealed class ActionTextTests
     }
 
     [Fact]
+    public void RolledBack_ItemInUse_SaysInUse()
+    {
+        ActionReport report = ActionText.ForRename(
+            Failed(
+                ExecutionOutcome.RolledBack,
+                Failure(FailureReason.ItemInUse, @"C:\A\b.txt", systemMessage: "The process cannot access the file because it is being used by another process.")),
+            En);
+
+        Assert.Equal("Nothing was renamed. b.txt is in use by another program: close it and try again.", report.Status);
+        Assert.Null(report.Details);
+    }
+
+    [Fact]
+    public void ItemInUse_StringValue() =>
+        Assert.Equal("{0} is in use by another program: close it and try again.", Strings.ItemInUse);
+
+    [Fact]
+    public void NeedsAttention_ItemInUse_FirstLineIsTheSentence()
+    {
+        ExecutionFailure failure = Failure(FailureReason.ItemInUse, @"C:\A\c.txt", systemMessage: "Busy.");
+
+        ActionReport report = ActionText.ForRename(NeedsAttention(failure, Stranded(@"C:\A\~ns-1234.tmp", @"C:\A\a.txt")), En);
+
+        Assert.Equal(
+            "c.txt is in use by another program: close it and try again.",
+            report.Details!.Split(new[] { NL }, StringSplitOptions.None)[0]);
+    }
+
+    [Fact]
     public void NotStarted_HistoryNotSaved()
     {
         ActionReport report = ActionText.ForRename(NotStarted("Access to the path is denied."), En);
