@@ -2,6 +2,8 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
+using NameShift.Core;
 using NameShift.Ui.Files;
 using NameShift.Ui.Folders;
 using Xunit;
@@ -119,6 +121,128 @@ public sealed class CommandRunnerTests : IDisposable
 
         Assert.Equal(0, run.Code);
         Assert.Equal(Cmd.Written("A.txt -> a.txt"), run.Output);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("  ")]
+    public void BlankFolder_IsNoFolder_RenamesNothingInTheCurrentDirectory(string folder)
+    {
+        // What a script passes when its folder variable is empty: the current directory must not be renamed.
+        _temp.File("IMG_001.JPG");
+
+        var run = Cmd.RunOnDisk(_temp, "apply", folder, "--case", "lower");
+
+        Assert.Equal(1, run.Code);
+        Assert.Equal(Cmd.Written(Strings.NoFolder + " " + Strings.Usage), run.Error);
+        Assert.Equal("", run.Output);
+        Assert.Equal(new[] { "IMG_001.JPG" }, _temp.FileNames());
+        Assert.False(Directory.Exists(_temp.History));
+    }
+
+    [Fact]
+    public void ReplaceMissingItsNewText_DoesNotSwallowDryRun_RenamesNothing()
+    {
+        _temp.File("IMG_001.JPG");
+
+        var run = Cmd.RunOnDisk(_temp, "apply", _temp.Files, "--replace", "IMG", "--dry-run");
+
+        Assert.Equal(1, run.Code);
+        Assert.Equal(Cmd.Written(Strings.ReplaceNeedsValues + " " + Strings.Usage), run.Error);
+        Assert.Equal("", run.Output);
+        Assert.Equal(new[] { "IMG_001.JPG" }, _temp.FileNames());
+        Assert.False(Directory.Exists(_temp.History));
+    }
+
+    [Fact]
+    public void FolderVariables_AreKeptAsTyped()
+    {
+        // A folder literally named %TEMP% under the current directory: the command line never expands variables.
+        string literal = Path.Combine(_temp.Files, "%TEMP%");
+        Directory.CreateDirectory(literal);
+        File.WriteAllText(Path.Combine(literal, "A.txt"), "a");
+        var renamer = new FakeBatchRenamer();
+
+        var run = Cmd.Run(renamer, _temp.Files, new[] { "apply", "%TEMP%", "--case", "lower", "--dry-run" });
+
+        Assert.Equal("", run.Error);
+        Assert.Equal(0, run.Code);
+        Assert.Equal(Cmd.Written("A.txt -> a.txt"), run.Output);
+    }
+
+    [Fact]
+    public void Listing_DefaultFilter_KeepsVisibleFilesOnly()
+    {
+        // The listing itself may hand over hidden, system and folder items (NS-33 changes it): the filter drops them.
+        var items = new[]
+        {
+            new RenameItem("HIDDEN.txt", _temp.Files, ItemKind.File, ItemAttributes.Hidden),
+            new RenameItem("SYSTEM.txt", _temp.Files, ItemKind.File, ItemAttributes.System),
+            new RenameItem("FOLDER", _temp.Files, ItemKind.Folder),
+            new RenameItem("READONLY.txt", _temp.Files, ItemKind.File, ItemAttributes.ReadOnly),
+            new RenameItem("VISIBLE.txt", _temp.Files),
+        };
+        var files = new FakeFileListSource(FileListing.Ok(items));
+        var renamer = new FakeBatchRenamer();
+
+        var run = Cmd.Run(renamer, _temp.Files, new[] { "apply", _temp.Files, "--case", "lower", "--dry-run" }, files);
+
+        Assert.Equal(0, run.Code);
+        Assert.Equal(new[] { "READONLY.txt -> readonly.txt", "VISIBLE.txt -> visible.txt" }, Cmd.Lines(run.Output));
+    }
+
+    [Fact]
+    public void UnexpectedException_Exit4_SaysSomethingWentWrong()
+    {
+        var renamer = new FakeBatchRenamer();
+        var files = new ThrowingFileListSource();
+
+        var run = Cmd.Run(renamer, _temp.Files, new[] { "apply", _temp.Files, "--case", "lower" }, files);
+
+        Assert.Equal(4, run.Code);
+        Assert.Equal(Cmd.Written(UiStrings.ActionUnexpected), run.Error);
+        Assert.Equal("", run.Output);
+        Assert.Equal(0, renamer.RenameCalls);
+    }
+
+    [Fact]
+    public void OutputFails_AfterTheRename_Exit4()
+    {
+        // e.g. a closed pipe: the batch ran, the report could not be written; the exit code stays in 0..4.
+        _temp.File("IMG_001.JPG");
+        var renamer = new FakeBatchRenamer { Result = CmdResults.Succeeded(1) };
+        var error = new StringWriter(CultureInfo.InvariantCulture);
+        var runner = new CommandRunner(new ThrowingWriter(), error, _temp.Files, renamer, new DiskFileListSource(), Cmd.EnUs);
+
+        int code = runner.Run(new[] { "apply", _temp.Files, "--case", "lower" });
+
+        Assert.Equal(4, code);
+        Assert.Equal(1, renamer.RenameCalls);
+        Assert.Equal(Cmd.Written(UiStrings.ActionUnexpected), error.ToString());
+    }
+
+    [Fact]
+    public void BothStreamsFail_StillExit4()
+    {
+        var runner = new CommandRunner(
+            new ThrowingWriter(), new ThrowingWriter(), _temp.Files, new FakeBatchRenamer(), new ThrowingFileListSource(), Cmd.EnUs);
+
+        Assert.Equal(4, runner.Run(new[] { "apply", _temp.Files, "--case", "lower" }));
+    }
+
+    private sealed class ThrowingFileListSource : IFileListSource
+    {
+        public FileListing ListEntries(string folderPath) => throw new InvalidOperationException("A bug in the listing.");
+    }
+
+    private sealed class ThrowingWriter : TextWriter
+    {
+        public override Encoding Encoding => Encoding.UTF8;
+
+        public override void Write(char value) => throw new IOException("The pipe has been ended.");
+
+        public override void WriteLine(string? value) => throw new IOException("The pipe has been ended.");
     }
 
     [Fact]

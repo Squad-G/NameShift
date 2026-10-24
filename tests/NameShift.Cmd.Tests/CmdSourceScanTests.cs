@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Xunit;
 
 namespace NameShift.Cmd.Tests;
@@ -38,7 +39,39 @@ public sealed class CmdSourceScanTests
     [InlineData("Console.Read")]
     [InlineData("MessageBox")]
     [InlineData("System.Windows.Forms")]
+    [InlineData("File.Replace")]
+    [InlineData("Console.In")]
     public void CliSourceNeverRenamesOrDeletesDirectly(string pattern)
+    {
+        AssertNoSourceMatches(text => text.Contains(pattern));
+    }
+
+    // Calls a literal pattern misses: new FileInfo(x).Delete(), or `using static System.IO.File;` then Move(a, b).
+    // A name that merely ends in the word (Remove(, IsMoved() is not a match.
+    [Theory]
+    [InlineData(@"(?<![\w])Delete\s*\(")]
+    [InlineData(@"(?<![\w])Move(To)?\s*\(")]
+    [InlineData(@"using\s+static\s+System\.IO")]
+    public void CliSourceCallsNoMoveOrDelete(string pattern)
+    {
+        var regex = new Regex(pattern, RegexOptions.CultureInvariant);
+        AssertNoSourceMatches(text => regex.IsMatch(text));
+    }
+
+    [Theory]
+    [InlineData("new FileInfo(path).Delete();", true)]
+    [InlineData("Move(a, b);", true)]
+    [InlineData("x.MoveTo (b);", true)]
+    [InlineData("using static System.IO.File;", true)]
+    [InlineData("list.Remove(a); RemoveAll(b); IsMoved();", false)]
+    public void MoveOrDeletePatterns_MatchCallsOnly(string code, bool expected)
+    {
+        string[] patterns = { @"(?<![\w])Delete\s*\(", @"(?<![\w])Move(To)?\s*\(", @"using\s+static\s+System\.IO" };
+
+        Assert.Equal(expected, patterns.Any(p => Regex.IsMatch(code, p, RegexOptions.CultureInvariant)));
+    }
+
+    private static void AssertNoSourceMatches(Func<string, bool> matches)
     {
         string root = FindRoot();
         string[] projects = Directory.GetDirectories(Path.Combine(root, "src"), "NameShift.Cmd*");
@@ -55,7 +88,7 @@ public sealed class CmdSourceScanTests
                 }
 
                 scanned.Add(file);
-                if (File.ReadAllText(file).Contains(pattern))
+                if (matches(File.ReadAllText(file)))
                 {
                     found.Add(file);
                 }

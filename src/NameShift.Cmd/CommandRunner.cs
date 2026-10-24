@@ -57,7 +57,7 @@ public sealed class CommandRunner
             new DiskFileListSource(),
             CultureInfo.CurrentCulture);
 
-    /// <summary>Runs one command line; returns the exit code (an <see cref="ExitCode"/>).</summary>
+    /// <summary>Runs one command line; returns the exit code (an <see cref="ExitCode"/>), always 0 to 4.</summary>
     public int Run(IReadOnlyList<string> args)
     {
         if (args == null)
@@ -65,6 +65,29 @@ public sealed class CommandRunner
             throw new ArgumentNullException(nameof(args));
         }
 
+        try
+        {
+            return RunCommand(args);
+        }
+        catch (Exception)
+        {
+            // The one deliberate catch-all (a renamer bug, a closed output pipe...): the disk state is unknown, so the
+            // user must look, and a script still gets one of the documented exit codes.
+            try
+            {
+                _error.WriteLine(NameShift.Ui.Strings.ActionUnexpected);
+            }
+            catch (Exception)
+            {
+                // The error stream is gone too: the exit code is all that is left.
+            }
+
+            return (int)ExitCode.NeedsAttention;
+        }
+    }
+
+    private int RunCommand(IReadOnlyList<string> args)
+    {
         if (!CommandLineParser.TryParse(args, out ApplyOptions? options, out string parseError))
         {
             return Fail(parseError, ExitCode.InputError);
@@ -145,17 +168,8 @@ public sealed class CommandRunner
     /// <summary>Renames the plan's own results and conflicts through the journal, and reports in the window's words.</summary>
     private int Rename(RenamePlan plan)
     {
-        RenameRunResult result;
-        try
-        {
-            result = _renamer.Rename(plan.Results, plan.Conflicts);
-        }
-        catch (Exception)
-        {
-            // The one deliberate catch-all: the disk state is unknown, so the user must look.
-            return Fail(NameShift.Ui.Strings.ActionUnexpected, ExitCode.NeedsAttention);
-        }
-
+        // An exception here reaches Run's catch-all: exit 4, the disk state is unknown.
+        RenameRunResult result = _renamer.Rename(plan.Results, plan.Conflicts);
         ActionReport report = ActionText.ForRename(result, _culture);
         ExitCode code = ExitCodes.For(result);
         TextWriter writer = code == ExitCode.Success ? _output : _error;
@@ -179,12 +193,21 @@ public sealed class CommandRunner
             return false;
         }
 
-        string full = text;
-        if (!IsFullyQualified(text))
+        if (string.IsNullOrWhiteSpace(text))
         {
+            // The parser already refuses it; never let an empty text become the current directory.
+            error = Strings.NoFolder;
+            return false;
+        }
+
+        // The window's path rules (PathInput), variables kept as typed; a path they refuse as not fully qualified is
+        // joined to the current directory and read again.
+        if (PathInput.TryNormalize(text, out string path, expandVariables: false) != PathInputResult.Ok)
+        {
+            string joined;
             try
             {
-                full = Path.Combine(_currentDirectory, text);
+                joined = Path.Combine(_currentDirectory, text.Trim());
             }
             catch (ArgumentException)
             {
@@ -192,12 +215,12 @@ public sealed class CommandRunner
                 error = Format(Strings.InvalidFolder, text);
                 return false;
             }
-        }
 
-        if (PathInput.TryNormalize(full, out string path, expandVariables: false) != PathInputResult.Ok)
-        {
-            error = Format(Strings.InvalidFolder, text);
-            return false;
+            if (PathInput.TryNormalize(joined, out path, expandVariables: false) != PathInputResult.Ok)
+            {
+                error = Format(Strings.InvalidFolder, text);
+                return false;
+            }
         }
 
         if (File.Exists(path))
@@ -214,19 +237,6 @@ public sealed class CommandRunner
 
         folder = path;
         return true;
-    }
-
-    /// <summary><c>X:\...</c> or <c>\\server\share...</c>, either slash.</summary>
-    private static bool IsFullyQualified(string text)
-    {
-        string value = text.Replace('/', '\\');
-        if (value.Length >= 3 && value[1] == ':' && value[2] == '\\')
-        {
-            char letter = value[0];
-            return (letter >= 'A' && letter <= 'Z') || (letter >= 'a' && letter <= 'z');
-        }
-
-        return value.StartsWith(@"\\", StringComparison.Ordinal);
     }
 
     private int Fail(string message, ExitCode code)

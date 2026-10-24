@@ -53,7 +53,9 @@ internal static class CommandLineParser
             string arg = args[i];
             if (Is(arg, ReplaceOption))
             {
-                if (args.Count - i - 1 < 2)
+                // A value that is an option word means a value was left out: `--replace IMG --dry-run` must not turn
+                // --dry-run into the new text and rename for real. Other values may start with a dash (--replace - _).
+                if (args.Count - i - 1 < 2 || IsOptionWord(args[i + 1]) || IsOptionWord(args[i + 2]))
                 {
                     return Fail(Strings.ReplaceNeedsValues, out error);
                 }
@@ -100,6 +102,11 @@ internal static class CommandLineParser
             {
                 return Fail(Format(Strings.UnknownOption, arg), out error);
             }
+            else if (string.IsNullOrWhiteSpace(arg))
+            {
+                // An empty variable in a script ("%~1", "$folder"): never fall back to the current directory.
+                return Fail(Strings.NoFolder, out error);
+            }
             else if (folder != null)
             {
                 return Fail(Format(Strings.TwoFolders, folder, arg), out error);
@@ -142,6 +149,8 @@ internal static class CommandLineParser
     }
 
     private static bool Is(string arg, string word) => string.Equals(arg, word, StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsOptionWord(string arg) => Is(arg, ReplaceOption) || Is(arg, CaseOption) || Is(arg, DryRunOption);
 
     private static string Format(string format, params object[] values) =>
         string.Format(CultureInfo.InvariantCulture, format, values);

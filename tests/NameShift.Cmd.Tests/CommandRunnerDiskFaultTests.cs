@@ -43,17 +43,22 @@ public sealed class CommandRunnerDiskFaultTests : IDisposable
     {
         _temp.File("IMG_001.JPG");
         _temp.File("IMG_002.JPG");
-        (int Code, string Output, string Error) run;
+        var renamer = new DeletingRenamer(null, new JournaledBatchRenamer(new JournaledRenamer(_temp.History)));
+        var output = new StringWriter(CultureInfo.InvariantCulture);
+        var error = new StringWriter(CultureInfo.InvariantCulture);
+        var runner = new CommandRunner(output, error, _temp.Files, renamer, new DiskFileListSource(), Cmd.EnUs);
+        int code;
         using (new FileStream(Path.Combine(_temp.Files, "IMG_001.JPG"), FileMode.Open, FileAccess.ReadWrite, FileShare.None))
         {
-            run = Cmd.RunOnDisk(_temp, "apply", _temp.Files, "--case", "lower");
+            code = runner.Run(new[] { "apply", _temp.Files, "--case", "lower" });
         }
 
-        Assert.Equal(3, run.Code);
-        Assert.Equal("", run.Output);
-        Assert.Contains(string.Format(CultureInfo.InvariantCulture, UiStrings.ItemInUse, "IMG_001.JPG"), run.Error, StringComparison.Ordinal);
-        Assert.StartsWith(UiStrings.NothingRenamed, run.Error, StringComparison.Ordinal);
-        Assert.Single(Cmd.Lines(run.Error));
+        Assert.Equal(3, code);
+        Assert.Equal("", output.ToString());
+        Assert.Equal(Cmd.Written(ActionText.ForRename(renamer.Result!, Cmd.EnUs).Status), error.ToString());
+        Assert.Equal(
+            Cmd.Written(UiStrings.NothingRenamed + " " + string.Format(CultureInfo.InvariantCulture, UiStrings.ItemInUse, "IMG_001.JPG")),
+            error.ToString());
         Assert.Equal(new[] { "IMG_001.JPG", "IMG_002.JPG" }, _temp.FileNames());
     }
 
@@ -64,25 +69,30 @@ public sealed class CommandRunnerDiskFaultTests : IDisposable
         _temp.File("IMG_002.JPG");
         string blocker = Path.Combine(_temp.Root, "a-file");
         File.WriteAllText(blocker, "not a folder");
+        var renamer = new DeletingRenamer(null, new JournaledBatchRenamer(new JournaledRenamer(Path.Combine(blocker, "history"))));
         var output = new StringWriter(CultureInfo.InvariantCulture);
         var error = new StringWriter(CultureInfo.InvariantCulture);
+        var runner = new CommandRunner(output, error, _temp.Files, renamer, new DiskFileListSource(), Cmd.EnUs);
 
-        int code = CommandRunner.ForDisk(output, error, _temp.Files, Path.Combine(blocker, "history"))
-            .Run(new[] { "apply", _temp.Files, "--case", "lower" });
+        int code = runner.Run(new[] { "apply", _temp.Files, "--case", "lower" });
 
         Assert.Equal(3, code);
         Assert.Equal("", output.ToString());
+        Assert.Null(renamer.Result!.Execution);
+        Assert.Equal(Cmd.Written(ActionText.ForRename(renamer.Result, Cmd.EnUs).Status), error.ToString());
         Assert.StartsWith(string.Format(CultureInfo.InvariantCulture, UiStrings.RenameNoHistory, ""), error.ToString(), StringComparison.Ordinal);
+        Assert.Single(Cmd.Lines(error.ToString()));
         Assert.Equal(new[] { "IMG_001.JPG", "IMG_002.JPG" }, _temp.FileNames());
     }
 
-    /// <summary>Deletes one file (as another program would, after the listing), then runs the real journaled renamer.</summary>
+    /// <summary>Records the real journaled renamer's result; first deletes one file when given (as another program
+    /// would, after the listing).</summary>
     private sealed class DeletingRenamer : IBatchRenamer
     {
-        private readonly string _path;
+        private readonly string? _path;
         private readonly IBatchRenamer _inner;
 
-        public DeletingRenamer(string path, IBatchRenamer inner)
+        public DeletingRenamer(string? path, IBatchRenamer inner)
         {
             _path = path;
             _inner = inner;
@@ -94,7 +104,11 @@ public sealed class CommandRunnerDiskFaultTests : IDisposable
 
         public RenameRunResult Rename(IReadOnlyList<RenameResult> results, ConflictReport conflicts)
         {
-            File.Delete(_path);
+            if (_path != null)
+            {
+                File.Delete(_path);
+            }
+
             Result = _inner.Rename(results, conflicts);
             return Result;
         }

@@ -46,6 +46,19 @@ public sealed class CommandLineParserTests
         Assert.Null(options.Case);
     }
 
+    [Theory]
+    [InlineData("--x", "y")]
+    [InlineData("-", "--dry")]
+    [InlineData("--dry-run-x", "--case-x")]
+    public void ReplaceValues_MayLookLikeOtherOptions(string find, string with)
+    {
+        Assert.True(CommandLineParser.TryParse(new[] { "apply", @"D:\P", "--replace", find, with }, out ApplyOptions? options, out string error), error);
+
+        Assert.Equal(find, options!.Find);
+        Assert.Equal(with, options.With);
+        Assert.False(options.DryRun);
+    }
+
     [Fact]
     public void ReplaceWith_MayBeEmpty()
     {
@@ -106,6 +119,15 @@ public sealed class CommandLineParserTests
     [InlineData(@"apply|D:\P|--dry-run", "NoRule", null, null)]
     [InlineData(@"apply|D:\P|-", "UnknownOption", "-", null)]
     [InlineData(@"apply|D:\P|--x|--case", "UnknownOption", "--x", null)]
+    [InlineData(@"apply||--case|lower", "NoFolder", null, null)]
+    [InlineData(@"apply| |--case|lower", "NoFolder", null, null)]
+    [InlineData("apply|\t|--case|lower", "NoFolder", null, null)]
+    [InlineData(@"apply|D:\P||--case|lower", "NoFolder", null, null)]
+    [InlineData(@"apply|D:\P|--replace|IMG|--dry-run", "ReplaceNeedsValues", null, null)]
+    [InlineData(@"apply|D:\P|--replace|IMG|--DRY-RUN", "ReplaceNeedsValues", null, null)]
+    [InlineData(@"apply|D:\P|--replace|IMG|--case|lower", "ReplaceNeedsValues", null, null)]
+    [InlineData(@"apply|D:\P|--replace|--dry-run|x", "ReplaceNeedsValues", null, null)]
+    [InlineData(@"apply|D:\P|--replace|--replace|x", "ReplaceNeedsValues", null, null)]
     public void UsageErrors(string joined, string key, string? value0, string? value1)
     {
         object[] values = new[] { value0, value1 }.Where(v => v != null).Cast<object>().ToArray();
