@@ -45,6 +45,8 @@ public sealed class PlannerSourceScanTests
         }
     }
 
+    // The patterns are literal: a spacing variant ("new PathLengthCheck ()") or a target-typed new() would slip past.
+    // A guard against drift, not a proof; the review catches the rest.
     [Theory]
     [InlineData("new InvalidNameCheck(")]
     [InlineData("new DuplicateTargetCheck(")]

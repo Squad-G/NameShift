@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -968,7 +969,7 @@ public sealed class PreviewModelTests
         await preview.Pending;
 
         PreviewSnapshot snapshot = preview.Snapshot;
-        var existing = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IReadOnlyCollection<string>>
+        var existing = new Dictionary<string, IReadOnlyCollection<string>>
         {
             [@"C:\A"] = _files.ExistingNames,
         };
