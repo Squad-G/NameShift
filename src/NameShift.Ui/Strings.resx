@@ -238,4 +238,26 @@
   <data name="SkipFailed" xml:space="preserve"><value>{0}: {1}</value></data>
   <data name="DetailsMore" xml:space="preserve"><value>...and {0} more.</value></data>
   <data name="ActionUnexpected" xml:space="preserve"><value>Something went wrong. Check the files in the folder before you continue.</value></data>
+  <data name="PresetsMenu" xml:space="preserve"><value>&amp;Presets</value></data>
+  <data name="PresetsSave" xml:space="preserve"><value>&amp;Save preset…</value></data>
+  <data name="PresetsLoad" xml:space="preserve"><value>&amp;Load preset</value></data>
+  <data name="PresetsDelete" xml:space="preserve"><value>&amp;Delete preset</value></data>
+  <data name="PresetsNone" xml:space="preserve"><value>No saved presets</value></data>
+  <data name="PresetUnreadableOne" xml:space="preserve"><value>1 preset could not be read.</value></data>
+  <data name="PresetUnreadableMany" xml:space="preserve"><value>{0} presets could not be read.</value></data>
+  <data name="PresetSaved" xml:space="preserve"><value>Preset "{0}" saved.</value></data>
+  <data name="PresetLoaded" xml:space="preserve"><value>Preset "{0}" loaded.</value></data>
+  <data name="PresetDeleted" xml:space="preserve"><value>Preset "{0}" deleted.</value></data>
+  <data name="PresetNotFound" xml:space="preserve"><value>The preset "{0}" was not found.</value></data>
+  <data name="PresetSaveFailed" xml:space="preserve"><value>The preset could not be saved: {0}</value></data>
+  <data name="PresetDeleteFailed" xml:space="preserve"><value>The preset could not be deleted: {0}</value></data>
+  <data name="PresetNotLoadedBusy" xml:space="preserve"><value>The preset was not loaded: a rename is running.</value></data>
+  <data name="PresetReplaceQuestion" xml:space="preserve"><value>Replace the preset "{0}"?</value></data>
+  <data name="PresetDeleteQuestion" xml:space="preserve"><value>Delete the preset "{0}"?</value></data>
+  <data name="PresetNameDialogTitle" xml:space="preserve"><value>Save preset</value></data>
+  <data name="PresetNameLabel" xml:space="preserve"><value>Preset &amp;name:</value></data>
+  <data name="DialogOk" xml:space="preserve"><value>OK</value></data>
+  <data name="DialogCancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="DialogYes" xml:space="preserve"><value>&amp;Yes</value></data>
+  <data name="DialogNo" xml:space="preserve"><value>&amp;No</value></data>
 </root>
