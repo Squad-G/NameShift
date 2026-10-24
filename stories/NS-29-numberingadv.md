@@ -1,6 +1,6 @@
 # NS-29: Numbering rule: hex, letters and roman numerals
 
-Status: In Review
+Status: Done
 Depends on: NS-17
 Area: engine
 
@@ -94,3 +94,4 @@ Construction:
 - 2026-10-24: break per folder split out to NS-60 (it needs the pipeline to tell a rule which folder an item is in); the rest made testable, set Ready (po).
 - 2026-10-24: In Progress (builder).
 - 2026-10-24: In Review (builder), PR #47.
+- 2026-10-24: Done (tech-lead), PR #47 approved and merged into dev; review nit folded in (non-ASCII test text written as \u escapes).

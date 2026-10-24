@@ -190,7 +190,7 @@ public sealed class NumberTextTests
 
     [Theory]
     [InlineData("a1")]
-    [InlineData("é")]
+    [InlineData("\u00E9")]
     [InlineData("")]
     [InlineData("zzzzzzzzzzzz")]
     public void TryParse_Letters_Fails(string text)
@@ -218,7 +218,7 @@ public sealed class NumberTextTests
     [InlineData("IVX")]
     [InlineData("abc")]
     [InlineData("")]
-    [InlineData("ı")]
+    [InlineData("\u0131")]
     public void TryParse_Roman_Fails(string text)
     {
         Assert.False(NumberText.TryParse(text, NumeralSystem.Roman, out var value));
@@ -269,10 +269,10 @@ public sealed class NumberTextTests
     }
 
     [Theory]
-    [InlineData("٣", NumeralSystem.Decimal)]
-    [InlineData("３", NumeralSystem.Decimal)]
-    [InlineData("٣", NumeralSystem.Hexadecimal)]
-    [InlineData("３", NumeralSystem.Hexadecimal)]
+    [InlineData("\u0663", NumeralSystem.Decimal)]
+    [InlineData("\uFF13", NumeralSystem.Decimal)]
+    [InlineData("\u0663", NumeralSystem.Hexadecimal)]
+    [InlineData("\uFF13", NumeralSystem.Hexadecimal)]
     public void TryParse_NonAsciiDigits_Fail(string text, NumeralSystem system)
     {
         Assert.False(NumberText.TryParse(text, system, out var value));
