@@ -1,6 +1,6 @@
 # NS-29: Numbering rule: hex, letters and roman numerals
 
-Status: Ready
+Status: In Progress
 Depends on: NS-17
 Area: engine
 
@@ -92,3 +92,4 @@ Construction:
 ## Log
 - 2026-10-18: created (po).
 - 2026-10-24: break per folder split out to NS-60 (it needs the pipeline to tell a rule which folder an item is in); the rest made testable, set Ready (po).
+- 2026-10-24: In Progress (builder).
