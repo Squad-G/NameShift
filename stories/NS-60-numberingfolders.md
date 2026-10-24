@@ -1,12 +1,12 @@
 # NS-60: Numbering rule: restart in each folder
 
-Status: Draft
-Depends on: NS-17
+Status: Ready
+Depends on: NS-17, NS-29
 Area: engine
 
 ## Why
-When the list holds files from several folders (sub-folders, NS-33), number each folder from the start value again. Set
-`Ready` when NS-33 is next: until then the window lists one folder and the option has no use.
+When the list holds files from several folders (sub-folders, NS-33), number each folder from the start value again. The
+engine goes first so the sub-folder stories (NS-33, NS-71) can use it.
 
 ## Acceptance criteria
 `ItemContext` gets `int FolderIndex`: the 0-based position of the item among the items of the same folder in the list
@@ -36,7 +36,7 @@ Step`.
 8. Given the option on with hexadecimal or Roman numerals (NS-29), then the numbers restart in each folder the same way.
 
 ## Out of scope
-- The panel checkbox "restart in each folder" and the sub-folders option: both belong to NS-33 (part b), on top of NS-61.
+- The panel checkbox "restart in each folder" (NS-71) and the sub-folders option (NS-33, NS-70).
 - Sorting items by folder: the app gives the list order.
 
 ## Decisions
@@ -48,3 +48,4 @@ Step`.
 - 2026-10-18: created inside NS-29 (po).
 - 2026-10-24: split out of NS-29 as its own story; kept Draft until sub-folders (NS-33) are scheduled (po).
 - 2026-10-24: NS-61 no longer depends on this story (the restart checkbox waits for NS-33); still Draft, since nothing could use it yet (po).
+- 2026-10-24: David chose the filter row placement; the sub-folder stories are scheduled, so set Ready (po).

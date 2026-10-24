@@ -84,7 +84,9 @@ In the window (by hand, listed in the PR):
 
 ## Out of scope
 - The verbs of the command line (`apply`, `undo`, help: NS-38 and after): a bare path with no verb opens the window.
-  Until NS-38 exists, `NameShift.exe apply D:\Pics` would read `apply` as a relative folder and show "Folder not found".
+  `NameShift.exe apply D:\Pics` reads `apply` as a relative folder and shows "Folder not found". (Update 2026-10-24: the
+  command line is the separate console program `NameShiftCmd.exe`, NS-38; `NameShift.exe` stays the window and keeps this
+  behaviour.)
 - Several windows or one window per path; reusing a running window (single instance).
 - Opening more than one dropped folder; renaming from the command line (NS-38).
 - The Explorer right-click entry (NS-49): it uses this story.
