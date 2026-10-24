@@ -1,6 +1,6 @@
 # NS-61: Numbering panel: number system
 
-Status: In Review
+Status: Done
 Depends on: NS-53, NS-29
 Area: app
 
@@ -89,3 +89,4 @@ In the window (by hand, listed in the PR):
 - 2026-10-24: restart checkbox left out until NS-33; criteria made testable against the NS-29 story and `NumberingPanelModel`; set Ready (NS-29 is merged) (po).
 - 2026-10-24: In Progress (builder).
 - 2026-10-24: In Review (builder), PR #50.
+- 2026-10-24: Done (tech-lead), PR #50 approved and merged into dev; review nit folded in (a reset test for the letter case). Hand checks pending for David: the system and case drop-downs, the greying of Digits and the case list, the start error label wrapping at 200 %, and the screen reader.

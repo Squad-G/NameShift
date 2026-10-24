@@ -713,6 +713,17 @@ public sealed class NumberingPanelModelTests
     }
 
     [Fact]
+    public void Reset_DecimalWithSmallLetters_RestoresUpperCase()
+    {
+        var model = new NumberingPanelModel { UpperCase = false };
+
+        model.Reset();
+
+        Assert.True(model.UpperCase);
+        Assert.True(model.IsDefault);
+    }
+
+    [Fact]
     public void TurkishCulture_LettersAndRoman()
     {
         CultureInfo saved = CultureInfo.CurrentCulture;
