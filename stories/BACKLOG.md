@@ -35,7 +35,7 @@ IDs), not the rank: the rank is the row order.
 | 55 | [NS-55 Panels for Name and Extension](NS-55-namepanels.md) | Done | NS-11, NS-18, NS-19, NS-16 |
 | 21 | [NS-21 Remove: characters, text, crop before/after](NS-21-removetext.md) | Done | NS-1 |
 | 22 | [NS-22 Remove: digits, symbols, accents, high characters](NS-22-removeclasses.md) | Done | NS-1 |
-| 23 | [NS-23 Remove: trim, leading dots, double spaces](NS-23-removetidy.md) | Ready | NS-1 |
+| 23 | [NS-23 Remove: trim, leading dots, double spaces](NS-23-removetidy.md) | Done | NS-1 |
 | 30 | [NS-30 Panel for Remove](NS-30-morepanels.md) | Ready | NS-11, NS-20, NS-21, NS-22, NS-23 |
 | 24 | [NS-24 RegEx rule](NS-24-regex.md) | Ready | NS-1 |
 | 28 | [NS-28 Append folder name rule](NS-28-foldername.md) | Ready | NS-1 |
