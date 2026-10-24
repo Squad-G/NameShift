@@ -70,10 +70,6 @@ public sealed class MoveCopyRule : IRenameRule
         }
 
         var text = name.BaseName;
-        if (text.Length == 0)
-        {
-            return name;
-        }
 
         string taken;
         string rest;
@@ -102,7 +98,7 @@ public sealed class MoveCopyRule : IRenameRule
 
         if (rest.Length == 0)
         {
-            return name.WithBaseName(taken);
+            return name; // Move of the whole base name (or an empty base): nothing changes.
         }
 
         var index = InsertIndex(rest);
