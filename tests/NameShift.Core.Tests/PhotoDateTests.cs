@@ -354,6 +354,10 @@ public class PhotoDateTests
 
         Assert.Null(PhotoDate.Read(stream));
         Assert.True(stream.Served <= Cap, "served " + stream.Served);
+
+        // The segment length alone decides: the reader stops after the length field, before the Exif header.
+        int payloadStart = Soi.Length + FillersToEndAtCap() + 1 + 4;
+        Assert.Equal(payloadStart, stream.Served);
     }
 
     [Fact]
