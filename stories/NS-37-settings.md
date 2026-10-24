@@ -42,7 +42,8 @@ Window:
    decides. Units (the app is PerMonitorV2): `saved` has its position in device pixels and its size in logical (96-DPI)
    pixels; each screen carries its working area in device pixels and its scale (1.0 = 100 %); `minimumSize` is logical; the
    result is a device-pixel rectangle (size = logical size times the landing screen's scale) or "no placement". The window
-   opens there when at least 100 device px of the width of its top 40 device px strip lie inside one screen's working area
+   opens there when the grabbable strip (the title-bar band: the top 40 device px of the placed result rectangle, its
+   full width, in device pixels), intersected with one screen's working area, is at least 100 device px wide
    (the landing screen is the one with the largest overlap); otherwise (a screen that is gone, a position far outside) the answer is "no placement" and the
    window opens centred on the primary screen at the default size (today's behaviour). The size is never below the minimum
    size and never above the working area of the screen it lands on. A maximised window comes back maximised, at its
