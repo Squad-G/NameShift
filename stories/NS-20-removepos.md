@@ -15,7 +15,8 @@ n, last n, then from-to. Counts are UTF-16 characters, as in Add.
 2. Given `file_copy.txt`, last 5, then `file.txt`.
 3. Given `abcdef.txt`, from 2 to 4 (1-based, inclusive), then `aef.txt`.
 4. Given n larger than the base name length (first 10 on `abc.txt`), then the base name becomes empty and the
-   invalid-name check flags `EmptyName`; the extension stays (`.txt`).
+   extension stays: `.txt`, a valid name (NS-5) that is not flagged. Given the same on a folder `abc`, the name is
+   empty and the invalid-name check flags `EmptyName`.
 5. Given from < 1, from > to, or either of from and to missing, then the from-to part is ignored.
 6. Given n = 0, negative or null, then that part removes nothing; `Enabled` is false when no part applies.
 7. Given to larger than the length (`abcdef.txt`, from 4 to 99), then it is clamped: `abc.txt`; given from past the end

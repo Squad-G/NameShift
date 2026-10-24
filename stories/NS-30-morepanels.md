@@ -12,7 +12,7 @@ Use the Remove rules from the window. (The Name and Extension panels moved to NS
 2. The Remove panel groups its parts (position, text, classes, tidy) in one panel with one enable checkbox.
 3. The panel sits in pipeline order and has enable and reset.
 4. Invalid or empty fields are marked, never an exception.
-5. Every setting of this panel is saved in presets (NS-36) and has a command-line option (NS-40); where those stories are not built yet, this story adds the hook for them, and the reviewer checks it.
+5. Every setting of this panel is saved in presets (NS-36) and has a command-line option (NS-40); where those stories are not built yet, the panel model keeps its settings as plain public properties and nothing more (the same policy as NS-16 and NS-55); the story that builds presets or the command line adds the fields.
 
 ## Out of scope
 - Anything not listed above.

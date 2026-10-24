@@ -1,6 +1,6 @@
 # NS-16: Replace rule: keep the case pattern of the found text
 
-Status: Ready
+Status: Draft
 Depends on: NS-2, NS-12
 Area: engine
 
@@ -17,6 +17,8 @@ from the letters of each found text (non-letters are skipped); every match is ju
 3. Given the option on and a found text with mixed case (`dUmP`, `DuMp`), then the replacement is used as typed.
 4. Given the option on, find `dump` with `bob stack`, then `Dump.txt` becomes `Bob stack.txt` (capitalised: only the
    first letter of the replacement changes) and `DUMP.txt` becomes `BOB STACK.txt` (upper: the whole replacement).
+   Capitalising skips leading non-letters, as `CaseRule.Capitalise` does: find `dump` with `_bob`, `Dump.txt` becomes
+   `_Bob.txt`; with `1st`, `Dump.txt` becomes `1St.txt`.
 5. Given the option on and a one-letter found text, find `a` with `xyz`, then `A.txt` becomes `Xyz.txt` (a single
    upper-case letter counts as capitalised, not as all upper-case) and `a.txt` becomes `xyz.txt`.
 6. Given the option on and a found text with no letters (find `1` with `one`), or a replacement with no letters
@@ -28,13 +30,14 @@ from the letters of each found text (non-letters are skipped); every match is ju
    pattern is Find's).
 10. Given the option on with Include extension on, then `DUMP.TXT`, find `txt` with `log`, becomes `DUMP.LOG`.
 11. Given the Replace panel (NS-12), then it has a checkbox "Match the case of the found text" (label from
-    `NameShift.Ui.Strings`, unique mnemonic checked by the existing test), off by default, cleared by the panel's
+    `NameShift.Ui.Strings`, mnemonic per the window's rule once David has decided it), off by default, cleared by the panel's
     reset (`IsDefault` false while it is on), and `BuildRule` passes it to the rule. A model test covers the mapping,
     default and reset. The checkbox sits after Match case (by hand, listed in the PR).
 
 ## Out of scope
-- Presets (NS-36) and the command-line option `--replace-keep-case` (NS-40): those stories add their own hook for it
-  when built; nothing here for them.
+- Presets (NS-36) and the command-line option `--replace-keep-case` (NS-40): until they exist the panel model keeps
+  the setting as a plain public property and nothing more; the story that builds them adds the field (same policy
+  for every panel story).
 - Cultural casing (all casing is invariant, as in the Case rule).
 
 ## Decisions
@@ -46,6 +49,10 @@ from the letters of each found text (non-letters are skipped); every match is ju
   of those stories picks the setting up (po, 2026-10-23).
 - The seam: `ReplacementFor(found)` already exists in ReplaceRule for this (po, 2026-10-23).
 
+- Alt-key letter for the checkbox? **Open, for David:** "Match the case of the found text" has no free letter (only
+  J K Q Z are free; M is taken by "Match case"). Back to Draft until decided (po, 2026-10-23).
+
 ## Log
 - 2026-10-18: created (po).
 - 2026-10-23: criteria made testable, presets and CLI moved out, set Ready (po).
+- 2026-10-23: back to Draft, blocked on the Alt-letter question; leading non-letter case added (po, from the PR #24 review).

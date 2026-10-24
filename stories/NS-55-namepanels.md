@@ -1,9 +1,8 @@
 # NS-55: Panels for Name and Extension
 
-Status: Ready
+Status: Draft
 Depends on: NS-11, NS-18, NS-19
 Area: app
-Build after: NS-18 and NS-19 are merged (it uses both rule classes).
 
 ## Why
 Use the Name and Extension rules from the window as soon as they exist, instead of waiting for every Remove rule.
@@ -26,16 +25,21 @@ Same pattern as NS-12: a model in `NameShift.Ui.Rules` (extends `RulePanelModel`
    behaviour), and `Changed` fires once.
 7. Given both panels enabled with Name = Fixed `trip` and Extension = Lower on `IMG_9.JPG`, then the preview shows
    `trip.jpg` (a model-level pipeline test builds both rules and runs them).
-8. Given the panel stack, then the panels sit in pipeline order: Name (2) before Replace (3); Extension (11) after
-   Numbering (9). A test on `RulePanels.Create()` checks the stages are ascending.
+8. Given the two new models, then `NamePanelModel.Stage` is `RuleStage.Name` and `ExtensionPanelModel.Stage` is
+   `RuleStage.Extension`, and a `RulePanelHostModel` built from all six models (Replace, Case, Add, Numbering, Name,
+   Extension, in any order given) lists them in pipeline order: Name (2) before Replace (3); Extension (11) after
+   Numbering (9). The host sorts by stage itself; the test is in `NameShift.Ui.Tests`.
 9. Given an enabled panel whose rule is null (Keep or Same), then nothing breaks and the preview is unchanged.
-10. Mnemonics stay unique across the window (the existing test is extended to the new labels); mode texts live in
-    small `*ModeText` helpers like `CaseModeText`, with a test that every mode has a non-empty text.
+10. Mnemonics: the new labels follow the window's mnemonic rule once David has decided it (see Decisions: open
+    question). Mode texts live in small `*ModeText` helpers like `CaseModeText`, with a test that every mode has a
+    non-empty text.
 11. By hand (listed in the PR): both panels fit at 100 % and 200 % scale, tab order is mode list then text box, and
     a screen reader reads each panel's title and the disabled state.
 
 ## Out of scope
-- Presets and command-line options for these settings (NS-36, NS-40 add them).
+- Presets and command-line options: policy for every panel story: until NS-36 and NS-40 exist, the model keeps its
+  settings as plain public properties and nothing more; once they exist, the story that adds a panel adds its fields
+  (as NS-36 criterion 7 says).
 - The Remove panel (NS-30).
 
 ## Decisions
@@ -46,5 +50,10 @@ Same pattern as NS-12: a model in `NameShift.Ui.Rules` (extends `RulePanelModel`
 - Does the Extension panel validate the text? **Decision:** no; the rule cleans dots and spaces, and invalid
   characters show up as a conflict on the row (po, 2026-10-23).
 
+- Alt-key letters for the new labels? **Open, for David:** only J K Q Z are free in the window (NS-12 and NS-53 use
+  the rest) and this story adds up to six labels. Back to Draft until decided; the options are in the PO's reply to
+  the lead (po, 2026-10-23).
+
 ## Log
 - 2026-10-23: created and set Ready (po).
+- 2026-10-23: back to Draft: criterion 10 needs David's decision on Alt letters; criterion 8 made a model test; build-after line dropped (po, from the PR #24 review).
