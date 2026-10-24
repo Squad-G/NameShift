@@ -1,6 +1,6 @@
 # NS-67: Hard cases on disk: read-only, in use, vanishing drive
 
-Status: Ready
+Status: In Progress
 Depends on: NS-9, NS-15
 Area: app
 
@@ -60,3 +60,4 @@ not supported).
 - 2026-10-24: split out of NS-48; set Ready (po).
 - 2026-10-24: after review: `SkipFailedEntry` mapping, `HookedFileSystem`, `{0}` string and full status text, unchanged items
   need not exist (po).
+- 2026-10-24: In Progress (builder).
