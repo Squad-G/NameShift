@@ -31,10 +31,12 @@ File list (`FileListModel`):
    and `Items` holds `Filter.Apply(AllItems)`: with the default filter, `Items` equals what the window shows today (no hidden
    or system item). `DiskFileListSource.IsShown` is removed: the source returns hidden and system entries with their
    attributes (`ListEntries` keeps its signature), and the existing tests are updated.
-7. Given a filter change, then `Items` is a new list, `Batch` is rebuilt, the selected items that are still listed stay
-   selected (by item, as a sort does, NS-66), the source is not called again, and the single event of a new order
-   (`OrderChanged`, NS-66, with the same consumers: `PreviewModel` recomputes once and `MainActions` clears the Rename lock)
-   is raised once.
+7. Given a filter change (`SetFilterAsync`), then the filter runs off the UI thread and, when its result is applied,
+   `Items` is a new list, `Batch` is rebuilt, the selected items that are still listed stay selected (by item, as a sort
+   does, NS-66), the source is not called again, and the single event of a new order (`OrderChanged`, NS-66, with the same
+   consumers: `PreviewModel` recomputes once and `MainActions` clears the Rename lock) is raised once. Until then `Items`
+   is still the previous complete result (never partially filtered); a newer filter or a folder load cancels and
+   supersedes a pending run, whose result is never applied.
 8. Given the filter hides every item of a non-empty folder, then `Message` is `No item matches the filters.` (new string)
    when the filter is not at default, and `This folder is empty` when it is at default (a folder that holds only hidden
    files reads as empty, as today). A folder with no entry at all says `This folder is empty`.
@@ -43,7 +45,8 @@ File list (`FileListModel`):
    planner: a file hidden by the filter still occupies its name (`a.png` filtered out, `a.jpg` renamed to `a.png` is
    flagged `TargetExists`, NS-32:15). Callers that change: `PreviewModel`, `FileListModel` and their tests; and the command
    line (NS-38) when it is merged, which switches to the same map and keeps files only with the default filter.
-10. Given a 10,000-item list and a mask change, then re-filtering finishes in under 1 second (a loose guard, as NS-58).
+10. Given a 10,000-item list and a mask change, then the re-filtered list is applied in under 1 second (a loose guard, as
+    NS-58); the filter runs off the UI thread, and a superseded run stops within one item.
 
 ## Out of scope
 - The controls (NS-70), sub-folders (NS-74), the numbering check box (NS-71, engine NS-60).
@@ -65,3 +68,4 @@ File list (`FileListModel`):
 - 2026-10-24: after review: narrowed to the model and the filtered list; sub-folder listing moved to NS-74; empty-message
   rule, callers named, depends on NS-73 (po).
 - 2026-10-24: In Progress (builder).
+- 2026-10-24: criteria 7 and 10 reworded: the filter runs off the UI thread (lead's decision) (builder).

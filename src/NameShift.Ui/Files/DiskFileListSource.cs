@@ -6,7 +6,8 @@ using NameShift.Ui.Folders;
 
 namespace NameShift.Ui.Files;
 
-/// <summary>Lists one folder's visible files and sub-folders from the real disk.</summary>
+/// <summary>Lists every file and sub-folder of one folder from the real disk, hidden and system ones included, each
+/// with its attributes (the filter decides what is shown).</summary>
 public sealed class DiskFileListSource : IFileListSource
 {
     public FileListing ListEntries(string folderPath)
@@ -14,20 +15,15 @@ public sealed class DiskFileListSource : IFileListSource
         try
         {
             var items = new List<RenameItem>();
-            var names = new List<string>();
 
             // One pass: on .NET Framework the entries come pre-filled from the find data, so reading
             // attributes, size and times costs no extra disk call per entry.
             foreach (FileSystemInfo info in new DirectoryInfo(folderPath).EnumerateFileSystemInfos())
             {
-                names.Add(info.Name);
-                if (IsShown(info.Attributes))
-                {
-                    items.Add(ToItem(info, folderPath));
-                }
+                items.Add(ToItem(info, folderPath));
             }
 
-            return FileListing.Ok(items, names);
+            return FileListing.Ok(items);
         }
         catch (Exception e)
         {
@@ -36,9 +32,6 @@ public sealed class DiskFileListSource : IFileListSource
             return FileListing.Failed(DiskFolderSource.Classify(e));
         }
     }
-
-    internal static bool IsShown(FileAttributes attributes) =>
-        (attributes & (FileAttributes.Hidden | FileAttributes.System)) == 0;
 
     internal static RenameItem ToItem(FileSystemInfo info, string folderPath)
     {

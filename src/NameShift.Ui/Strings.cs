@@ -103,6 +103,12 @@ public static class Strings
 
     public static string FolderEmpty => Get(nameof(FolderEmpty));
 
+    /// <summary>"No item matches the filters.".</summary>
+    public static string NoItemMatchesFilter => Get(nameof(NoItemMatchesFilter));
+
+    /// <summary>"Enter a whole number for the length.".</summary>
+    public static string FilterLengthInvalid => Get(nameof(FilterLengthInvalid));
+
     public static string FileListName => Get(nameof(FileListName));
 
     /// <summary>"Error: {0}", a rule's error in the New Name cell.</summary>

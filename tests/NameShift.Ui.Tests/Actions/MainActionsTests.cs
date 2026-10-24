@@ -9,6 +9,7 @@ using NameShift.Ui.Actions;
 using NameShift.Ui.Files;
 using NameShift.Ui.Preview;
 using NameShift.Ui.Rules;
+using NameShift.Ui.Tests.Files;
 using NameShift.Ui.Tests.Preview;
 using NameShift.Ui.Tests.Rules;
 using Xunit;
@@ -1191,6 +1192,19 @@ public sealed class MainActionsTests
         (MainActions actions, _) = await RenamedAndLocked();
 
         await _files.LoadAsync(FolderB);
+        await ApplyPreview();
+
+        Assert.True(actions.CanRename);
+        Assert.Equal("", actions.RenameHint);
+    }
+
+    [Fact]
+    public async Task Locked_FilterApplied_Unlocks()
+    {
+        (MainActions actions, _) = await RenamedAndLocked();
+        Assert.False(actions.CanRename);
+
+        Assert.True(await TestWait.Within(_files.SetFilterAsync(new ItemFilter(mask: "*"))));
         await ApplyPreview();
 
         Assert.True(actions.CanRename);

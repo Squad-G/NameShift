@@ -12,7 +12,7 @@ namespace NameShift.Ui.Preview;
 /// <summary>
 /// Computes the New Name column: runs RenamePipeline over the file list's batch (the selected rows, or every row with no
 /// selection) off the UI thread, 150 ms after the last rule or selection change and at once when a folder finishes
-/// loading or the list is sorted. All state is touched on the calling (UI) thread; only the pipeline runs on the pool.
+/// loading or the list is sorted or filtered. All state is touched on the calling (UI) thread; only the pipeline runs on the pool.
 /// A newer request cancels and supersedes an older one.
 /// Its lifetime is the window's: it has no Dispose and never unsubscribes (the window's controls guard with IsDisposed).
 /// </summary>
@@ -143,14 +143,9 @@ public sealed class PreviewModel
     private static PreviewSnapshot Compute(
         IReadOnlyList<IRenameRule> rules,
         FileBatch batch,
-        string folder,
-        IReadOnlyList<string> existingNames,
+        IReadOnlyDictionary<string, IReadOnlyCollection<string>> existing,
         CancellationToken token)
     {
-        var existing = new Dictionary<string, IReadOnlyCollection<string>>(StringComparer.OrdinalIgnoreCase)
-        {
-            [folder] = existingNames as IReadOnlyCollection<string> ?? existingNames.ToArray(),
-        };
         return new PreviewSnapshot(batch, RenamePlanner.Plan(rules, batch.Items, existing, token));
     }
 
@@ -173,9 +168,8 @@ public sealed class PreviewModel
 
             IReadOnlyList<IRenameRule> rules = _rules.Rules; // read after the delay: the latest settings
             FileBatch batch = _files.Batch;
-            string folder = _files.FolderPath!;
-            IReadOnlyList<string> existing = _files.ExistingNames;
-            snapshot = await Task.Run(() => Compute(rules, batch, folder, existing, cts.Token), cts.Token);
+            IReadOnlyDictionary<string, IReadOnlyCollection<string>> existing = _files.ExistingNamesByFolder;
+            snapshot = await Task.Run(() => Compute(rules, batch, existing, cts.Token), cts.Token);
         }
         catch (OperationCanceledException) when (cts.IsCancellationRequested)
         {

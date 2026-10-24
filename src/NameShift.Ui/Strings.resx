@@ -44,6 +44,8 @@
   <data name="ColumnModified" xml:space="preserve"><value>Modified</value></data>
   <data name="SizeKilobytes" xml:space="preserve"><value>{0} KB</value></data>
   <data name="FolderEmpty" xml:space="preserve"><value>This folder is empty</value></data>
+  <data name="NoItemMatchesFilter" xml:space="preserve"><value>No item matches the filters.</value></data>
+  <data name="FilterLengthInvalid" xml:space="preserve"><value>Enter a whole number for the length.</value></data>
   <data name="FileListName" xml:space="preserve"><value>Files</value></data>
   <data name="PreviewError" xml:space="preserve"><value>Error: {0}</value></data>
   <data name="RulePanelHeading" xml:space="preserve"><value>{0}. {1}</value></data>
