@@ -1,6 +1,6 @@
 # NS-27: Read the photo (EXIF) date from a JPEG
 
-Status: Ready
+Status: Done
 Depends on: NS-1
 Area: engine
 
@@ -120,3 +120,6 @@ How it reads (the rules the tests below check):
 - 2026-10-18: created as "Auto date rule: photo (EXIF) date" (po).
 - 2026-10-24: re-scoped to the reader only; the rule part moved to NS-62; no new dependency needed, set Ready (po).
 - 2026-10-24: bounds, loops, cap, short reads and fuzz criteria added after the PR #39 review (po).
+- 2026-10-24: In Progress (builder).
+- 2026-10-24: In Review (builder), PR #49.
+- 2026-10-24: Done (tech-lead), PR #49 approved and merged into dev. No hand checks (engine only); the po points are recorded in the brief.
