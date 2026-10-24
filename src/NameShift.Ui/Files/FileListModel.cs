@@ -66,6 +66,27 @@ public sealed class FileListModel
     /// <summary>Raised on the calling thread when <see cref="Batch"/> changes through <see cref="SetSelection"/>.</summary>
     public event EventHandler? SelectionChanged;
 
+    /// <summary>The row of the listed item named <paramref name="name"/> (ordinal, ignoring case), or -1: also before
+    /// the folder is loaded, when it failed, and for a hidden entry (not in <see cref="Items"/>).</summary>
+    public int FindRow(string? name)
+    {
+        if (State != FileListState.Loaded || string.IsNullOrEmpty(name))
+        {
+            return -1;
+        }
+
+        IReadOnlyList<RenameItem> listItems = Items;
+        for (int row = 0; row < listItems.Count; row++)
+        {
+            if (string.Equals(listItems[row].Name, name, StringComparison.OrdinalIgnoreCase))
+            {
+                return row;
+            }
+        }
+
+        return -1;
+    }
+
     /// <summary>Selects the rows (any order, duplicates allowed). No rows, or every row, is the whole list.
     /// Raises <see cref="SelectionChanged"/> only when the batch changes.</summary>
     /// <exception cref="ArgumentNullException">When rows is null.</exception>

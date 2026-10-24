@@ -16,8 +16,9 @@ public static class PathInput
 {
     private const string BadChars = "<>\"|?*";
 
-    /// <summary>Normalises <paramref name="text"/>; <paramref name="path"/> is empty unless the result is Ok.</summary>
-    public static PathInputResult TryNormalize(string? text, out string path)
+    /// <summary>Normalises <paramref name="text"/>; <paramref name="path"/> is empty unless the result is Ok.
+    /// <paramref name="expandVariables"/> false keeps <c>%VAR%</c> as typed (a dropped or command-line path is real).</summary>
+    public static PathInputResult TryNormalize(string? text, out string path, bool expandVariables = true)
     {
         path = "";
         string value = (text ?? "").Trim();
@@ -31,7 +32,11 @@ public static class PathInput
             return PathInputResult.Empty;
         }
 
-        value = Environment.ExpandEnvironmentVariables(value);
+        if (expandVariables)
+        {
+            value = Environment.ExpandEnvironmentVariables(value);
+        }
+
         if (HasForbiddenCharacter(value)
             || value.StartsWith(@"\\?\", StringComparison.Ordinal)
             || value.StartsWith(@"\\.\", StringComparison.Ordinal))
@@ -68,7 +73,8 @@ public static class PathInput
     public static bool SameFolder(string a, string b) =>
         string.Equals(TrimTrailingSeparators(a), TrimTrailingSeparators(b), StringComparison.OrdinalIgnoreCase);
 
-    private static bool HasForbiddenCharacter(string value)
+    /// <summary>A control character, one of &lt; &gt; " | ? *, or a colon anywhere but second.</summary>
+    internal static bool HasForbiddenCharacter(string value)
     {
         for (int i = 0; i < value.Length; i++)
         {
@@ -82,7 +88,8 @@ public static class PathInput
         return false;
     }
 
-    private static bool IsFullyQualified(string value)
+    /// <summary><c>X:</c>, <c>X:\...</c> or <c>\\server\share...</c> (backslashes only).</summary>
+    internal static bool IsFullyQualified(string value)
     {
         if (value.Length >= 2 && value[1] == ':')
         {

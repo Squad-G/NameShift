@@ -26,6 +26,26 @@ public sealed class PathInputTests
         Assert.Equal(expected, path);
     }
 
+    [Fact]
+    public void TryNormalize_NoExpansion_KeepsPercent()
+    {
+        // A variable this test owns: no real one is read or changed.
+        const string Name = "NAMESHIFT_TEST_NS47";
+        string? before = Environment.GetEnvironmentVariable(Name);
+        Environment.SetEnvironmentVariable(Name, "Expanded");
+        try
+        {
+            Assert.Equal(PathInputResult.Ok, PathInput.TryNormalize(@"C:\%NAMESHIFT_TEST_NS47%", out string kept, expandVariables: false));
+            Assert.Equal(@"C:\%NAMESHIFT_TEST_NS47%", kept);
+            Assert.Equal(PathInputResult.Ok, PathInput.TryNormalize(@"C:\%NAMESHIFT_TEST_NS47%", out string expanded));
+            Assert.Equal(@"C:\Expanded", expanded);
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable(Name, before);
+        }
+    }
+
     [Theory]
     [InlineData("C:foo")]
     [InlineData("\\foo")]

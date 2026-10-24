@@ -120,6 +120,57 @@ public sealed class FileListModelTests
     }
 
     [Fact]
+    public async Task FindRow_IgnoresCase()
+    {
+        _source.SetEntries(@"C:\A", File("a.jpg"), File("B.txt"));
+        await _model.LoadAsync(@"C:\A");
+
+        Assert.Equal(1, _model.FindRow("b.txt"));
+        Assert.Equal(0, _model.FindRow("a.jpg"));
+        Assert.Equal(-1, _model.FindRow("c.txt"));
+        Assert.Equal(-1, _model.FindRow(null));
+        Assert.Equal(-1, _model.FindRow(""));
+    }
+
+    [Fact]
+    public async Task FindRow_BeforeLoad_Or_Failed()
+    {
+        Assert.Equal(-1, _model.FindRow("a.jpg"));
+
+        _source.SetListing(@"C:\A", FileListing.Failed(FolderProblem.AccessDenied));
+        await _model.LoadAsync(@"C:\A");
+
+        Assert.Equal(FileListState.Failed, _model.State);
+        Assert.Equal(-1, _model.FindRow("a.jpg"));
+    }
+
+    [Fact]
+    public async Task FindRow_HiddenFile()
+    {
+        _source.SetEntries(@"C:\A", new[] { "h.txt" }, File("a.jpg"));
+        await _model.LoadAsync(@"C:\A");
+
+        Assert.Equal(-1, _model.FindRow("h.txt"));
+        Assert.Equal(0, _model.FindRow("a.jpg"));
+    }
+
+    [Fact]
+    public async Task FindRow_WhileLoading()
+    {
+        _source.SetEntries(@"C:\A", File("a.jpg"));
+        await _model.LoadAsync(@"C:\A");
+        _source.SetEntries(@"C:\B", File("a.jpg", folder: @"C:\B"));
+        var gate = _source.Gate(@"C:\B");
+
+        Task<bool> loading = _model.LoadAsync(@"C:\B");
+
+        Assert.Equal(-1, _model.FindRow("a.jpg"));
+        gate.Set();
+        Assert.True(await loading);
+        Assert.Equal(0, _model.FindRow("a.jpg"));
+    }
+
+    [Fact]
     public void BeforeAnyLoad_NothingIsShown()
     {
         Assert.Equal(FileListState.None, _model.State);
