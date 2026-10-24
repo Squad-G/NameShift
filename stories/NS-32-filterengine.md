@@ -1,6 +1,6 @@
 # NS-32: Filters: mask, regex, kinds and length
 
-Status: In Review
+Status: Done
 Depends on: NS-1
 Area: engine
 
@@ -104,3 +104,4 @@ Excluded items still count:
 - 2026-10-24: criteria made testable against `RenameItem`, `NameParts`, `RegexRule.Validate` and `DuplicateTargetCheck`; invalid-regex rule refined; set Ready (po).
 - 2026-10-24: In Progress (builder).
 - 2026-10-24: In Review (builder), PR #54.
+- 2026-10-24: Done (tech-lead), PR #54 merged.
