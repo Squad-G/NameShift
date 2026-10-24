@@ -19,6 +19,8 @@ internal static class RulePanels
         var extension = new ExtensionPanelModel();
         var regex = new RegexPanelModel();
         var moveCopy = new MoveCopyPanelModel();
+        var autoDate = new AutoDatePanelModel();
+        var folderName = new FolderNamePanelModel();
         return new[]
         {
             new RulePanelEntry(replace, new ReplacePanel(replace)),
@@ -30,6 +32,8 @@ internal static class RulePanels
             new RulePanelEntry(extension, new ExtensionPanel(extension)),
             new RulePanelEntry(regex, new RegexPanel(regex)),
             new RulePanelEntry(moveCopy, new MoveCopyPanel(moveCopy)),
+            new RulePanelEntry(autoDate, new AutoDatePanel(autoDate)),
+            new RulePanelEntry(folderName, new FolderNamePanel(folderName)),
         };
     }
 }

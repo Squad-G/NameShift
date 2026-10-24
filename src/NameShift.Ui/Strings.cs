@@ -269,6 +269,46 @@ public static class Strings
 
     public static string MoveCopyNumberInvalid => Get(nameof(MoveCopyNumberInvalid));
 
+    public static string AutoDateTitle => Get(nameof(AutoDateTitle));
+
+    public static string AutoDateSource => Get(nameof(AutoDateSource));
+
+    public static string AutoDateFormat => Get(nameof(AutoDateFormat));
+
+    public static string AutoDatePlace => Get(nameof(AutoDatePlace));
+
+    public static string AutoDateSeparator => Get(nameof(AutoDateSeparator));
+
+    public static string AutoDateSourceModified => Get(nameof(AutoDateSourceModified));
+
+    public static string AutoDateSourceCreated => Get(nameof(AutoDateSourceCreated));
+
+    public static string AutoDatePlaceBefore => Get(nameof(AutoDatePlaceBefore));
+
+    public static string AutoDatePlaceAfter => Get(nameof(AutoDatePlaceAfter));
+
+    /// <summary>"Example: {0}", where {0} is the sample date in the typed format.</summary>
+    public static string AutoDateExample => Get(nameof(AutoDateExample));
+
+    /// <summary>"This format is not valid. {0} Until then the date is skipped.", where {0} is AutoDateRule.Validate's message.</summary>
+    public static string AutoDateFormatInvalid => Get(nameof(AutoDateFormatInvalid));
+
+    public static string AutoDateFormatHint => Get(nameof(AutoDateFormatHint));
+
+    public static string FolderNameTitle => Get(nameof(FolderNameTitle));
+
+    public static string FolderNamePlace => Get(nameof(FolderNamePlace));
+
+    public static string FolderNameLevels => Get(nameof(FolderNameLevels));
+
+    public static string FolderNameSeparator => Get(nameof(FolderNameSeparator));
+
+    public static string FolderNamePlaceBefore => Get(nameof(FolderNamePlaceBefore));
+
+    public static string FolderNamePlaceAfter => Get(nameof(FolderNamePlaceAfter));
+
+    public static string FolderNameLevelsInvalid => Get(nameof(FolderNameLevelsInvalid));
+
     public static string AddTitle => Get(nameof(AddTitle));
 
     public static string AddPrefix => Get(nameof(AddPrefix));
