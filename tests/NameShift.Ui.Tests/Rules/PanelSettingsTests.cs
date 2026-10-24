@@ -115,13 +115,17 @@ public sealed class PanelSettingsTests
         Assert.Equal("Lower", casePanel.SaveSettings()["Mode"]);
     }
 
-    public static IEnumerable<object[]> KeyOrders() => new[] { new object[] { false }, new object[] { true } };
+    // Hexadecimal "10" also reads as a decimal start, so applying StartText before Numerals would get it rewritten.
+    public static IEnumerable<object[]> KeyOrders() =>
+        from numerals in new[] { NumeralSystem.Roman, NumeralSystem.Hexadecimal }
+        from reversed in new[] { false, true }
+        select new object[] { numerals, numerals == NumeralSystem.Roman ? "iv" : "10", reversed };
 
     [Theory]
     [MemberData(nameof(KeyOrders))]
-    public void Numbering_RomanUpperOffStart_AnyKeyOrder(bool reversed)
+    public void Numbering_RomanUpperOffStart_AnyKeyOrder(NumeralSystem numerals, string start, bool reversed)
     {
-        var source = new NumberingPanelModel { Numerals = NumeralSystem.Roman, UpperCase = false, StartText = "iv" };
+        var source = new NumberingPanelModel { Numerals = numerals, UpperCase = false, StartText = start };
         List<KeyValuePair<string, string>> pairs = source.SaveSettings().ToList();
         if (reversed)
         {
@@ -137,10 +141,10 @@ public sealed class PanelSettingsTests
         var target = new NumberingPanelModel();
         target.LoadSettings(map);
 
-        Assert.Equal(NumeralSystem.Roman, target.Numerals);
+        Assert.Equal(numerals, target.Numerals);
         Assert.False(target.UpperCase);
-        Assert.Equal("iv", target.StartText);
-        Assert.Equal(4, target.Start);
+        Assert.Equal(start, target.StartText);
+        Assert.Equal(source.Start, target.Start);
     }
 
     [Fact]
