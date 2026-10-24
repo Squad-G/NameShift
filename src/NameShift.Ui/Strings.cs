@@ -43,6 +43,9 @@ public static class Strings
 
     public static string SomethingWentWrong => Get(nameof(SomethingWentWrong));
 
+    /// <summary>"{0} is no longer there."</summary>
+    public static string ShownFolderGone => Get(nameof(ShownFolderGone));
+
     public static string FolderTreeName => Get(nameof(FolderTreeName));
 
     public static string ColumnName => Get(nameof(ColumnName));

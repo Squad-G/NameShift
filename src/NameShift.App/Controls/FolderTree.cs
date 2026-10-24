@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -16,6 +18,7 @@ internal sealed class FolderTree : UserControl
     private readonly TreeView _tree = new TreeView();
     private static readonly object LoadingTag = new object();
     private int _revealCounter;
+    private bool _suppressSelect;
 
     public FolderTree(FolderTreeModel model, Action<string> showStatus)
     {
@@ -62,6 +65,117 @@ internal sealed class FolderTree : UserControl
         }
     }
 
+    /// <summary>Refreshes the folders in the model (RefreshAllAsync) and re-renders each affected node in place.
+    /// Never throws (reports SomethingWentWrong).</summary>
+    public async Task RefreshAsync(IReadOnlyList<string> folders)
+    {
+        try
+        {
+            IReadOnlyList<string> refreshed = await _model.RefreshAllAsync(folders);
+            if (IsDisposed)
+            {
+                return;
+            }
+
+            // The node itself, a surviving ancestor after a climb, or a root marked Failed (its result is null).
+            var nodes = new List<FolderNode>();
+            foreach (string path in folders.Concat(refreshed))
+            {
+                FolderNode? held = _model.FindHeld(path);
+                if (held != null && !nodes.Any(n => ReferenceEquals(n, held)))
+                {
+                    nodes.Add(held);
+                }
+            }
+
+            foreach (FolderNode folder in nodes)
+            {
+                TreeNode? treeNode = FindRendered(folder);
+                if (treeNode != null && IsRendered(treeNode))
+                {
+                    ReRender(treeNode, folder);
+                }
+            }
+        }
+        catch (Exception)
+        {
+            _showStatus(Strings.SomethingWentWrong);
+        }
+    }
+
+    /// <summary>The tree node of a model node, through rendered levels only: nothing is expanded or rendered.</summary>
+    private TreeNode? FindRendered(FolderNode target)
+    {
+        var chain = new Stack<FolderNode>();
+        for (FolderNode? n = target; n != null; n = n.Parent)
+        {
+            chain.Push(n);
+        }
+
+        TreeNodeCollection level = _tree.Nodes;
+        TreeNode? current = null;
+        foreach (FolderNode folder in chain)
+        {
+            current = null;
+            foreach (TreeNode candidate in level)
+            {
+                if (ReferenceEquals(candidate.Tag, folder))
+                {
+                    current = candidate;
+                    break;
+                }
+            }
+
+            if (current is null)
+            {
+                return null;
+            }
+
+            level = current.Nodes;
+        }
+
+        return current;
+    }
+
+    /// <summary>Edits the children of a rendered node to match the model, keeping the tree nodes of surviving folders
+    /// (their expanded state, children and the selection). Never clears.</summary>
+    private void ReRender(TreeNode treeNode, FolderNode folder)
+    {
+        _suppressSelect = true;
+        _tree.BeginUpdate();
+        try
+        {
+            if (folder.Problem != null)
+            {
+                RenderChildren(treeNode, folder);
+                return;
+            }
+
+            for (int i = treeNode.Nodes.Count - 1; i >= 0; i--)
+            {
+                object? tag = treeNode.Nodes[i].Tag;
+                if (!folder.Children.Any(c => ReferenceEquals(c, tag)))
+                {
+                    treeNode.Nodes.RemoveAt(i);
+                }
+            }
+
+            for (int i = 0; i < folder.Children.Count; i++)
+            {
+                FolderNode child = folder.Children[i];
+                if (i >= treeNode.Nodes.Count || !ReferenceEquals(treeNode.Nodes[i].Tag, child))
+                {
+                    treeNode.Nodes.Insert(i, CreateNode(child));
+                }
+            }
+        }
+        finally
+        {
+            _tree.EndUpdate();
+            _suppressSelect = false;
+        }
+    }
+
     private void BuildLayout()
     {
         _tree.Dock = DockStyle.Fill;
@@ -75,7 +189,7 @@ internal sealed class FolderTree : UserControl
         _tree.BeforeSelect += (_, e) => e.Cancel = !(e.Node?.Tag is FolderNode);
         _tree.AfterSelect += (_, e) =>
         {
-            if (e.Node?.Tag is FolderNode folder)
+            if (!_suppressSelect && e.Node?.Tag is FolderNode folder)
             {
                 FolderSelected?.Invoke(this, folder.FullPath);
             }

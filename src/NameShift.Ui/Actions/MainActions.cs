@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using NameShift.Disk;
 using NameShift.Ui.Files;
@@ -77,6 +80,10 @@ public sealed class MainActions
     /// <summary>Raised on the calling thread when any of the above may have changed.</summary>
     public event EventHandler? Changed;
 
+    /// <summary>Raised once on the calling thread after a Rename or Revert ran (whatever its outcome) and the file list
+    /// reloaded, before IsBusy goes back to false. Not raised when the action did not run. Handlers must not throw.</summary>
+    public event EventHandler<FolderContentsChangedEventArgs>? FolderContentsChanged;
+
     /// <summary>The latest journal read's task, for tests (never faults).</summary>
     internal Task PendingJournalRead { get; private set; } = Task.CompletedTask;
 
@@ -120,6 +127,7 @@ public sealed class MainActions
         return RunAsync(
             ActionText.Busy(count, CultureInfo.CurrentCulture),
             folder,
+            new[] { folder },
             () => _renamer.Rename(snapshot.Results, snapshot.Conflicts),
             ActionText.ForRename);
     }
@@ -132,7 +140,9 @@ public sealed class MainActions
             return Task.FromResult<ActionReport?>(null);
         }
 
-        return RunAsync(ActionText.Reverting, _files.FolderPath, () => _renamer.Revert(), ActionText.ForRevert);
+        // Read before the Revert runs: afterwards the journal reads Reverted and its folder list is empty.
+        IReadOnlyList<string> changed = RevertFolders(_lastBatch!, _files.FolderPath);
+        return RunAsync(ActionText.Reverting, _files.FolderPath, changed, () => _renamer.Revert(), ActionText.ForRevert);
     }
 
     /// <summary>Resets every rule panel; no-op unless CanReset. Never touches files, the journal or the selection.</summary>
@@ -149,7 +159,7 @@ public sealed class MainActions
     /// A startup journal read may still be running (CanRename does not wait for it): JournaledRenamer is "one operation
     /// at a time", but its read only reads, the read's result is dropped by the version check, and the worst overlap is
     /// a journal file briefly opened by both, which Rename reports as a journal problem in its result, never a wrong rename.</summary>
-    private async Task<ActionReport?> RunAsync<T>(string busyText, string? folder, Func<T> action, Func<T, CultureInfo, ActionReport> describe)
+    private async Task<ActionReport?> RunAsync<T>(string busyText, string? folder, IReadOnlyList<string> changedFolders, Func<T> action, Func<T, CultureInfo, ActionReport> describe)
     {
         IsBusy = true;
         BusyText = busyText;
@@ -182,6 +192,8 @@ public sealed class MainActions
                 await _files.LoadAsync(folder);
             }
 
+            FolderContentsChanged?.Invoke(this, new FolderContentsChangedEventArgs(changedFolders));
+
             return report;
         }
         finally
@@ -190,6 +202,20 @@ public sealed class MainActions
             BusyText = "";
             RaiseChanged();
         }
+    }
+
+    /// <summary>The batch's folders, else the folders of its renames, then the shown folder; no duplicates (case-insensitive).</summary>
+    private static IReadOnlyList<string> RevertFolders(LastBatch batch, string? shown)
+    {
+        IEnumerable<string> folders = batch.Folders.Count > 0
+            ? batch.Folders
+            : batch.Renames.Select(r => Path.GetDirectoryName(r.OldPath)).Where(p => p != null).Select(p => p!);
+        if (shown != null)
+        {
+            folders = folders.Concat(new[] { shown });
+        }
+
+        return folders.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
     }
 
     private async Task ReadJournalAsync()

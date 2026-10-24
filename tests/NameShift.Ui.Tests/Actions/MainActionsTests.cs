@@ -819,4 +819,169 @@ public sealed class MainActionsTests
         public NameParts Apply(NameParts name, ItemContext context) =>
             context.Index < _from ? _first.Apply(name, context) : _second.Apply(name, context);
     }
-}
+
+    // NS-56: FolderContentsChanged
+
+    private List<(IReadOnlyList<string> Folders, bool Busy, string[] Items)> RecordEvents(MainActions actions)
+    {
+        var events = new List<(IReadOnlyList<string>, bool, string[])>();
+        actions.FolderContentsChanged += (_, e) => events.Add((e.Folders, actions.IsBusy, _files.Items.Select(i => i.Name).ToArray()));
+        return events;
+    }
+
+    private async Task<MainActions> RevertReady(string batchFolder, string shownFolder)
+    {
+        MainActions actions = await BuildLoadedIn(shownFolder, Prefix());
+        _renamer.Last = DiskResults.Last(LastBatchState.Revertable, 3, batchFolder);
+        await actions.LoadJournalAsync();
+        return actions;
+    }
+
+    [Fact]
+    public async Task Rename_Ran_RaisesOnce_ShownFolder_AfterReload_WhileBusy()
+    {
+        MainActions actions = await BuildLoaded(Prefix());
+        var events = RecordEvents(actions);
+        _renamer.During = () => _source.SetEntries(FolderA, File("x_a.txt"), File("x_b.txt"), File("x_c.txt"));
+
+        await Rename();
+
+        var e = Assert.Single(events);
+        Assert.Equal(new[] { FolderA }, e.Folders);
+        Assert.True(e.Busy);
+        Assert.Equal(new[] { "x_a.txt", "x_b.txt", "x_c.txt" }, e.Items);
+        Assert.False(actions.IsBusy);
+    }
+
+    [Fact]
+    public async Task Rename_RolledBack_StillRaises()
+    {
+        MainActions actions = await BuildLoaded(Prefix());
+        var events = RecordEvents(actions);
+        _renamer.RenameResult = DiskResults.Failed(
+            ExecutionOutcome.RolledBack,
+            DiskResults.Failure(FailureReason.RenameFailed, @"C:\A\b.txt", systemMessage: "Busy."));
+
+        await Rename();
+
+        Assert.Single(events);
+    }
+
+    [Fact]
+    public async Task RenamerThrows_StillRaises()
+    {
+        MainActions actions = await BuildLoaded(Prefix());
+        var events = RecordEvents(actions);
+        _renamer.Throws = true;
+        _renamer.Last = DiskResults.Last(LastBatchState.Interrupted);
+
+        await Rename();
+
+        Assert.Single(events);
+        Assert.False(actions.IsBusy);
+    }
+
+    [Fact]
+    public async Task Rename_NotAllowed_DoesNotRaise()
+    {
+        MainActions actions = await BuildLoaded(FakeRulePanelModel.Add());
+        var events = RecordEvents(actions);
+
+        await Rename();
+
+        Assert.Empty(events);
+    }
+
+    [Fact]
+    public async Task Rename_501Changed_No_DoesNotRaise()
+    {
+        SetBigFolder(501, 0);
+        MainActions actions = await BuildLoadedIn(@"C:\Big", ReplaceA());
+        var events = RecordEvents(actions);
+
+        await Rename(false);
+
+        Assert.Empty(events);
+    }
+
+    [Fact]
+    public async Task PreviewChangedDuringConfirmation_DoesNotRaise()
+    {
+        SetBigFolder(501, 0);
+        FakeRulePanelModel panel = ReplaceA();
+        MainActions actions = await BuildLoadedIn(@"C:\Big", panel);
+        var events = RecordEvents(actions);
+
+        await actions.RenameAsync(_ =>
+        {
+            panel.Text = "fa";
+            return true;
+        });
+
+        Assert.Empty(events);
+    }
+
+    [Fact]
+    public async Task Revert_BatchInAWhileBShown_RaisesAAndB()
+    {
+        MainActions actions = await RevertReady(FolderA, FolderB);
+        var events = RecordEvents(actions);
+        _renamer.During = () => _renamer.Last = DiskResults.Last(LastBatchState.Reverted);
+
+        await actions.RevertAsync();
+
+        var e = Assert.Single(events);
+        Assert.Equal(new[] { FolderA, FolderB }, e.Folders);
+        Assert.True(e.Busy);
+    }
+
+    [Fact]
+    public async Task Revert_BatchInShownFolder_NoDuplicate()
+    {
+        MainActions actions = await RevertReady(@"c:\a", FolderA);
+        var events = RecordEvents(actions);
+
+        await actions.RevertAsync();
+
+        Assert.Equal(new[] { @"c:\a" }, Assert.Single(events).Folders);
+    }
+
+    [Fact]
+    public async Task Revert_PartlyReverted_StillRaises()
+    {
+        MainActions actions = await RevertReady(FolderA, FolderA);
+        var events = RecordEvents(actions);
+        CompletedRename[] entries = DiskResults.Renames(3);
+        _renamer.RevertResult = DiskResults.Revert(
+            RevertOutcome.PartlyReverted,
+            entries.Take(2).ToArray(),
+            new[] { DiskResults.Skip(entries[2], RevertSkipReason.NameTaken, @"C:\A\f2.txt") });
+
+        await actions.RevertAsync();
+
+        Assert.Single(events);
+    }
+
+    [Fact]
+    public async Task Revert_WithNoFolderShown_RaisesBatchFolderOnly()
+    {
+        MainActions actions = Build(Prefix());
+        _renamer.Last = DiskResults.Last(LastBatchState.Revertable);
+        await actions.LoadJournalAsync();
+        var events = RecordEvents(actions);
+
+        await actions.RevertAsync();
+
+        Assert.Equal(new[] { FolderA }, Assert.Single(events).Folders);
+    }
+
+    [Fact]
+    public async Task Revert_NotAllowed_DoesNotRaise()
+    {
+        MainActions actions = await BuildLoaded(Prefix());
+        var events = RecordEvents(actions);
+
+        await actions.RevertAsync();
+
+        Assert.Empty(events);
+    }}
