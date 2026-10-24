@@ -17,7 +17,7 @@ See the files and folders of the chosen folder, ready for the preview column (NS
 7. Given the list is built, then each row is an item as defined in NS-1 (name, folder path, kind, attributes, size, dates, index).
 
 ## Out of scope
-- Selection (NS-14), preview (NS-13), column sorting by click (NS-46).
+- Selection (NS-14), preview (NS-13), column sorting by click (NS-66).
 
 ## Decisions
 - List order? **Decision:** folders first, then files, natural sort, because that is what Explorer shows and numbering will follow it (po, 2026-10-18).

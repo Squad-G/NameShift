@@ -90,6 +90,14 @@ In the window (by hand, listed in the PR):
   level), so enabling them acts at once, like the Numbering panel (po, 2026-10-24).
 - Alt letters? **Decision:** unique inside the panel, repeats across panels allowed, panel titles distinct (David,
   2026-10-23); letters in criterion 13.
+- The `{message}` in the date-format error? **Decision:** Core's English text for the rule's own refusals, .NET's
+  language for the others (the wording is .NET's, as NS-26 says) (po, 2026-10-24, recorded from the build brief).
+- A format with `/` or `:`? **Decision:** no warning in the panel; the preview flags the resulting name through the
+  invalid-name check, like any other rule (po, 2026-10-24, recorded from the build brief).
+- An enabled panel at its defaults: highlighted? **Decision:** no, as in the Numbering panel (po, 2026-10-24, recorded
+  from the build brief).
+- "Each assignment of `Format` raises `Changed` once"? **Decision:** means each change: assigning the same text again
+  raises nothing, as `SetField` does everywhere (po, 2026-10-24, recorded from the build brief).
 
 ## Log
 - 2026-10-24: created when NS-31 was split (po).

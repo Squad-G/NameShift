@@ -36,7 +36,7 @@ Step`.
 8. Given the option on with hexadecimal or Roman numerals (NS-29), then the numbers restart in each folder the same way.
 
 ## Out of scope
-- The panel checkbox (NS-61) and the sub-folders option (NS-33).
+- The panel checkbox "restart in each folder" and the sub-folders option: both belong to NS-33 (part b), on top of NS-61.
 - Sorting items by folder: the app gives the list order.
 
 ## Decisions
@@ -47,3 +47,4 @@ Step`.
 ## Log
 - 2026-10-18: created inside NS-29 (po).
 - 2026-10-24: split out of NS-29 as its own story; kept Draft until sub-folders (NS-33) are scheduled (po).
+- 2026-10-24: NS-61 no longer depends on this story (the restart checkbox waits for NS-33); still Draft, since nothing could use it yet (po).

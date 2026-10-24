@@ -47,11 +47,15 @@ IDs), not the rank: the rank is the row order.
 | 59 | [NS-59 Panels for Auto date and Append folder name](NS-59-datefolderpanels.md) | Done | NS-11, NS-26, NS-28, NS-31 |
 | 29 | [NS-29 Numbering rule: hex, letters and roman numerals](NS-29-numberingadv.md) | Done | NS-17 |
 | 27 | [NS-27 Read the photo (EXIF) date from a JPEG](NS-27-exifdate.md) | Ready | NS-1 |
+| 61 | [NS-61 Numbering panel: number system](NS-61-numberingpanel2.md) | Ready | NS-53, NS-29 |
+| 47 | [NS-47 Open a folder from the command line or by drag and drop](NS-47-openpath.md) | Ready | NS-10, NS-51 |
+| 46 | [NS-46 Clear row messages](NS-46-rowhelp.md) | Ready | NS-52 |
+| 32 | [NS-32 Filters: mask, regex, kinds and length](NS-32-filterengine.md) | Ready | NS-1 |
+| 65 | [NS-65 README layout matches the repository](NS-65-readmelayout.md) | Ready | |
 | 54 | [NS-54 Visual polish](NS-54-visual-polish.md) | Draft | NS-15, NS-55, NS-30 |
-| 32 | [NS-32 Filters: mask, regex, kinds and length](NS-32-filterengine.md) | Draft | NS-1 |
-| 33 | [NS-33 Filters panel and sub-folders option](NS-33-filterui.md) | Draft | NS-32, NS-51 |
+| 33 | [NS-33 Filters panel and sub-folders option](NS-33-filterui.md) | Draft | NS-32, NS-51, NS-60, NS-61 |
 | 60 | [NS-60 Numbering rule: restart in each folder](NS-60-numberingfolders.md) | Draft | NS-17 |
-| 61 | [NS-61 Numbering panel: number system and restart per folder](NS-61-numberingpanel2.md) | Draft | NS-53, NS-29, NS-60 |
+| 66 | [NS-66 Column sorting](NS-66-columnsort.md) | Draft | NS-51, NS-14, NS-13 |
 | 34 | [NS-34 Copy or move to another folder (engine and executor)](NS-34-copymove.md) | Cancelled | NS-8, NS-9 |
 | 35 | [NS-35 Copy/move to location panel](NS-35-copymoveui.md) | Cancelled | NS-34, NS-15 |
 | 36 | [NS-36 Save and load presets](NS-36-presets.md) | Draft | NS-12 |
@@ -63,10 +67,8 @@ IDs), not the rank: the rank is the row order.
 | 45 | [NS-45 Safer Revert: detect changed files](NS-45-revertsafe.md) | Draft | NS-9 |
 | 42 | [NS-42 Command line: undo the last batch](NS-42-cliundo.md) | Draft | NS-38, NS-45 |
 | 43 | [NS-43 Command line: help and version](NS-43-clihelp.md) | Draft | NS-38 |
-| 47 | [NS-47 Open a folder from the command line or by drag and drop](NS-47-openpath.md) | Draft | NS-10 |
 | 49 | [NS-49 Explorer right-click entry "Bulk Rename Here"](NS-49-explorer-entry.md) | Draft | NS-47, NS-14 |
 | 44 | [NS-44 Installer](NS-44-installer.md) | Draft | NS-15, NS-38, NS-49 |
-| 46 | [NS-46 Clear row messages and column sorting](NS-46-rowhelp.md) | Draft | NS-13 |
-| 62 | [NS-62 Auto date: use the photo date](NS-62-autodatephoto.md) | Draft | NS-26, NS-27, NS-59, NS-46 |
+| 62 | [NS-62 Auto date: use the photo date](NS-62-autodatephoto.md) | Draft | NS-26, NS-27, NS-59 |
 | 48 | [NS-48 Safe handling of hard cases](NS-48-hardcases.md) | Draft | NS-8 |
 | 50 | [NS-50 "Bulk Rename Here" in the Windows 11 top-level menu](NS-50-win11-menu.md) | Draft | NS-49 |

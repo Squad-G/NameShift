@@ -62,3 +62,4 @@ the finished layout (preview, conflicts, selection, buttons).
 - 2026-10-18: created (po).
 - 2026-10-18: criteria 1-5 and 7 tightened: size measured on the Release output folder (no installer yet), spacing, font, colour, title and icon checks made testable (po, from the PR #19 review).
 - 2026-10-23: reordered after NS-30; kept Draft on purpose (po).
+- 2026-10-24: the panels it waited for are Done (all eleven). Kept Draft: David asked to be asked for his style wishes (colours, spacing, icons, look) before it is built; the question is in the po's report (po).

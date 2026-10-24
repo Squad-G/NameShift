@@ -93,6 +93,11 @@ In the window (by hand, listed in the PR):
   Numbering panel's `_` is a numbering habit (po, 2026-10-24).
 - Alt letters? **Decision:** unique inside the panel, repeats across panels allowed, panel titles distinct (David,
   2026-10-23); letters in criterion 14.
+- How does a bad pattern show? **Decision:** as visible text under the box plus the error icon (not the icon alone), so a
+  user who cannot see the icon's tooltip still reads it (po, 2026-10-24, recorded from the build brief).
+- Wording of the pattern hint? **Decision:** the tech lead's (po, 2026-10-24, recorded from the build brief).
+- "Start of the name" and "End of the name" in two drop-downs? **Decision:** separate string keys for each list, so a
+  translation can word them differently (po, 2026-10-24, recorded from the build brief).
 
 ## Log
 - 2026-10-18: created (po).

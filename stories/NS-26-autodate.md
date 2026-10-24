@@ -77,6 +77,13 @@ modified 2024-03-09 14:05:07.
 - Default separator? **Decision:** `_`, as in Append folder name (NS-28) and the Numbering panel (po, 2026-10-24).
 - Which `Validate` format errors exist? **Decision:** only what `DateTime.ToString` refuses; characters that make an
   invalid file name are left to the invalid-name check, like every other rule (po, 2026-10-24).
+- A missing date when the format gives empty text (`''`)? **Decision:** still a per-item error: the date is checked
+  before the format is applied, so the safety net does not depend on the format (po, 2026-10-24, recorded from the build
+  brief).
+- Language of the time-zone refusal message? **Decision:** English, from Core (not .NET's); the panel adds it to its own
+  sentence (po, 2026-10-24, recorded from the build brief).
+- A bare `%` as the format? **Decision:** refused by `Validate`: a one-character format is read as `%` plus the
+  character, so a lone `%` becomes `%%`, which .NET refuses (po, 2026-10-24, recorded from the build brief).
 
 ## Log
 - 2026-10-18: created (po).
