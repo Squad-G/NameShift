@@ -2,7 +2,7 @@
 
 Status: Ready
 Depends on: NS-2, NS-12
-Area: engine
+Area: engine, app
 
 ## Why
 Optionally make the replacement follow the capitalisation of what it replaces.
@@ -17,8 +17,9 @@ from the letters of each found text (non-letters are skipped); every match is ju
 3. Given the option on and a found text with mixed case (`dUmP`, `DuMp`), then the replacement is used as typed.
 4. Given the option on, find `dump` with `bob stack`, then `Dump.txt` becomes `Bob stack.txt` (capitalised: only the
    first letter of the replacement changes) and `DUMP.txt` becomes `BOB STACK.txt` (upper: the whole replacement).
-   Capitalising skips leading non-letters, as `CaseRule.Capitalise` does: find `dump` with `_bob`, `Dump.txt` becomes
-   `_Bob.txt`; with `1st`, `Dump.txt` becomes `1St.txt`.
+   Capitalising reuses `CaseRule.Capitalise`, which skips leading characters that are neither letters nor digits: find
+   `dump` with `_bob`, `Dump.txt` becomes `_Bob.txt`; with `1st`, `Dump.txt` becomes `1st.txt` (a leading digit
+   counts as the first character, so nothing is upper-cased).
 5. Given the option on and a one-letter found text, find `a` with `xyz`, then `A.txt` becomes `Xyz.txt` (a single
    upper-case letter counts as capitalised, not as all upper-case) and `a.txt` becomes `xyz.txt`.
 6. Given the option on and a found text with no letters (find `1` with `one`), or a replacement with no letters

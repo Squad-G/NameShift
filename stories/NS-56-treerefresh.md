@@ -69,8 +69,8 @@ In the window (`MainForm` and `FolderTree`; checked by hand and listed in the PR
     brings `x` back the same way. Given Revert of a batch in `A` while `B` is shown, `A`'s children in the tree are
     right too, and `B` stays shown.
 16. Selected folder gone: Rename and Revert never rename the shown folder itself, but a Revert in another folder can
-    undo the rename of a folder that is an ancestor of the shown one. If the shown folder is no longer on disk, the
-    tree selects the nearest refreshed ancestor and the window navigates there (`FolderNavigator.SelectFromTree`); the
+    undo the rename of a folder that is an ancestor of the shown one. If the shown folder is no longer on disk (its tree node was removed by the refresh, so
+    `RefreshAsync` returned an ancestor's path instead of the shown folder's own), the tree selects the nearest refreshed ancestor and the window navigates there (`FolderNavigator.SelectFromTree`); the
     status bar says the folder is no longer there (new string in `Strings.resx`). Test of the navigator side:
     `SelectFromTree` with the path already current raises no `FolderChanged`, with a different path raises it once, so
     nothing is loaded twice.
