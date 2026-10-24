@@ -32,6 +32,7 @@ public sealed class NumberingPanelModel : RulePanelModel
     private string _padText = "0";
     private string _separator = DefaultSeparator;
     private string _insertPositionText = "";
+    private bool _restartPerFolder;
 
     public NumberingPanelModel()
         : base(RuleStage.Numbering, Strings.NumberingTitle)
@@ -143,6 +144,14 @@ public sealed class NumberingPanelModel : RulePanelModel
         set => SetField(ref _insertPositionText, value ?? "");
     }
 
+    /// <summary>True: the number starts again at the start value in each folder of the list (NumberingRule.BreakPerFolder).
+    /// Changes nothing while the list holds one folder.</summary>
+    public bool RestartPerFolder
+    {
+        get => _restartPerFolder;
+        set => SetField(ref _restartPerFolder, value);
+    }
+
     /// <summary>The first number read in the chosen system, or null when it cannot be read.</summary>
     public int? Start
     {
@@ -213,7 +222,7 @@ public sealed class NumberingPanelModel : RulePanelModel
 
     public override bool IsDefault =>
         Mode == NumberingMode.Suffix && Numerals == NumeralSystem.Decimal && UpperCase && StartText == "1" && StepText == "1" && PadText == "0"
-        && Separator == DefaultSeparator && InsertPositionText.Length == 0;
+        && Separator == DefaultSeparator && InsertPositionText.Length == 0 && !RestartPerFolder;
 
     /// <summary>The rule, or null while a field that applies is invalid (numbering is then skipped).</summary>
     public override IRenameRule? BuildRule()
@@ -240,7 +249,7 @@ public sealed class NumberingPanelModel : RulePanelModel
         }
 
         return new NumberingRule(Mode, start, step, pad, Separator, InsertPositionApplies ? InsertPosition : null,
-            Numerals, UpperCase);
+            Numerals, UpperCase, breakPerFolder: RestartPerFolder);
     }
 
     /// <inheritdoc />
@@ -254,6 +263,7 @@ public sealed class NumberingPanelModel : RulePanelModel
         [nameof(PadText)] = PadText,
         [nameof(Separator)] = Separator,
         [nameof(InsertPositionText)] = InsertPositionText,
+        [nameof(RestartPerFolder)] = BoolText(RestartPerFolder),
     };
 
     /// <inheritdoc />
@@ -301,6 +311,11 @@ public sealed class NumberingPanelModel : RulePanelModel
         {
             InsertPositionText = insertPositionText;
         }
+
+        if (TryGetBool(settings, nameof(RestartPerFolder), out bool restart))
+        {
+            RestartPerFolder = restart;
+        }
     }
 
     protected override void ResetSettings()
@@ -313,6 +328,7 @@ public sealed class NumberingPanelModel : RulePanelModel
         PadText = "0";
         Separator = DefaultSeparator;
         InsertPositionText = "";
+        RestartPerFolder = false;
     }
 
     private static bool UsualCase(NumeralSystem numerals) => numerals != NumeralSystem.Letters;

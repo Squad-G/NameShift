@@ -20,6 +20,7 @@ internal sealed class NumberingPanel : UserControl
     private readonly TextBox _separator = new TextBox();
     private readonly TextBox _position = new TextBox();
     private readonly Label _positionLabel;
+    private readonly CheckBox _restart = new CheckBox();
     private Label _padLabel = null!;
     private Label _caseLabel = null!;
     private const int ErrorLogicalWidth = 220;
@@ -41,6 +42,7 @@ internal sealed class NumberingPanel : UserControl
         _pad.TextChanged += (_, _) => _model.PadText = _pad.Text;
         _separator.TextChanged += (_, _) => _model.Separator = _separator.Text;
         _position.TextChanged += (_, _) => _model.InsertPositionText = _position.Text;
+        _restart.CheckedChanged += (_, _) => _model.RestartPerFolder = _restart.Checked;
         _model.Changed += OnModelChanged;
     }
 
@@ -106,6 +108,11 @@ internal sealed class NumberingPanel : UserControl
             _error.SetIconPadding(field, 2);
         }
 
+        _restart.Text = Strings.NumberingRestartPerFolder;
+        _restart.AutoSize = true;
+        _restart.AccessibleName = RulePanelText.PlainTitle(Strings.NumberingRestartPerFolder);
+        RulePanelLayout.AddSpanningRow(table, _restart);
+
         Controls.Add(table);
         return positionLabel;
     }
@@ -168,6 +175,7 @@ internal sealed class NumberingPanel : UserControl
         RulePanelLayout.SetTextIfDifferent(_position, _model.InsertPositionText);
         _position.Enabled = _model.InsertPositionApplies;
         _positionLabel.Enabled = _model.InsertPositionApplies;
+        RulePanelLayout.SetCheckedIfDifferent(_restart, _model.RestartPerFolder);
 
         string startError = _model.StartError;
         RulePanelLayout.Mark(_error, _start, startError, null);

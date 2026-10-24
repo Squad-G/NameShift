@@ -43,6 +43,7 @@ public sealed class PanelSettingsTests
             // Numerals first: its setter resets UpperCase and rewrites StartText.
             Numerals = NumeralSystem.Roman, UpperCase = false, StartText = "iv", Mode = NumberingMode.Insert,
             StepText = "2", PadText = "3", Separator = "-", InsertPositionText = "5",
+            RestartPerFolder = true,
         },
         ["Regex"] = () => new RegexPanelModel
         {
