@@ -1,6 +1,6 @@
 # NS-43: Command line: help, version, console text and the exit code of a crash
 
-Status: Ready
+Status: In Progress
 Depends on: NS-38
 Area: app
 
@@ -125,3 +125,4 @@ Console text:
   test tied to the parser; set Ready (po).
 - 2026-10-24: after the PR #63 review: no version-match test (release scripts are David's), encoding order and
   no-console tolerance, usage versus help lines, data sources for the help tests, merged tests listed (po).
+- 2026-10-24: In Progress (builder).
