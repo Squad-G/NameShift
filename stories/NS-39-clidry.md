@@ -1,7 +1,7 @@
 # NS-39: Command line: quiet and verbose output
 
 Status: Draft
-Depends on: NS-38
+Depends on: NS-38, NS-43
 Area: app
 
 ## Why

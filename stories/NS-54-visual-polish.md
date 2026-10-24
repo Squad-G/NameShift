@@ -51,8 +51,8 @@ Colours:
    - In the App a small `AccentSource` reads the accent from the current user's `DWM\ColorizationColor` registry value
      (read only, no write, nothing sent anywhere) and falls back to `SystemColors.Highlight` when it is missing or unreadable.
 6. The accent is used in two places: the border and title colour of the active rule panel (NS-11) and the Rename button's
-   icon. Testable rule: the same scan finds `AccentSource` in `Palette.cs`, `RulePanelFrame.cs` and `ButtonIcons.cs`
-   only (a fourth file fails). It is never the only cue: the active panel keeps its bold title and its screen-reader
+   icon. Testable rule: the same scan finds `AccentSource` in the file that defines it (`AccentSource.cs`), `Palette.cs`,
+   `RulePanelFrame.cs` and `ButtonIcons.cs` only (any other file fails). It is never the only cue: the active panel keeps its bold title and its screen-reader
    description (NS-11, by hand).
 
 Panels:

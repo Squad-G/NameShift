@@ -68,7 +68,7 @@ IDs), not the rank: the rank is the row order.
 | 37 | [NS-37 Remember last settings](NS-37-settings.md) | Draft | NS-36, NS-72 |
 | 34 | [NS-34 Copy or move to another folder (engine and executor)](NS-34-copymove.md) | Cancelled | NS-8, NS-9 |
 | 35 | [NS-35 Copy/move to location panel](NS-35-copymoveui.md) | Cancelled | NS-34, NS-15 |
-| 39 | [NS-39 Command line: quiet and verbose output](NS-39-clidry.md) | Draft | NS-38 |
+| 39 | [NS-39 Command line: quiet and verbose output](NS-39-clidry.md) | Draft | NS-38, NS-43 |
 | 40 | [NS-40 Command line: rules given as options](NS-40-clirules.md) | Draft | NS-38, NS-12 |
 | 69 | [NS-69 Command line: use a saved preset](NS-69-clipreset.md) | Draft | NS-38, NS-36 |
 | 41 | [NS-41 Command line: recursion and filters](NS-41-clifilters.md) | Draft | NS-38, NS-32, NS-33, NS-74 |

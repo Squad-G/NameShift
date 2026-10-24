@@ -54,8 +54,11 @@ Exit codes (complete here; NS-39 adds output modes and `--help`):
     reason, or says the history could not be saved) and goes to the error stream.
 12. 4: the user must look: `NeedsAttention` (items left under other names; each is listed with its current and original path)
     or `JournalWriteFailure` AfterFinish (the names are changed but Revert has no history). Messages from `ActionText`.
-13. Tests give each of 3 and 4 and the three journal outcomes with `HookedFileSystem`-style faults or a failing journal
-    file seam, and check the exit code, the stream used and that the text is `ActionText`'s.
+13. The CLI logic takes an `IBatchRenamer` (public), with `JournaledBatchRenamer` as the default, so tests can inject
+    faults: the internal `HookedFileSystem`, `IFileSystem` and `IJournalFiles` are not visible to the CLI tests. Tests
+    give each of 3 and 4 and the three journal outcomes through a fake `IBatchRenamer`, and real-disk tests cover the
+    reachable ones (a vanished file, a locked file, an unwritable history folder); each checks the exit code, the stream
+    used and that the text is `ActionText`'s.
 
 Input errors (exit 1, nothing renamed, one line on the error stream):
 14. A missing folder, a path that is a file, an unreadable folder, an unknown option, a missing value, `--case sideways`

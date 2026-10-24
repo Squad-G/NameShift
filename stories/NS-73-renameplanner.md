@@ -23,7 +23,9 @@ In `NameShift.Ui` (namespace `NameShift.Ui.Preview`). Names are indicative.
    change, no conflict and no rule error" is written there and nowhere else.
 3. `PreviewModel` calls `RenamePlanner.Plan` (its private `Compute` keeps only the snapshot wrapping), `PreviewSnapshot`
    is built from the plan, and `MainActions.CanRename` and `ActionText.Hint` read `Blocker` instead of their own tests.
-   Every existing test of the preview, the actions and the hints passes unchanged.
+   `ActionText.Hint` still returns "" for `NothingToRename` (as today when there is no conflict or error). The public
+   `PreviewSnapshot` constructors stay, with `Blocker` derived from their arguments, so the existing tests compile and
+   pass unchanged. Every existing test of the preview, the actions and the hints passes unchanged.
 4. Tests of the planner: a fixture with a changed name, an unchanged name, a rule error, an invalid character, a duplicate
    target, an existing target and a path that is too long gives the expected `Blocker` for each combination and the same
    conflict codes as running the pipeline and the three checks by hand; a cancelled token throws; an empty list gives
