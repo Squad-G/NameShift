@@ -98,6 +98,11 @@ public sealed class FolderNameRuleTests
         Assert.Equal("Photos_Paris_a.jpg",
             Run(new FolderNameRule(FolderNamePlacement.Prefix, 5, "_"), "a.jpg", @"\Photos\Paris").NewName);
 
+    [Fact]
+    public void RelativePath_OneLetterFirstSegment_IsNotANetworkPath() =>
+        Assert.Equal("P_Paris_a.jpg",
+            Run(new FolderNameRule(FolderNamePlacement.Prefix, 5, "_"), "a.jpg", @"P\Paris").NewName);
+
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
