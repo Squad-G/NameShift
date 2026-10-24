@@ -1,6 +1,6 @@
 # NS-66: Column sorting
 
-Status: In Progress
+Status: In Review
 Depends on: NS-51, NS-14, NS-13
 Area: app
 
@@ -84,3 +84,4 @@ Window (by hand, listed in the PR):
 - 2026-10-24: criteria made testable; set Ready (po).
 - 2026-10-24: after review: `OrderChanged` consumers named (`PreviewModel`, `MainActions` clears the NS-57 Rename lock) and a test added (po).
 - 2026-10-24: In Progress (builder).
+- 2026-10-24: In Review (builder), PR #56.
