@@ -51,7 +51,7 @@ IDs), not the rank: the rank is the row order.
 | 47 | [NS-47 Open a folder from the command line or by drag and drop](NS-47-openpath.md) | Done | NS-10, NS-51 |
 | 46 | [NS-46 Clear row messages](NS-46-rowhelp.md) | Done | NS-52 |
 | 32 | [NS-32 Filters: mask, regex, kinds and length](NS-32-filterengine.md) | Done | NS-1 |
-| 65 | [NS-65 README layout matches the repository](NS-65-readmelayout.md) | Ready | |
+| 65 | [NS-65 README layout matches the repository](NS-65-readmelayout.md) | In Progress | |
 | 54 | [NS-54 Visual polish](NS-54-visual-polish.md) | Draft | NS-15, NS-55, NS-30 |
 | 33 | [NS-33 Filters panel and sub-folders option](NS-33-filterui.md) | Draft | NS-32, NS-51, NS-60, NS-61 |
 | 60 | [NS-60 Numbering rule: restart in each folder](NS-60-numberingfolders.md) | Draft | NS-17 |

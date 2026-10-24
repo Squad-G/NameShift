@@ -1,6 +1,6 @@
 # NS-65: README layout matches the repository
 
-Status: Ready
+Status: In Progress
 Depends on:
 Area: docs
 
@@ -40,3 +40,4 @@ project or folder, in this order, with a short plain description:
 
 ## Log
 - 2026-10-24: created and set Ready (po).
+- 2026-10-24: In Progress (builder).
