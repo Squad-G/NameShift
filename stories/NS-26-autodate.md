@@ -82,8 +82,8 @@ modified 2024-03-09 14:05:07.
   brief).
 - Language of the time-zone refusal message? **Decision:** English, from Core (not .NET's); the panel adds it to its own
   sentence (po, 2026-10-24, recorded from the build brief).
-- A bare `%` as the format? **Decision:** refused by `Validate`: a one-character format is read as `%` plus the character, so a lone `%` becomes
-  `%%`, which .NET refuses (po, 2026-10-24, recorded from the build brief).
+- A bare `%` as the format? **Decision:** refused by `Validate`: a one-character format is read as `%` plus the
+  character, so a lone `%` becomes `%%`, which .NET refuses (po, 2026-10-24, recorded from the build brief).
 
 ## Log
 - 2026-10-18: created (po).

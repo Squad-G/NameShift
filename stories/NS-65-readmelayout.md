@@ -24,9 +24,9 @@ project or folder, in this order, with a short plain description:
 8. Every path named in the Layout section exists in the repository, except the one marked as planned in 6 (the reviewer
    checks this against the file tree). The other sections of the README (Build, Licence, Branches and releases) are not
    changed, and "NameShift" is the only product name used.
-9. The Build section's commands stay as they are (they build and test everything; the CI-level check from CLAUDE.md is
-   `dotnet build -c Release` then `dotnet test -c Release --no-build`, so that line is added once as "the same checks the
-   pull requests run").
+9. The Build section's commands stay as they are, and one line is added after them: the checks every pull request must
+   pass (there is no CI; the builder and the reviewer run them): `dotnet build -c Release` then
+   `dotnet test -c Release --no-build`.
 
 ## Out of scope
 - Rewording the introduction, adding screenshots or badges, a contributor guide.

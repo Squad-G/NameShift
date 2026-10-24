@@ -53,7 +53,7 @@ IDs), not the rank: the rank is the row order.
 | 32 | [NS-32 Filters: mask, regex, kinds and length](NS-32-filterengine.md) | Ready | NS-1 |
 | 65 | [NS-65 README layout matches the repository](NS-65-readmelayout.md) | Ready | |
 | 54 | [NS-54 Visual polish](NS-54-visual-polish.md) | Draft | NS-15, NS-55, NS-30 |
-| 33 | [NS-33 Filters panel and sub-folders option](NS-33-filterui.md) | Draft | NS-32, NS-51 |
+| 33 | [NS-33 Filters panel and sub-folders option](NS-33-filterui.md) | Draft | NS-32, NS-51, NS-60, NS-61 |
 | 60 | [NS-60 Numbering rule: restart in each folder](NS-60-numberingfolders.md) | Draft | NS-17 |
 | 66 | [NS-66 Column sorting](NS-66-columnsort.md) | Draft | NS-51, NS-14, NS-13 |
 | 34 | [NS-34 Copy or move to another folder (engine and executor)](NS-34-copymove.md) | Cancelled | NS-8, NS-9 |
@@ -69,6 +69,6 @@ IDs), not the rank: the rank is the row order.
 | 43 | [NS-43 Command line: help and version](NS-43-clihelp.md) | Draft | NS-38 |
 | 49 | [NS-49 Explorer right-click entry "Bulk Rename Here"](NS-49-explorer-entry.md) | Draft | NS-47, NS-14 |
 | 44 | [NS-44 Installer](NS-44-installer.md) | Draft | NS-15, NS-38, NS-49 |
-| 62 | [NS-62 Auto date: use the photo date](NS-62-autodatephoto.md) | Draft | NS-26, NS-27, NS-59, NS-46 |
+| 62 | [NS-62 Auto date: use the photo date](NS-62-autodatephoto.md) | Draft | NS-26, NS-27, NS-59 |
 | 48 | [NS-48 Safe handling of hard cases](NS-48-hardcases.md) | Draft | NS-8 |
 | 50 | [NS-50 "Bulk Rename Here" in the Windows 11 top-level menu](NS-50-win11-menu.md) | Draft | NS-49 |

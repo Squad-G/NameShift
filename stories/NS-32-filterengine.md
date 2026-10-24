@@ -28,7 +28,8 @@ Mask (matched against the original full name, extension included; folders too):
    `IMG_0001.jpg`. `*` stands for any text, empty included: `a*` includes `a` and `a.txt`; `*a*b*` includes `xaxbx` and not
    `xbxax`. Every other character is literal, `[`, `(`, `+`, `.` and `$` included (`a(1).txt` includes only `a(1).txt` and
    `A(1).TXT`).
-3. Given `*.*`, then every name is included, the ones with no dot too (as Windows reads it); given `*`, the same. A mask of
+3. Given `*.*`, then every name is included, the ones with no dot too (as Windows reads it); given `*`, the same. Only the whole part `*.*` is special: `a*.*` is read as `a`, any text, a literal dot, any text (as
+   criterion 2), so it does not include `a` or `abc`, and includes `a.` and `abc.txt`. A mask of
    only spaces or only `;` has no condition. Given a part with no wildcard (`readme.txt`), then only that name is included.
 4. Given a mask and a folder item `Trip 2024` with mask `Trip*`, then it is included; with mask `*.jpg` it is not.
 
@@ -56,7 +57,10 @@ Length (of the base name, in UTF-16 characters: an emoji counts 2, the same as `
     whole name is counted (`.gitignore` is 10).
 12. Given `minLength` 0, then every name is in. Given `minLength` greater than `maxLength`, then `Error` is the text `The
     minimum length is larger than the maximum length.` and both length limits are ignored (the other conditions apply).
-    Given `minLength` equal to `maxLength`, then only names of exactly that length are in.
+    Given `minLength` equal to `maxLength`, then only names of exactly that length are in. Given an invalid pattern and
+    `minLength` above `maxLength` together, then `Error` holds both texts, the pattern's message first, joined by one
+    space (`<pattern message> The minimum length is larger than the maximum length.`); both bad parts are ignored. A test
+    checks that `Error` ends with the length text and is longer than it.
 
 Together:
 13. Given mask `*.jpg`, pattern `^IMG`, `minLength` 6, `includeFolders` false, then an item must pass all of them: a folder
@@ -68,8 +72,8 @@ Excluded items still count:
     `ExtensionRule(ExtensionMode.Fixed, "jpg")` on that list and `DuplicateTargetCheck` with the existing names `a.png` and
     `a.jpg` of `C:\x` (the whole folder, as the app gives them), then `a.png` gets `TargetExists`. The filter has no
     knowledge of existing names: the caller keeps passing every name of the folder to the check (NS-14, NS-6).
-16. Given 10,000 items and a mask, a pattern and a length range together, then `Apply` finishes (no time limit is tested,
-    as in NS-58; the reviewer checks that the mask and the pattern are built once in the constructor, not per item).
+16. Review check, not a test: the mask and the pattern are built once in the constructor, not per item (no time limit is
+    tested, as in NS-58).
 
 ## Out of scope
 - The panel, the sub-folders option and listing hidden files (NS-33).

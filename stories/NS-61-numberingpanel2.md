@@ -3,7 +3,6 @@
 Status: Ready
 Depends on: NS-53, NS-29
 Area: app
-Build after: NS-29 is merged (it adds `NumeralSystem` and `NumberText`; this story only uses them).
 
 ## Why
 Number files with `0A`, `b` or `IV` from the Numbering panel, using the systems of NS-29. (The "restart in each folder"
@@ -87,4 +86,4 @@ In the window (by hand, listed in the PR):
 
 ## Log
 - 2026-10-24: created when NS-29 was split (po).
-- 2026-10-24: restart checkbox left out until NS-33; criteria made testable against the NS-29 story and `NumberingPanelModel`; set Ready, to build after NS-29 is merged (po).
+- 2026-10-24: restart checkbox left out until NS-33; criteria made testable against the NS-29 story and `NumberingPanelModel`; set Ready (NS-29 is merged) (po).
