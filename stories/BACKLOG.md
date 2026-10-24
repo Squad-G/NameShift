@@ -37,7 +37,7 @@ IDs), not the rank: the rank is the row order.
 | 22 | [NS-22 Remove: digits, symbols, accents, high characters](NS-22-removeclasses.md) | Done | NS-1 |
 | 23 | [NS-23 Remove: trim, leading dots, double spaces](NS-23-removetidy.md) | Done | NS-1 |
 | 30 | [NS-30 Panel for Remove](NS-30-morepanels.md) | Done | NS-11, NS-20, NS-21, NS-22, NS-23 |
-| 24 | [NS-24 RegEx rule](NS-24-regex.md) | Ready | NS-1 |
+| 24 | [NS-24 RegEx rule](NS-24-regex.md) | Done | NS-1 |
 | 28 | [NS-28 Append folder name rule](NS-28-foldername.md) | Ready | NS-1 |
 | 25 | [NS-25 Move or copy parts of the name](NS-25-moveparts.md) | Draft | NS-1 |
 | 26 | [NS-26 Auto date rule (file dates)](NS-26-autodate.md) | Draft | NS-1 |
