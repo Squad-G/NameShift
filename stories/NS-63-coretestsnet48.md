@@ -1,6 +1,6 @@
 # NS-63: Run the engine tests on .NET Framework 4.8 too
 
-Status: In Progress
+Status: In Review
 Depends on: NS-1, NS-28
 Area: engine
 
@@ -48,3 +48,4 @@ two runtimes (Unicode data, string and culture behaviour, regex) would reach use
 ## Log
 - 2026-10-24: created (po), from a review finding; set Ready, build after NS-24 and NS-28.
 - 2026-10-24: In Progress (builder).
+- 2026-10-24: In Review (builder), PR #42.
