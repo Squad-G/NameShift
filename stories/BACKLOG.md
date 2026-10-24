@@ -1,4 +1,4 @@
-﻿# Backlog
+# Backlog
 
 Ordered, highest priority first. The first rows (Ready) are the minimal usable slice: preview, safe rename and undo
 with Replace, Case, Add and Numbering. Everything after it is the long tail. The `#` column is the story number (stable
@@ -25,7 +25,7 @@ IDs), not the rank: the rank is the row order.
 | 52 | [NS-52 Conflict display](NS-52-conflictdisplay.md) | Done | NS-13, NS-5, NS-6, NS-7 |
 | 14 | [NS-14 Choose which files to rename](NS-14-selection.md) | Done | NS-51, NS-13 |
 | 15 | [NS-15 Rename, Revert and Reset buttons](NS-15-buttons.md) | Done | NS-13, NS-52, NS-14, NS-9 |
-| 56 | [NS-56 Folder tree follows Rename and Revert](NS-56-treerefresh.md) | In Progress | NS-10, NS-15 |
+| 56 | [NS-56 Folder tree follows Rename and Revert](NS-56-treerefresh.md) | In Review | NS-10, NS-15 |
 | 57 | [NS-57 Rename stays off until something changes](NS-57-renameonce.md) | Ready | NS-15 |
 | 18 | [NS-18 Extension rule](NS-18-extension.md) | Ready | NS-1 |
 | 19 | [NS-19 Name rule: keep, remove, fixed, reverse](NS-19-namerule.md) | Ready | NS-1 |

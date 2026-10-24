@@ -1,6 +1,6 @@
-﻿# NS-56: Folder tree follows Rename and Revert
+# NS-56: Folder tree follows Rename and Revert
 
-Status: In Progress
+Status: In Review
 Depends on: NS-10, NS-15
 Area: app
 
@@ -102,3 +102,4 @@ In the window (`MainForm` and `FolderTree`; checked by hand and listed in the PR
 - 2026-10-23: created and set Ready (po). Bug found in the shipped slice (NS-10, NS-15).
 - 2026-10-23: after review and tech lead notes: Revert targets the batch's folders, return value and problem handling pinned down, criterion 14 made testable (po).
 - 2026-10-23: In Progress (builder).
+- 2026-10-23: In Review (builder), PR #25.
