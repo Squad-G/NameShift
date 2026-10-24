@@ -209,6 +209,8 @@ public static class Strings
 
     public static string RenameHintBoth => Get(nameof(RenameHintBoth));
 
+    public static string RenameHintLocked => Get(nameof(RenameHintLocked));
+
     /// <summary>"Rename {0} files?".</summary>
     public static string RenameConfirm => Get(nameof(RenameConfirm));
 

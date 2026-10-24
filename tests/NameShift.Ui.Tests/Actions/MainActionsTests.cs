@@ -297,7 +297,8 @@ public sealed class MainActionsTests
         Assert.Equal("x_", panel.Text);
         Assert.True(_files.Batch.IsWholeList);
         Assert.Contains(_preview.Snapshot.Results, r => r.Item.Name == "x_b.txt" && r.NewName == "x_x_b.txt");
-        Assert.True(actions.CanRename);
+        Assert.False(actions.CanRename);
+        Assert.Equal("Change a rule or the selection to rename again.", actions.RenameHint);
     }
 
     // AC 4
@@ -693,7 +694,7 @@ public sealed class MainActionsTests
             Assert.Equal(0, _renamer.RevertCalls);
             Assert.False(actions.IsBusy);
             Assert.Equal("", actions.BusyText);
-            Assert.True(actions.CanRename);
+            Assert.False(actions.CanRename);
             Assert.True(actions.CanRevert);
             Assert.True(actions.CanReset);
         }
@@ -984,5 +985,405 @@ public sealed class MainActionsTests
         await actions.RevertAsync();
 
         Assert.Empty(events);
+    }
+
+    // NS-57: Rename stays off until something changes
+
+    private const string LockText = "Change a rule or the selection to rename again.";
+
+    private void ReloadAsRenamed() =>
+        _renamer.During = () => _source.SetEntries(FolderA, File("x_a.txt"), File("x_b.txt"), File("x_c.txt"));
+
+    /// <summary>A Rename that renamed 3 files, the reload and the new preview applied: the lock is set.</summary>
+    private async Task<(MainActions Actions, FakeRulePanelModel Panel)> RenamedAndLocked()
+    {
+        FakeRulePanelModel panel = Prefix();
+        MainActions actions = await BuildLoaded(panel);
+        ReloadAsRenamed();
+        await Rename();
+        _delay.ReleaseAll();
+        await _preview.Pending;
+        return (actions, panel);
+    }
+
+    private async Task ApplyPreview()
+    {
+        _delay.ReleaseAll();
+        await _preview.Pending;
+    }
+
+    // AC 1
+
+    [Fact]
+    public async Task Rename_RenamedFiles_LocksRename_EvenWithChangedPreview()
+    {
+        (MainActions actions, FakeRulePanelModel panel) = await RenamedAndLocked();
+
+        Assert.True(_preview.IsCurrent);
+        Assert.True(_preview.Snapshot.ChangedCount > 0);
+        Assert.False(_preview.Snapshot.HasConflicts);
+        Assert.False(actions.CanRename);
+        Assert.Equal("x_", panel.Text);
+        Assert.True(panel.Enabled);
+    }
+
+    // AC 2
+
+    [Fact]
+    public async Task Rename_RolledBack_DoesNotLock()
+    {
+        MainActions actions = await BuildLoaded(Prefix());
+        _renamer.RenameResult = DiskResults.Failed(
+            ExecutionOutcome.RolledBack,
+            DiskResults.Failure(FailureReason.RenameFailed, @"C:\A\b.txt", systemMessage: "Busy."));
+
+        await Rename();
+        await ApplyPreview();
+
+        Assert.True(actions.CanRename);
+        Assert.Equal("", actions.RenameHint);
+    }
+
+    [Fact]
+    public async Task Rename_NotStarted_DoesNotLock()
+    {
+        MainActions actions = await BuildLoaded(Prefix());
+        _renamer.RenameResult = DiskResults.NotStarted("The disk is full.");
+
+        await Rename();
+        await ApplyPreview();
+
+        Assert.True(actions.CanRename);
+    }
+
+    // AC 3
+
+    [Fact]
+    public async Task RenamerThrows_LocksRename()
+    {
+        MainActions actions = await BuildLoaded(Prefix());
+        _renamer.Throws = true;
+        _renamer.Last = DiskResults.Last(LastBatchState.Interrupted);
+
+        ActionReport? report = await Rename();
+        await ApplyPreview();
+
+        Assert.Equal("Something went wrong. Check the files in the folder before you continue.", report!.Status);
+        Assert.False(actions.CanRename);
+        Assert.Equal(LockText, actions.RenameHint);
+    }
+
+    [Fact]
+    public async Task Rename_NeedsAttention_LocksRename()
+    {
+        MainActions actions = await BuildLoaded(Prefix());
+        _renamer.RenameResult = DiskResults.NeedsAttention(
+            DiskResults.Failure(FailureReason.RenameFailed, @"C:\A.txt", systemMessage: "Busy."),
+            DiskResults.Stranded(@"C:\A\~ns-1234.tmp", @"C:\A.txt"));
+
+        await Rename();
+        await ApplyPreview();
+
+        Assert.False(actions.CanRename);
+        Assert.Equal(LockText, actions.RenameHint);
+    }
+
+    // AC 4
+
+    [Fact]
+    public async Task Locked_HintSaysChangeARule()
+    {
+        (MainActions actions, _) = await RenamedAndLocked();
+
+        Assert.Equal(LockText, actions.RenameHint);
+    }
+
+    [Fact]
+    public async Task Locked_ConflictHintWins()
+    {
+        var rule = new CollidingRule();
+        MainActions actions = await BuildLoaded(ReplacePanel(_ => rule, "on"));
+        Assert.True(actions.CanRename);
+        _renamer.During = () => rule.Collide = true;
+
+        await Rename();
+        await ApplyPreview();
+
+        Assert.True(_preview.Snapshot.HasConflicts);
+        Assert.False(actions.CanRename);
+        Assert.Equal("Fix the conflicts to rename.", actions.RenameHint);
+    }
+
+    [Fact]
+    public async Task Locked_WhileBusy_HintEmpty()
+    {
+        (MainActions actions, _) = await RenamedAndLocked();
+        _renamer.Last = DiskResults.Last(LastBatchState.Revertable);
+        await actions.LoadJournalAsync();
+        var gate = new ManualResetEventSlim(false);
+        _renamer.Gate = gate;
+        try
+        {
+            Task<ActionReport?> running = actions.RevertAsync();
+
+            Assert.True(actions.IsBusy);
+            Assert.Equal("", actions.RenameHint);
+            gate.Set();
+            await running;
+        }
+        finally
+        {
+            gate.Set();
+        }
+    }
+
+    // AC 5
+
+    [Fact]
+    public async Task Locked_RuleEdit_Unlocks()
+    {
+        (MainActions actions, FakeRulePanelModel panel) = await RenamedAndLocked();
+
+        panel.Text = "y_";
+        await ApplyPreview();
+
+        Assert.True(actions.CanRename);
+        Assert.Equal("", actions.RenameHint);
+    }
+
+    [Fact]
+    public async Task Locked_RuleDisabled_Unlocks()
+    {
+        (MainActions actions, FakeRulePanelModel panel) = await RenamedAndLocked();
+
+        panel.Enabled = false;
+        await ApplyPreview();
+
+        Assert.Equal("", actions.RenameHint);
+    }
+
+    [Fact]
+    public async Task Locked_ResetAll_Unlocks()
+    {
+        (MainActions actions, _) = await RenamedAndLocked();
+
+        actions.Reset();
+        await ApplyPreview();
+
+        Assert.Equal("", actions.RenameHint);
+    }
+
+    [Fact]
+    public async Task Locked_SelectionChange_Unlocks()
+    {
+        (MainActions actions, _) = await RenamedAndLocked();
+
+        _files.SetSelection(new[] { 0 });
+        await ApplyPreview();
+
+        Assert.True(actions.CanRename);
+        Assert.Equal("", actions.RenameHint);
+    }
+
+    [Fact]
+    public async Task Locked_LoadOtherFolder_Unlocks()
+    {
+        (MainActions actions, _) = await RenamedAndLocked();
+
+        await _files.LoadAsync(FolderB);
+        await ApplyPreview();
+
+        Assert.True(actions.CanRename);
+        Assert.Equal("", actions.RenameHint);
+    }
+
+    [Fact]
+    public async Task Locked_ReloadSameFolder_Unlocks()
+    {
+        (MainActions actions, _) = await RenamedAndLocked();
+
+        await _files.LoadAsync(FolderA);
+        await ApplyPreview();
+
+        Assert.True(actions.CanRename);
+    }
+
+    // AC 6
+
+    [Fact]
+    public async Task OwnReload_DoesNotUnlock_EvenAfterPreviewRecomputes()
+    {
+        FakeRulePanelModel panel = Prefix();
+        MainActions actions = await BuildLoaded(panel);
+        ReloadAsRenamed();
+
+        await Rename();
+
+        Assert.False(actions.IsBusy);
+        Assert.False(actions.CanRename);
+        await ApplyPreview();
+        Assert.False(actions.CanRename);
+        Assert.Equal(LockText, actions.RenameHint);
+    }
+
+    [Fact]
+    public async Task FolderChangedDuringRename_NoLock()
+    {
+        MainActions actions = await BuildLoaded(Prefix());
+        ManualResetEventSlim gate = _source.Gate(FolderA);
+        Task? other = null;
+        void OnChanged(object? sender, EventArgs e)
+        {
+            if (actions.IsBusy && _files.State == FileListState.Loading && _files.FolderPath == FolderA)
+            {
+                _files.Changed -= OnChanged;
+                other = _files.LoadAsync(FolderB);
+            }
+        }
+
+        try
+        {
+            _files.Changed += OnChanged;
+            Task<ActionReport?> running = Rename();
+            Assert.True(SpinWait.SpinUntil(() => other != null, TimeSpan.FromSeconds(10)));
+            await other!;
+            gate.Set();
+            await running;
+
+            // Checked before anything else can raise an event: the lock must not be set for the other folder.
+            Assert.Equal(FolderB, _files.FolderPath);
+            Assert.Equal(FileListState.Loaded, _files.State);
+            Assert.Equal("", actions.RenameHint);
+        }
+        finally
+        {
+            gate.Set();
+        }
+    }
+
+    [Fact]
+    public async Task SelectionChangedByFolderContentsHandler_WhileBusy_KeepsLock()
+    {
+        MainActions actions = await BuildLoaded(Prefix());
+        ReloadAsRenamed();
+        actions.FolderContentsChanged += (_, _) => _files.SetSelection(new[] { 0 });
+
+        await Rename();
+        await ApplyPreview();
+
+        Assert.False(actions.CanRename);
+        Assert.Equal(LockText, actions.RenameHint);
+    }
+
+    // AC 7
+
+    [Fact]
+    public async Task Revert_Ran_ClearsLock()
+    {
+        FakeRulePanelModel panel = Prefix();
+        MainActions actions = await BuildLoaded(panel);
+        _renamer.During = () =>
+        {
+            _source.SetEntries(FolderA, File("x_a.txt"), File("x_b.txt"), File("x_c.txt"));
+            _renamer.Last = DiskResults.Last(LastBatchState.Revertable);
+        };
+        await Rename();
+        await ApplyPreview();
+        Assert.False(actions.CanRename);
+        Assert.True(actions.CanRevert);
+
+        await actions.RevertAsync();
+        await ApplyPreview();
+
+        Assert.Equal(1, _renamer.RevertCalls);
+        Assert.True(actions.CanRename);
+        Assert.Equal("", actions.RenameHint);
+    }
+
+    [Fact]
+    public async Task Revert_NotAllowed_LockUntouched()
+    {
+        (MainActions actions, _) = await RenamedAndLocked();
+        _renamer.Last = DiskResults.Last(LastBatchState.None);
+        await actions.LoadJournalAsync();
+
+        Assert.Null(await actions.RevertAsync());
+
+        Assert.False(actions.CanRename);
+        Assert.Equal(LockText, actions.RenameHint);
+    }
+
+    // AC 8
+
+    [Fact]
+    public async Task Locked_RenameAsync_ReturnsNull_NothingRuns()
+    {
+        (MainActions _, _) = await RenamedAndLocked();
+
+        Assert.Null(await Rename());
+
+        Assert.Equal(1, _renamer.RenameCalls);
+        Assert.Empty(_confirmations);
+    }
+
+    // AC 9
+
+    [Fact]
+    public async Task TwoRenames_WithRuleEditBetween_SecondRunsAndLocksAgain()
+    {
+        (MainActions actions, FakeRulePanelModel panel) = await RenamedAndLocked();
+        panel.Text = "y_";
+        await ApplyPreview();
+        Assert.True(actions.CanRename);
+
+        ActionReport? report = await Rename();
+        await ApplyPreview();
+
+        Assert.NotNull(report);
+        Assert.Equal(2, _renamer.RenameCalls);
+        Assert.False(actions.CanRename);
+        Assert.Equal(LockText, actions.RenameHint);
+    }
+
+    // AC 10
+
+    [Fact]
+    public async Task Lock_DoesNotAffectResetRevertBusy_AndRaisesChanged()
+    {
+        FakeRulePanelModel panel = Prefix();
+        MainActions actions = await BuildLoaded(panel);
+        _renamer.During = () =>
+        {
+            _source.SetEntries(FolderA, File("x_a.txt"), File("x_b.txt"), File("x_c.txt"));
+            _renamer.Last = DiskResults.Last(LastBatchState.Revertable);
+        };
+        int beforeRename = _changes;
+        await Rename();
+        await ApplyPreview();
+
+        Assert.True(_changes > beforeRename);
+        Assert.False(actions.CanRename);
+        Assert.True(actions.CanReset);
+        Assert.True(actions.CanRevert);
+        Assert.False(actions.IsBusy);
+
+        int beforeEdit = _changes;
+        panel.Text = "y_";
+
+        Assert.True(_changes > beforeEdit);
+        Assert.False(actions.IsBusy);
+    }
+
+    /// <summary>Adds "x_" before the name while Collide is false; gives every item the same name when true.</summary>
+    private sealed class CollidingRule : IRenameRule
+    {
+        public volatile bool Collide;
+
+        public RuleStage Stage => RuleStage.Replace;
+
+        public bool Enabled => true;
+
+        public NameParts Apply(NameParts name, ItemContext context) =>
+            NameParts.Split(Collide ? "same.txt" : "x_" + context.Item.Name, context.Item.Kind);
     }
 }
