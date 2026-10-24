@@ -5,15 +5,35 @@ using NameShift.Core;
 
 namespace NameShift.Cmd;
 
-/// <summary>Reads <c>apply &lt;folder&gt; [--replace &lt;find&gt; &lt;with&gt;] [--case lower|upper|title|sentence]
-/// [--dry-run]</c>. Options come in any order; the folder is the one argument that is neither an option nor an option's
-/// value. Words are compared ordinally, ignoring case.</summary>
+/// <summary>Reads a command line and dispatches on its first word: <c>help</c> (also <c>--help</c>, <c>-h</c>,
+/// <c>/?</c>), <c>--version</c>, or <c>apply &lt;folder&gt; [--replace &lt;find&gt; &lt;with&gt;] [--case
+/// lower|upper|title|sentence] [--dry-run]</c>. Options of <c>apply</c> come in any order; the folder is the one argument
+/// that is neither an option nor an option's value. Words are compared ordinally, ignoring case.</summary>
 internal static class CommandLineParser
 {
+    // Verbs.
     private const string ApplyCommand = "apply";
+
+    // Global words: help and version.
+    private const string HelpWord = "help";
+    private const string HelpOption = "--help";
+    private const string HelpShortOption = "-h";
+    private const string HelpSlashOption = "/?";
+    private const string VersionOption = "--version";
+
+    // Options of apply.
     private const string ReplaceOption = "--replace";
     private const string CaseOption = "--case";
     private const string DryRunOption = "--dry-run";
+
+    private static readonly string[] GlobalWordList =
+    {
+        ApplyCommand, HelpWord, HelpOption, HelpShortOption, HelpSlashOption, VersionOption,
+    };
+
+    private static readonly string[] ApplyOptionWordList = { ReplaceOption, CaseOption, DryRunOption };
+
+    private static readonly string[] AllWords = Combine(GlobalWordList, ApplyOptionWordList);
 
     private static readonly KeyValuePair<string, CaseMode>[] CaseValues =
     {
@@ -23,26 +43,58 @@ internal static class CommandLineParser
         new KeyValuePair<string, CaseMode>("sentence", CaseMode.Sentence),
     };
 
-    /// <summary>True with the options; false with the one-line error (a usage error ends with Strings.Usage).</summary>
-    public static bool TryParse(IReadOnlyList<string> args, out ApplyOptions? options, out string error)
+    /// <summary>Every word the parser dispatches on: the verbs, the help and version words, and the options of
+    /// <c>apply</c>. The <c>--case</c> values are not words. The dispatch and the option guard read this list.</summary>
+    public static IReadOnlyList<string> Words => AllWords;
+
+    /// <summary>The verbs and the help and version words: the main help names each of them.</summary>
+    internal static IReadOnlyList<string> GlobalWords => GlobalWordList;
+
+    /// <summary>The options of <c>apply</c>: the apply help names each of them.</summary>
+    internal static IReadOnlyList<string> ApplyOptionWords => ApplyOptionWordList;
+
+    /// <summary>What the command line asks for; a usage error carries its one line (message, usage, help pointer).</summary>
+    public static ParsedCommand Parse(IReadOnlyList<string> args)
     {
         if (args == null)
         {
             throw new ArgumentNullException(nameof(args));
         }
 
-        options = null;
-        error = "";
         if (args.Count == 0)
         {
-            return Fail(Strings.NoCommand, out error);
+            return Fail(Strings.NoCommand);
         }
 
-        if (!Is(args[0], ApplyCommand))
+        string first = args[0];
+        if (Is(first, HelpOption) || Is(first, HelpShortOption) || Is(first, HelpSlashOption) || Is(first, HelpWord))
         {
-            return Fail(Format(Strings.UnknownCommand, args[0]), out error);
+            return ParsedCommand.Help();
         }
 
+        if (Is(first, VersionOption))
+        {
+            return ParsedCommand.Version();
+        }
+
+        if (Is(first, ApplyCommand))
+        {
+            for (int i = 1; i < args.Count; i++)
+            {
+                if (IsHelpFlag(args[i]))
+                {
+                    return ParsedCommand.ApplyHelp();
+                }
+            }
+
+            return ParseApply(args);
+        }
+
+        return Fail(Format(Strings.UnknownCommand, first));
+    }
+
+    private static ParsedCommand ParseApply(IReadOnlyList<string> args)
+    {
         string? folder = null;
         string? find = null;
         string? with = null;
@@ -57,17 +109,17 @@ internal static class CommandLineParser
                 // --dry-run into the new text and rename for real. Other values may start with a dash (--replace - _).
                 if (args.Count - i - 1 < 2 || IsOptionWord(args[i + 1]) || IsOptionWord(args[i + 2]))
                 {
-                    return Fail(Strings.ReplaceNeedsValues, out error);
+                    return Fail(Strings.ReplaceNeedsValues);
                 }
 
                 if (find != null)
                 {
-                    return Fail(Format(Strings.RepeatedOption, ReplaceOption), out error);
+                    return Fail(Format(Strings.RepeatedOption, ReplaceOption));
                 }
 
                 if (args[i + 1].Length == 0)
                 {
-                    return Fail(Strings.EmptyFind, out error);
+                    return Fail(Strings.EmptyFind);
                 }
 
                 find = args[i + 1];
@@ -78,17 +130,17 @@ internal static class CommandLineParser
             {
                 if (args.Count - i - 1 < 1)
                 {
-                    return Fail(Strings.CaseNeedsValue, out error);
+                    return Fail(Strings.CaseNeedsValue);
                 }
 
                 if (!TryCase(args[i + 1], out CaseMode mode))
                 {
-                    return Fail(Format(Strings.BadCase, args[i + 1]), out error);
+                    return Fail(Format(Strings.BadCase, args[i + 1]));
                 }
 
                 if (caseMode.HasValue)
                 {
-                    return Fail(Format(Strings.RepeatedOption, CaseOption), out error);
+                    return Fail(Format(Strings.RepeatedOption, CaseOption));
                 }
 
                 caseMode = mode;
@@ -100,16 +152,16 @@ internal static class CommandLineParser
             }
             else if (arg.StartsWith("-", StringComparison.Ordinal))
             {
-                return Fail(Format(Strings.UnknownOption, arg), out error);
+                return Fail(Format(Strings.UnknownOption, arg));
             }
             else if (string.IsNullOrWhiteSpace(arg))
             {
                 // An empty variable in a script ("%~1", "$folder"): never fall back to the current directory.
-                return Fail(Strings.NoFolder, out error);
+                return Fail(Strings.NoFolder);
             }
             else if (folder != null)
             {
-                return Fail(Format(Strings.TwoFolders, folder, arg), out error);
+                return Fail(Format(Strings.TwoFolders, folder, arg));
             }
             else
             {
@@ -119,18 +171,17 @@ internal static class CommandLineParser
 
         if (folder == null)
         {
-            return Fail(Strings.NoFolder, out error);
+            return Fail(Strings.NoFolder);
         }
 
         // A folder with a quote is what cmd makes of "D:\Pics\" --case lower: one argument that swallowed the options.
         // The runner says so (Strings.QuoteInFolder), which helps more than "give a rule".
         if (find == null && !caseMode.HasValue && folder.IndexOf('"') < 0)
         {
-            return Fail(Strings.NoRule, out error);
+            return Fail(Strings.NoRule);
         }
 
-        options = new ApplyOptions(folder, find, with, caseMode, dryRun);
-        return true;
+        return ParsedCommand.Apply(new ApplyOptions(folder, find, with, caseMode, dryRun));
     }
 
     private static bool TryCase(string text, out CaseMode mode)
@@ -150,15 +201,39 @@ internal static class CommandLineParser
 
     private static bool Is(string arg, string word) => string.Equals(arg, word, StringComparison.OrdinalIgnoreCase);
 
-    private static bool IsOptionWord(string arg) => Is(arg, ReplaceOption) || Is(arg, CaseOption) || Is(arg, DryRunOption);
+    private static bool IsHelpFlag(string arg) => Is(arg, HelpOption) || Is(arg, HelpShortOption) || Is(arg, HelpSlashOption);
+
+    /// <summary>True for a word of <see cref="Words"/> that starts with a dash.</summary>
+    private static bool IsOptionWord(string arg)
+    {
+        if (!arg.StartsWith("-", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        foreach (string word in AllWords)
+        {
+            if (Is(arg, word))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static string[] Combine(string[] first, string[] second)
+    {
+        var all = new string[first.Length + second.Length];
+        first.CopyTo(all, 0);
+        second.CopyTo(all, first.Length);
+        return all;
+    }
 
     private static string Format(string format, params object[] values) =>
         string.Format(CultureInfo.InvariantCulture, format, values);
 
-    /// <summary>A usage error: the message, one space, then the usage line.</summary>
-    private static bool Fail(string message, out string error)
-    {
-        error = message + " " + Strings.Usage;
-        return false;
-    }
+    /// <summary>A usage error: the message, one space, the usage line, one space, the pointer to the help.</summary>
+    private static ParsedCommand Fail(string message) =>
+        ParsedCommand.Failed(message + " " + Strings.Usage + " " + Strings.HelpPointer);
 }
