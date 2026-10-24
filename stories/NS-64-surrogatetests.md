@@ -1,6 +1,6 @@
 # NS-64: Tests with a lone surrogate must really use one
 
-Status: In Progress
+Status: In Review
 Depends on: NS-21
 Area: engine
 
@@ -42,3 +42,4 @@ character U+FFFD and the test checks nothing about surrogates. Such tests must b
 ## Log
 - 2026-10-24: created (po), from a review finding; set Ready.
 - 2026-10-24: In Progress (builder).
+- 2026-10-24: In Review (builder), PR #41.
