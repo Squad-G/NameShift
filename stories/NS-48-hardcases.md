@@ -1,24 +1,48 @@
-# NS-48: Safe handling of hard cases
+# NS-48: Hard cases: names that look the same
 
-Status: Draft
-Depends on: NS-8
+Status: Ready
+Depends on: NS-6
 Area: engine
 
 ## Why
-Edge cases that classic renamers get wrong.
+Two names can look identical on screen and still be different to NTFS (`é` as one character, or `e` plus a combining
+accent). The user cannot see the difference, so the preview must treat them as the same name. (The disk-side hard cases are
+NS-67.)
 
 ## Acceptance criteria
-1. Given two new names that differ only by Unicode form (`é` as one character vs `e` followed by a combining accent), then both items are flagged `DuplicateTarget`, because they look identical to the user even though NTFS stores them as different files; a new name that equals an existing file only in canonical form is flagged `TargetExists` the same way.
-2. Given a read-only file, then it is renamed (rename needs no write to content) and keeps its attribute.
-3. Given a file open in another program, then the failure message names the file and says it is in use.
-4. Given a file whose name is unchanged by the rules, even if that name is long (over 200 characters but allowed), then it is not touched and not flagged.
-5. Given the network drive or removable drive disappears mid batch, then the batch is rolled back as in NS-8 or reported if the rollback cannot run.
+Change: `DuplicateTargetCheck` (`NameShift.Core`). Names are compared by their canonical (NFC) form, then ordinal ignoring
+case, for the new names, the existing names of the folder and the batch's original names. Nothing else in the checks changes.
+1. Given two changed items whose new names are `café.txt` and `café.txt`, then both are flagged
+   `DuplicateTarget` (and nothing else).
+2. Given one changed item with new name `café.txt` and an existing entry `café.txt` that is not in the batch, then
+   the item is flagged `TargetExists`; the same with the forms swapped.
+3. Given the forms differ in case too (`CAFÉ.txt` and `café.txt`), then they are flagged as duplicates.
+4. Given one item `café.txt` whose only change is to the other form, `café.txt`, and no other item or entry has the
+   name, then it is a normal change: no conflict (the item's own original name is released, compared by the same key).
+5. Given an item whose name is renamed to the NFC-equal name of another batch item that is itself renamed away in the same
+   batch (a chain), then it is not flagged, as for plain names today.
+6. Given a new name with a lone surrogate (`"a\uD800"`), then the check does not throw; that name is compared as it is
+   (ordinal ignoring case), so two equal such names are still flagged `DuplicateTarget`.
+7. Given names with no accent or special form (the existing NS-6 tests), then the results are identical to before.
+8. Given a 10,000-item batch, then the check still runs in linear time (a loose test under 1 second).
+9. Given an unchanged item (status Unchanged), even with a name over 200 characters that Windows allows, then none of the
+   three checks flags it, and it is not touched. (Already true: this criterion pins it with a test for the three checks
+   on a 250-character name.)
 
 ## Out of scope
-- Anything not listed above.
+- Disk behaviour (read-only, in use, drive vanishing): NS-67.
+- Changing the file's name to its NFC form on purpose (a rule for it, if ever wanted, is a new story).
+- Comparing compatibility forms (`ﬁ` and `fi`): they are different names on screen.
 
 ## Decisions
-- Better than classic renamers. **Decision:** tested with real temp folders; no admin elevation is ever requested (po, 2026-10-18).
+- Treat canonically equal names as equal? **Decision:** yes, flag them, because the user sees one name and a second file
+  that looks the same is a trap; it is the safe side (po, 2026-10-24).
+- Must the executor also refuse them? **Decision:** no: the preview already blocks the batch (the executor refuses any plan
+  with a conflict, NS-8), and NTFS can hold both names, so the executor keeps checking the real disk only (po, 2026-10-24).
+- Lone surrogates: `string.Normalize` throws on them, so the key falls back to the raw name instead of failing the preview
+  (po, 2026-10-24).
+- Split? **Decision:** the original criteria 2 to 5 are disk behaviour and moved to NS-67 (po, 2026-10-24).
 
 ## Log
 - 2026-10-18: created (po).
+- 2026-10-24: criteria made testable, disk cases split to NS-67; set Ready (po).

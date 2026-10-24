@@ -52,17 +52,20 @@ IDs), not the rank: the rank is the row order.
 | 46 | [NS-46 Clear row messages](NS-46-rowhelp.md) | Done | NS-52 |
 | 32 | [NS-32 Filters: mask, regex, kinds and length](NS-32-filterengine.md) | Ready | NS-1 |
 | 65 | [NS-65 README layout matches the repository](NS-65-readmelayout.md) | Ready | |
+| 66 | [NS-66 Column sorting](NS-66-columnsort.md) | Ready | NS-51, NS-14, NS-13 |
+| 48 | [NS-48 Hard cases: names that look the same](NS-48-hardcases.md) | Ready | NS-6 |
+| 67 | [NS-67 Hard cases on disk: read-only, in use, vanishing drive](NS-67-diskhardcases.md) | Ready | NS-9, NS-15 |
+| 38 | [NS-38 Command line: apply rules to a folder](NS-38-clicore.md) | Ready | NS-8, NS-9, NS-12, NS-13 |
 | 54 | [NS-54 Visual polish](NS-54-visual-polish.md) | Draft | NS-15, NS-55, NS-30 |
 | 33 | [NS-33 Filters panel and sub-folders option](NS-33-filterui.md) | Draft | NS-32, NS-51, NS-60, NS-61 |
 | 60 | [NS-60 Numbering rule: restart in each folder](NS-60-numberingfolders.md) | Draft | NS-17 |
-| 66 | [NS-66 Column sorting](NS-66-columnsort.md) | Draft | NS-51, NS-14, NS-13 |
 | 34 | [NS-34 Copy or move to another folder (engine and executor)](NS-34-copymove.md) | Cancelled | NS-8, NS-9 |
 | 35 | [NS-35 Copy/move to location panel](NS-35-copymoveui.md) | Cancelled | NS-34, NS-15 |
 | 36 | [NS-36 Save and load presets](NS-36-presets.md) | Draft | NS-12 |
 | 37 | [NS-37 Remember last settings](NS-37-settings.md) | Draft | NS-36 |
-| 38 | [NS-38 Command line: apply a preset to a folder](NS-38-clicore.md) | Draft | NS-36, NS-8, NS-9 |
 | 39 | [NS-39 Command line: dry run, conflicts and exit codes](NS-39-clidry.md) | Draft | NS-38 |
 | 40 | [NS-40 Command line: rules given as options](NS-40-clirules.md) | Draft | NS-38, NS-12 |
+| 69 | [NS-69 Command line: use a saved preset](NS-69-clipreset.md) | Draft | NS-38, NS-36 |
 | 41 | [NS-41 Command line: recursion and filters](NS-41-clifilters.md) | Draft | NS-38, NS-32 |
 | 45 | [NS-45 Safer Revert: detect changed files](NS-45-revertsafe.md) | Draft | NS-9 |
 | 42 | [NS-42 Command line: undo the last batch](NS-42-cliundo.md) | Draft | NS-38, NS-45 |
@@ -70,5 +73,4 @@ IDs), not the rank: the rank is the row order.
 | 49 | [NS-49 Explorer right-click entry "Bulk Rename Here"](NS-49-explorer-entry.md) | Draft | NS-47, NS-14 |
 | 44 | [NS-44 Installer](NS-44-installer.md) | Draft | NS-15, NS-38, NS-49 |
 | 62 | [NS-62 Auto date: use the photo date](NS-62-autodatephoto.md) | Draft | NS-26, NS-27, NS-59 |
-| 48 | [NS-48 Safe handling of hard cases](NS-48-hardcases.md) | Draft | NS-8 |
 | 50 | [NS-50 "Bulk Rename Here" in the Windows 11 top-level menu](NS-50-win11-menu.md) | Draft | NS-49 |
