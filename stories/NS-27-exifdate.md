@@ -121,3 +121,4 @@ How it reads (the rules the tests below check):
 - 2026-10-24: re-scoped to the reader only; the rule part moved to NS-62; no new dependency needed, set Ready (po).
 - 2026-10-24: bounds, loops, cap, short reads and fuzz criteria added after the PR #39 review (po).
 - 2026-10-24: In Progress (builder).
+- 2026-10-24: In Review (builder), PR #49.
