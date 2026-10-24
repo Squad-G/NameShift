@@ -1,6 +1,6 @@
 # NS-72: Presets menu: save, load and delete
 
-Status: In Progress
+Status: In Review
 Depends on: NS-36, NS-15
 Area: app
 
@@ -119,3 +119,4 @@ Window:
 - 2026-10-24: NS-36 merged. Criteria re-checked against `PresetStore`, `ApplyPreset` and `MainForm`; trimming moved into the
   store, Loading state, busy handling, Alt-key test, status-bar rules made exact; set Ready (po).
 - 2026-10-24: In Progress (builder).
+- 2026-10-24: In Review (builder), PR #70.
