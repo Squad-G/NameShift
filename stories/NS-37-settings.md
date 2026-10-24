@@ -22,3 +22,4 @@ The app opens as I left it.
 
 ## Log
 - 2026-10-18: created (po).
+- 2026-10-24: David chose to build presets first, then this; it reuses the panel `SaveSettings`/`LoadSettings` of NS-36. Stays Draft: its criteria are written when NS-36 and the menu (NS-72) are merged (po).

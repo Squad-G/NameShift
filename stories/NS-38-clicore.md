@@ -60,8 +60,8 @@ panel's defaults; `--case` changes the base name only, like the Case panel with 
 ## Decisions
 - Separate console exe or flags on `NameShift.exe`? **Decision:** a separate console exe, because a window-subsystem exe
   returns to the shell at once and cannot write to it reliably, so scripts could not wait for it or read its exit code;
-  the extra exe is small and shares the same DLLs (po, 2026-10-24). Default; David may override. The exe name
-  `NameShiftCmd.exe` is a working name (flagged for David).
+  the extra exe is small and shares the same DLLs (po, 2026-10-24). **Decided by David (2026-10-24):** a separate console
+  exe named `NameShiftCmd.exe`, installed next to `NameShift.exe`.
 - Does it need presets? **Decision:** no: the first CLI story takes its rules from options, so it does not wait on presets
   (NS-36 is on hold); preset support is NS-69 (po, 2026-10-24).
 - Preview and undo for the CLI (CLAUDE.md rule)? **Decision:** preview is `--dry-run`, shipped in this story, never
