@@ -1,6 +1,6 @@
 # NS-58: Steady 10,000-file listing test
 
-Status: In Progress
+Status: In Review
 Depends on: NS-51
 Area: app
 
@@ -47,3 +47,4 @@ seconds, the window stays responsive") is a product promise checked by hand; thi
 ## Log
 - 2026-10-23: created and set Ready (po), after one failure on net48 under a full parallel run.
 - 2026-10-23: In Progress (builder).
+- 2026-10-23: In Review (builder), PR #33.
