@@ -27,6 +27,7 @@ Use the numbering rule (NS-17) from the window, so the first usable version can 
 - The position field is greyed outside Insert mode? **Decision:** yes, with its label; it keeps its text, and outside Insert the rule gets no position (tech-lead, 2026-10-18).
 - Mode control? **Decision:** a drop-down list, like the Case panel (tech-lead, 2026-10-18).
 - Labels and mnemonics? **Decision:** NS-12 uses R F W M X C O T A P I S D U E, which takes every letter of "Start", "Step", "Separator", "Position" and "Mode", so the labels are worded around free letters: N (Numbering), L (Place), V (Start value), Y (Count by), G (Digits), B (Text between), H (At character). J K Q Z stay free (tech-lead default, 2026-10-18; po may overrule; question logged for David).
+- Keep the labels "Place", "Start value", "Count by", "Digits", "Text between", "At character"? **Decision:** yes, keep them as they are, so each Alt shortcut stays unique (David, 2026-10-23).
 - Separator trimmed? **Decision:** no, a space is a valid separator; characters invalid in file names are left to the conflict checker (tech-lead, 2026-10-18).
 
 ## Log

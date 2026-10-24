@@ -50,6 +50,7 @@ the finished layout (preview, conflicts, selection, buttons).
 - Build it now or after more panels? **Decision:** later: it restyles every panel and migrates their spacing, so it
   goes after the Name/Extension and Remove panels (NS-55, NS-30) to avoid redoing it and merge conflicts; it stays
   Draft until then and criteria 1 and 5 are re-checked against the panels that exist (po, 2026-10-23).
+- Placement after NS-30 confirmed by David (2026-10-23).
 - Dark mode in this story or later? **Decision:** a separate later story, not written yet. It needs its own colour
   work, owner-drawn parts of WinForms and its own tests, and would make this story large; this story first makes all
   colours go through system colours, which is what dark mode will build on (po, 2026-10-18).
