@@ -1,6 +1,6 @@
 # NS-33: Filters: settings model and filtered file list
 
-Status: Ready
+Status: In Progress
 Depends on: NS-32, NS-51, NS-66, NS-73
 Area: app
 
@@ -64,3 +64,4 @@ File list (`FileListModel`):
 - 2026-10-24: placement answered by David; split (po).
 - 2026-10-24: after review: narrowed to the model and the filtered list; sub-folder listing moved to NS-74; empty-message
   rule, callers named, depends on NS-73 (po).
+- 2026-10-24: In Progress (builder).
