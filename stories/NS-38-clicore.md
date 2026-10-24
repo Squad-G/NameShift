@@ -1,6 +1,6 @@
 # NS-38: Command line: apply rules to a folder
 
-Status: In Review
+Status: Done
 Depends on: NS-8, NS-9, NS-12, NS-13, NS-73
 Area: app
 
@@ -111,3 +111,4 @@ Console:
   errors, PE and WinForms test, input errors; depends on NS-73 (po).
 - 2026-10-24: In Progress (builder).
 - 2026-10-24: In Review (builder), PR #60.
+- 2026-10-24: Done (tech-lead), PR #60 merged; hand checks for David: run `NameShiftCmd apply "<scratch folder>" --case lower` from cmd and from PowerShell, check the exit code (`%errorlevel%` / `$LASTEXITCODE` is 0), then Revert in the window. For NS-39: exit 4 for an exception before any rename (nothing renamed) could get its own code; the runner's blank-folder guard is unreachable through `Run` (defence in depth).
