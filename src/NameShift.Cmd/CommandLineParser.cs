@@ -6,13 +6,15 @@ using NameShift.Core;
 namespace NameShift.Cmd;
 
 /// <summary>Reads a command line and dispatches on its first word: <c>help</c> (also <c>--help</c>, <c>-h</c>,
-/// <c>/?</c>), <c>--version</c>, or <c>apply &lt;folder&gt; [--replace &lt;find&gt; &lt;with&gt;] [--case
-/// lower|upper|title|sentence] [--dry-run]</c>. Options of <c>apply</c> come in any order; the folder is the one argument
-/// that is neither an option nor an option's value. Words are compared ordinally, ignoring case.</summary>
+/// <c>/?</c>), <c>--version</c>, <c>apply &lt;folder&gt; [--replace &lt;find&gt; &lt;with&gt;] [--case
+/// lower|upper|title|sentence] [--dry-run]</c>, or <c>undo [--dry-run]</c>. Options of <c>apply</c> come in any order;
+/// the folder is the one argument that is neither an option nor an option's value. <c>undo</c> takes no folder. Words
+/// are compared ordinally, ignoring case.</summary>
 internal static class CommandLineParser
 {
     // Verbs.
     private const string ApplyCommand = "apply";
+    private const string UndoCommand = "undo";
 
     // Global words: help and version.
     private const string HelpWord = "help";
@@ -28,10 +30,12 @@ internal static class CommandLineParser
 
     private static readonly string[] GlobalWordList =
     {
-        ApplyCommand, HelpWord, HelpOption, HelpShortOption, HelpSlashOption, VersionOption,
+        ApplyCommand, UndoCommand, HelpWord, HelpOption, HelpShortOption, HelpSlashOption, VersionOption,
     };
 
     private static readonly string[] ApplyOptionWordList = { ReplaceOption, CaseOption, DryRunOption };
+
+    private static readonly string[] UndoOptionWordList = { DryRunOption };
 
     private static readonly string[] AllWords = Combine(GlobalWordList, ApplyOptionWordList);
 
@@ -52,6 +56,10 @@ internal static class CommandLineParser
 
     /// <summary>The options of <c>apply</c>: the apply help names each of them.</summary>
     internal static IReadOnlyList<string> ApplyOptionWords => ApplyOptionWordList;
+
+    /// <summary>The options of <c>undo</c>: the undo help names each of them. Not part of <see cref="Words"/> (its
+    /// <c>--dry-run</c> is already there).</summary>
+    internal static IReadOnlyList<string> UndoOptionWords => UndoOptionWordList;
 
     /// <summary>What the command line asks for; a usage error carries its one line (message, usage, help pointer).</summary>
     public static ParsedCommand Parse(IReadOnlyList<string> args)
@@ -90,7 +98,41 @@ internal static class CommandLineParser
             return ParseApply(args);
         }
 
+        if (Is(first, UndoCommand))
+        {
+            for (int i = 1; i < args.Count; i++)
+            {
+                if (IsHelpFlag(args[i]))
+                {
+                    return ParsedCommand.UndoHelp();
+                }
+            }
+
+            return ParseUndo(args);
+        }
+
         return Fail(Format(Strings.UnknownCommand, first));
+    }
+
+    private static ParsedCommand ParseUndo(IReadOnlyList<string> args)
+    {
+        bool dryRun = false;
+        for (int i = 1; i < args.Count; i++)
+        {
+            if (!Is(args[i], DryRunOption))
+            {
+                return Fail(Strings.UndoOnlyDryRun);
+            }
+
+            if (dryRun)
+            {
+                return Fail(Format(Strings.RepeatedOption, DryRunOption));
+            }
+
+            dryRun = true;
+        }
+
+        return ParsedCommand.Undo(dryRun);
     }
 
     private static ParsedCommand ParseApply(IReadOnlyList<string> args)

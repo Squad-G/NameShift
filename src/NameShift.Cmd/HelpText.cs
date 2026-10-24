@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace NameShift.Cmd;
 
@@ -7,16 +8,19 @@ namespace NameShift.Cmd;
 /// resource file's). Each verb has its own list of lines; a new verb adds a list and a line in the main help.</summary>
 internal static class HelpText
 {
-    /// <summary>The main help: the usage of apply, the commands, the options and examples, the options of apply, then the
-    /// exit codes.</summary>
+    /// <summary>The main help: the usage of apply and undo under one header, the commands, the options and examples, the
+    /// options of apply and of undo, then the exit codes.</summary>
     public static IReadOnlyList<string> Main()
     {
         var lines = new List<string>();
         lines.AddRange(Lines(Strings.HelpUsageApply));
+        lines.AddRange(Lines(Strings.HelpUsageUndo).Skip(1));
         lines.Add("");
         lines.AddRange(Lines(Strings.HelpMain));
         lines.Add("");
         lines.AddRange(Lines(Strings.HelpApply));
+        lines.Add("");
+        lines.AddRange(Lines(Strings.HelpUndo));
         lines.Add("");
         lines.Add(Strings.HelpExitCodes);
         foreach (ExitCode code in Enum.GetValues(typeof(ExitCode)))
@@ -34,6 +38,16 @@ internal static class HelpText
         lines.AddRange(Lines(Strings.HelpUsageApply));
         lines.Add("");
         lines.AddRange(Lines(Strings.HelpApply));
+        return lines;
+    }
+
+    /// <summary>The help of undo: its usage, its options and one example.</summary>
+    public static IReadOnlyList<string> Undo()
+    {
+        var lines = new List<string>();
+        lines.AddRange(Lines(Strings.HelpUsageUndo));
+        lines.Add("");
+        lines.AddRange(Lines(Strings.HelpUndo));
         return lines;
     }
 

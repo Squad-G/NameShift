@@ -65,6 +65,83 @@ public sealed class CommandRunnerHelpTests : IDisposable
         Assert.Equal(0, files.Calls);
     }
 
+    [Theory]
+    [InlineData("undo|--help")]
+    [InlineData(@"undo|C:\x|-h")]
+    [InlineData("undo|--dry-run|--dry-run|/?")]
+    [InlineData("UNDO|--HELP")]
+    public void UndoHelp_Anywhere_Exit0(string joined)
+    {
+        var renamer = new FakeBatchRenamer();
+        var files = new CountingFileListSource();
+
+        var run = Cmd.Run(renamer, _temp.Files, Args(joined), files);
+
+        Assert.Equal(0, run.Code);
+        Assert.Equal(Cmd.Written(HelpText.Undo().ToArray()), run.Output);
+        Assert.Equal("", run.Error);
+        Assert.Equal(0, renamer.LoadCalls);
+        Assert.Equal(0, renamer.RevertCalls);
+        Assert.Equal(0, files.Calls);
+    }
+
+    [Fact]
+    public void UndoHelp_ExactLines()
+    {
+        Assert.Equal(
+            new[]
+            {
+                "Usage:",
+                "  NameShiftCmd undo [--dry-run]",
+                "",
+                "Options of undo:",
+                "  --dry-run       List the names undo would restore; change nothing. Reads the",
+                "                  history only: it does not check the files.",
+                "  --help, -h, /?  Show this help.",
+                "Undo takes back the last batch, also one made in the window.",
+                "",
+                "Example of undo:",
+                "  NameShiftCmd undo --dry-run",
+            },
+            HelpText.Undo().ToArray());
+    }
+
+    [Fact]
+    public void MainHelp_OneUsageHeader_BothUsageLines()
+    {
+        string[] main = HelpText.Main().ToArray();
+
+        Assert.Single(main, line => line == "Usage:");
+        int header = Array.IndexOf(main, "Usage:");
+        Assert.Equal("  NameShiftCmd apply <folder> <options>", main[header + 1]);
+        Assert.Equal("  NameShiftCmd undo [--dry-run]", main[header + 2]);
+        Assert.Contains("  undo             Take back the last batch (also one made in the window).", main);
+        Assert.Contains("  NameShiftCmd undo --dry-run", main);
+    }
+
+    [Fact]
+    public void UndoHelp_TurkishCulture_StillFindsTheVerb()
+    {
+        CultureInfo culture = CultureInfo.CurrentCulture;
+        CultureInfo uiCulture = CultureInfo.CurrentUICulture;
+        try
+        {
+            CultureInfo turkish = CultureInfo.GetCultureInfo("tr-TR");
+            CultureInfo.CurrentCulture = turkish;
+            CultureInfo.CurrentUICulture = turkish;
+
+            Assert.Equal(CommandKind.UndoHelp, CommandLineParser.Parse(Args("undo|--HELP")).Kind);
+            ParsedCommand dry = CommandLineParser.Parse(Args("UNDO|--DRY-RUN"));
+            Assert.Equal(CommandKind.Undo, dry.Kind);
+            Assert.True(dry.UndoDryRun);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = culture;
+            CultureInfo.CurrentUICulture = uiCulture;
+        }
+    }
+
     [Fact]
     public void ApplyHelp_HasItsUsageOptionsAndOneExample()
     {
@@ -163,7 +240,7 @@ public sealed class CommandRunnerHelpTests : IDisposable
     [Fact]
     public void HelpLines_AtMost79_AsciiOnly()
     {
-        foreach (string line in HelpText.Main().Concat(HelpText.Apply()))
+        foreach (string line in HelpText.Main().Concat(HelpText.Apply()).Concat(HelpText.Undo()))
         {
             Assert.True(line.Length <= 79, line.Length + " characters: " + line);
             Assert.All(line, c => Assert.InRange((int)c, 0x20, 0x7E));
@@ -175,11 +252,15 @@ public sealed class CommandRunnerHelpTests : IDisposable
     {
         string[] main = HelpText.Main().ToArray();
         string[] apply = HelpText.Apply().ToArray();
+        string[] undo = HelpText.Undo().ToArray();
 
-        foreach (string text in new[] { Strings.HelpUsageApply, Strings.HelpMain, Strings.HelpApply })
+        foreach (string text in new[] { Strings.HelpUsageApply, Strings.HelpUsageUndo, Strings.HelpMain, Strings.HelpApply, Strings.HelpUndo })
         {
             Assert.All(TextLines(text), line => Assert.Contains(line, main));
         }
+
+        Assert.All(TextLines(Strings.HelpUsageUndo), line => Assert.Contains(line, undo));
+        Assert.All(TextLines(Strings.HelpUndo), line => Assert.Contains(line, undo));
 
         Assert.All(TextLines(Strings.HelpUsageApply), line => Assert.Contains(line, apply));
         Assert.All(TextLines(Strings.HelpApply), line => Assert.Contains(line, apply));
@@ -190,9 +271,11 @@ public sealed class CommandRunnerHelpTests : IDisposable
     {
         string[] mainTokens = Tokens(Strings.HelpMain);
         string[] applyTokens = Tokens(Strings.HelpApply);
+        string[] undoTokens = Tokens(Strings.HelpUndo);
 
         Assert.All(CommandLineParser.GlobalWords, word => Assert.Contains(word, mainTokens));
         Assert.All(CommandLineParser.ApplyOptionWords, word => Assert.Contains(word, applyTokens));
+        Assert.All(CommandLineParser.UndoOptionWords, word => Assert.Contains(word, undoTokens));
     }
 
     /// <summary>The whole words of a help text: lines split on spaces and commas, compared ordinally.</summary>

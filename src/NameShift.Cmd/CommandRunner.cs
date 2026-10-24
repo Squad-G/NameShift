@@ -14,8 +14,8 @@ using NameShift.Ui.Preview;
 namespace NameShift.Cmd;
 
 /// <summary>Runs one command line: lists the folder like the window, plans with <see cref="RenamePlanner"/>, and
-/// renames only through the <see cref="IBatchRenamer"/> (the journal), in the window's words. Never reads input and
-/// never prompts.</summary>
+/// renames and reverts only through the <see cref="IBatchRenamer"/> (the journal), in the window's words. Never reads
+/// input and never prompts.</summary>
 public sealed class CommandRunner
 {
     private readonly TextWriter _output;
@@ -26,6 +26,7 @@ public sealed class CommandRunner
     private readonly CultureInfo _culture;
     private readonly string _version;
     private bool _renamerCalled;
+    private bool _undoing;
 
     /// <param name="output">Results (exit code 0).</param>
     /// <param name="error">Errors and every other result.</param>
@@ -72,6 +73,7 @@ public sealed class CommandRunner
         }
 
         _renamerCalled = false;
+        _undoing = false;
         try
         {
             return RunCommand(args);
@@ -85,7 +87,9 @@ public sealed class CommandRunner
             bool renamerCalled = _renamerCalled;
             try
             {
-                _error.WriteLine(renamerCalled ? NameShift.Ui.Strings.ActionUnexpected : Strings.UnexpectedBeforeRename);
+                _error.WriteLine(renamerCalled
+                    ? NameShift.Ui.Strings.ActionUnexpected
+                    : (_undoing ? Strings.UnexpectedBeforeUndo : Strings.UnexpectedBeforeRename));
             }
             catch (Exception)
             {
@@ -105,6 +109,8 @@ public sealed class CommandRunner
                 return WriteLines(HelpText.Main());
             case CommandKind.ApplyHelp:
                 return WriteLines(HelpText.Apply());
+            case CommandKind.UndoHelp:
+                return WriteLines(HelpText.Undo());
             case CommandKind.Version:
                 _output.WriteLine(Format(Strings.VersionLine, _version));
                 return (int)ExitCode.Success;
@@ -112,6 +118,8 @@ public sealed class CommandRunner
                 return Fail(command.Error, ExitCode.InputError);
             case CommandKind.Apply:
                 return RunApply(command.Options!);
+            case CommandKind.Undo:
+                return RunUndo(command.UndoDryRun);
             default:
                 throw new InvalidOperationException("Unknown command kind: " + command.Kind);
         }
@@ -160,6 +168,51 @@ public sealed class CommandRunner
                 return options.DryRun ? DryRun(plan) : Rename(plan);
             default:
                 throw new InvalidOperationException("Unknown blocker: " + plan.Blocker);
+        }
+    }
+
+    /// <summary>Takes back the last batch through the renamer, in the window's words. The journal is read first: Revert
+    /// alone answers "nothing to revert" for every state that cannot be reverted. Never lists a folder.</summary>
+    private int RunUndo(bool dryRun)
+    {
+        _undoing = true;
+        LastBatch last = _renamer.LoadLastBatch();
+        switch (last.State)
+        {
+            case LastBatchState.None:
+            case LastBatchState.Reverted:
+                _output.WriteLine(NameShift.Ui.Strings.NothingToRevert);
+                return (int)ExitCode.Success;
+            case LastBatchState.Interrupted:
+            case LastBatchState.Unreadable:
+                _error.WriteLine(Strings.UndoHistoryUnusable);
+                return (int)ExitCode.NotRenamed;
+            case LastBatchState.Revertable:
+                if (dryRun)
+                {
+                    foreach (CompletedRename rename in last.Renames)
+                    {
+                        _output.WriteLine(Format(Strings.DryRunLine, Path.GetFileName(rename.NewPath), Path.GetFileName(rename.OldPath)));
+                    }
+
+                    return (int)ExitCode.Success;
+                }
+
+                // From here on the disk state is unknown: an exception reaches Run's catch-all as exit 4.
+                _renamerCalled = true;
+                RevertResult result = _renamer.Revert();
+                ActionReport report = ActionText.ForRevert(result, _culture);
+                ExitCode code = ExitCodes.For(result);
+                TextWriter writer = code == ExitCode.Success ? _output : _error;
+                writer.WriteLine(report.Status);
+                if (report.Details != null)
+                {
+                    writer.WriteLine(report.Details);
+                }
+
+                return (int)code;
+            default:
+                throw new InvalidOperationException("Unknown journal state: " + last.State);
         }
     }
 
