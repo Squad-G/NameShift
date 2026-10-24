@@ -1,6 +1,6 @@
 # NS-46: Clear row messages
 
-Status: In Review
+Status: Done
 Depends on: NS-52
 Area: app
 
@@ -64,3 +64,4 @@ In the window (by hand, listed in the PR):
 - 2026-10-24: sorting split out to NS-66; exact wording written and criteria made testable against `ConflictText`; set Ready (po).
 - 2026-10-24: In Progress (builder).
 - 2026-10-24: In Review (builder), PR #52.
+- 2026-10-24: Done (tech-lead), PR #52 merged; hand checks for David: Status column fit at 100 %, scaling at 150 % and 200 %, screen reader reading the whole cell.
