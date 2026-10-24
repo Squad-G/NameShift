@@ -42,6 +42,6 @@ public sealed class ItemContext
 
     /// <summary>The 0-based position among the items of the same folder in the list given to the pipeline, in list
     /// order. Two items are in the same folder when their FolderPath is equal ignoring case (ordinal), after removing
-    /// trailing '' and '/'.</summary>
+    /// trailing '\' and '/'.</summary>
     public int FolderIndex { get; }
 }

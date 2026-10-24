@@ -2,9 +2,9 @@ using System;
 
 namespace NameShift.Core;
 
-/// <summary>Numbers items in the order of the list given to the pipeline (the extension is never touched).</summary>
+/// <summary>Numbers items in the order of the list given to the pipeline, or within each folder when BreakPerFolder is set
+/// (the extension is never touched).</summary>
 /// <remarks>The engine does not sort: the app passes the list in the order it wants, and only the items to number.
-/// Items are numbered in the order of the list given to the pipeline, or within each folder when BreakPerFolder is set.
 /// The number is written in decimal, hexadecimal, letters or Roman numerals (<see cref="NumeralSystem"/>).</remarks>
 public sealed class NumberingRule : IRenameRule
 {
