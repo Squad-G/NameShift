@@ -45,7 +45,7 @@ IDs), not the rank: the rank is the row order.
 | 26 | [NS-26 Auto date rule (file dates)](NS-26-autodate.md) | Done | NS-1 |
 | 31 | [NS-31 Panels for RegEx and Move/Copy](NS-31-lastpanels.md) | Done | NS-11, NS-24, NS-25 |
 | 59 | [NS-59 Panels for Auto date and Append folder name](NS-59-datefolderpanels.md) | Done | NS-11, NS-26, NS-28, NS-31 |
-| 29 | [NS-29 Numbering rule: hex, letters and roman numerals](NS-29-numberingadv.md) | Ready | NS-17 |
+| 29 | [NS-29 Numbering rule: hex, letters and roman numerals](NS-29-numberingadv.md) | Done | NS-17 |
 | 27 | [NS-27 Read the photo (EXIF) date from a JPEG](NS-27-exifdate.md) | Ready | NS-1 |
 | 61 | [NS-61 Numbering panel: number system](NS-61-numberingpanel2.md) | Ready | NS-53, NS-29 |
 | 47 | [NS-47 Open a folder from the command line or by drag and drop](NS-47-openpath.md) | Ready | NS-10, NS-51 |

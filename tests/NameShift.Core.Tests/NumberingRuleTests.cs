@@ -175,4 +175,124 @@ public sealed class NumberingRuleTests
         Assert.True(new NumberingRule(NumberingMode.Suffix).Enabled);
         Assert.True(new NumberingRule(NumberingMode.Insert, insertPosition: 1).Enabled);
     }
+
+    [Fact]
+    public void Run_HexPrefixPad2_From10() =>
+        Assert.Equal(["0A_a.txt", "0B_b.txt"],
+            Names(Run(new NumberingRule(NumberingMode.Prefix, start: 10, pad: 2, separator: "_",
+                numerals: NumeralSystem.Hexadecimal), "a.txt", "b.txt")));
+
+    [Fact]
+    public void Run_HexStep6_From10() =>
+        Assert.Equal(["a_A.txt", "b_10.txt"],
+            Names(Run(new NumberingRule(start: 10, step: 6, separator: "_", numerals: NumeralSystem.Hexadecimal),
+                "a.txt", "b.txt")));
+
+    [Fact]
+    public void Run_HexLowerCase() =>
+        Assert.Equal("aff.txt",
+            Run(new NumberingRule(start: 255, numerals: NumeralSystem.Hexadecimal, upperCase: false), "a.txt")[0].NewName);
+
+    [Fact]
+    public void Run_LettersPrefix_From26() =>
+        Assert.Equal(["z-x.txt", "aa-y.txt", "ab-z.txt"],
+            Names(Run(new NumberingRule(NumberingMode.Prefix, start: 26, separator: "-", numerals: NumeralSystem.Letters),
+                "x.txt", "y.txt", "z.txt")));
+
+    [Fact]
+    public void Run_RomanFrom4() =>
+        Assert.Equal(["aIV.txt", "bV.txt"],
+            Names(Run(new NumberingRule(start: 4, numerals: NumeralSystem.Roman), "a.txt", "b.txt")));
+
+    [Fact]
+    public void Run_RomanPast3999_ErrorOnThatItemOnly()
+    {
+        var results = Run(new NumberingRule(start: 3998, separator: "_", numerals: NumeralSystem.Roman),
+            "a.txt", "b.txt", "c.txt");
+
+        Assert.Equal("a_MMMCMXCVIII.txt", results[0].NewName);
+        Assert.Equal("b_MMMCMXCIX.txt", results[1].NewName);
+        Assert.Equal("c.txt", results[2].NewName);
+        Assert.Equal(RenameStatus.Error, results[2].Status);
+        Assert.Equal("The number cannot be written in Roman numerals (1 to 3999).", results[2].Error!.Message);
+        Assert.Equal(RuleStage.Numbering, results[2].Error!.Stage);
+    }
+
+    [Fact]
+    public void Run_LettersFromZero_ErrorThenA()
+    {
+        var results = Run(new NumberingRule(NumberingMode.Prefix, start: 0, separator: "-",
+            numerals: NumeralSystem.Letters), "a.txt", "b.txt");
+
+        Assert.Equal(RenameStatus.Error, results[0].Status);
+        Assert.Equal("a.txt", results[0].NewName);
+        Assert.Equal("The number cannot be written in letters (from 1).", results[0].Error!.Message);
+        Assert.Equal("a-b.txt", results[1].NewName);
+    }
+
+    [Theory]
+    [InlineData(NumeralSystem.Decimal)]
+    [InlineData(NumeralSystem.Hexadecimal)]
+    [InlineData(NumeralSystem.Letters)]
+    [InlineData(NumeralSystem.Roman)]
+    public void Run_BelowZero_SameErrorInEverySystem(NumeralSystem numerals)
+    {
+        var result = Run(new NumberingRule(start: -1, numerals: numerals), "a.txt")[0];
+
+        Assert.Equal(RenameStatus.Error, result.Status);
+        Assert.Equal("a.txt", result.NewName);
+        Assert.Equal("The number is below zero.", result.Error!.Message);
+    }
+
+    [Fact]
+    public void Run_InsertHex() =>
+        Assert.Equal("aFFbcdef.txt",
+            Run(new NumberingRule(NumberingMode.Insert, start: 255, insertPosition: 2,
+                numerals: NumeralSystem.Hexadecimal), "abcdef.txt")[0].NewName);
+
+    [Theory]
+    [InlineData(NumeralSystem.Decimal, null, false)]
+    [InlineData(NumeralSystem.Hexadecimal, null, true)]
+    [InlineData(NumeralSystem.Roman, null, true)]
+    [InlineData(NumeralSystem.Letters, null, false)]
+    [InlineData(NumeralSystem.Hexadecimal, false, false)]
+    [InlineData(NumeralSystem.Letters, true, true)]
+    [InlineData(NumeralSystem.Decimal, true, true)]
+    public void Constructor_NumeralDefaults(NumeralSystem numerals, bool? upperCase, bool expected)
+    {
+        var rule = new NumberingRule(numerals: numerals, upperCase: upperCase);
+
+        Assert.Equal(numerals, rule.Numerals);
+        Assert.Equal(expected, rule.UpperCase);
+    }
+
+    [Fact]
+    public void Constructor_NoArguments_IsDecimalLowerCase()
+    {
+        var rule = new NumberingRule();
+
+        Assert.Equal(NumeralSystem.Decimal, rule.Numerals);
+        Assert.False(rule.UpperCase);
+    }
+
+    [Fact]
+    public void Constructor_RejectsUndefinedNumerals()
+    {
+        var ex = Assert.Throws<ArgumentOutOfRangeException>(() => new NumberingRule(numerals: (NumeralSystem)9));
+
+        Assert.Equal("numerals", ex.ParamName);
+        Assert.Throws<ArgumentOutOfRangeException>(() => new NumberingRule(pad: 256));
+    }
+
+    [Fact]
+    public void Pipeline_AddThenRoman()
+    {
+        var pipeline = new RenamePipeline([
+            new NumberingRule(separator: "_", numerals: NumeralSystem.Roman),
+            new AddRule(suffix: "-x"),
+        ]);
+
+        Assert.Equal(["a-x_I.txt", "b-x_II.txt"],
+            pipeline.Run(Items.Files("a.txt", "b.txt")).Select(r => r.NewName).ToArray());
+    }
 }
