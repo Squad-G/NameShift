@@ -99,6 +99,7 @@
   <data name="RenameHintConflicts" xml:space="preserve"><value>Fix the conflicts to rename.</value></data>
   <data name="RenameHintErrors" xml:space="preserve"><value>Fix the rule errors to rename.</value></data>
   <data name="RenameHintBoth" xml:space="preserve"><value>Fix the conflicts and rule errors to rename.</value></data>
+  <data name="RenameHintLocked" xml:space="preserve"><value>Change a rule or the selection to rename again.</value></data>
   <data name="RenameConfirm" xml:space="preserve"><value>Rename {0} files?</value></data>
   <data name="RenamingOne" xml:space="preserve"><value>Renaming 1 file...</value></data>
   <data name="RenamingMany" xml:space="preserve"><value>Renaming {0} files...</value></data>

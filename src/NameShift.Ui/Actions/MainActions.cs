@@ -28,6 +28,10 @@ public sealed class MainActions
     /// <summary>Bumped by every journal read and every action: a read applies only when nothing started after it.</summary>
     private int _journalVersion;
 
+    /// <summary>Set after a Rename that renamed something (or failed unexpectedly) in the folder still shown; cleared by a
+    /// rule edit, a selection change, a folder load outside an action, or a Revert that ran. While set, Rename is off.</summary>
+    private bool _renameLocked;
+
     public MainActions(PreviewModel preview, FileListModel files, RulePanelHostModel rules, IBatchRenamer renamer)
     {
         _preview = preview ?? throw new ArgumentNullException(nameof(preview));
@@ -36,9 +40,30 @@ public sealed class MainActions
         _renamer = renamer ?? throw new ArgumentNullException(nameof(renamer));
         _preview.Changed += (_, _) => RaiseChanged();
         _preview.Outdated += (_, _) => RaiseChanged();
-        _files.Changed += (_, _) => RaiseChanged();
-        _files.SelectionChanged += (_, _) => RaiseChanged();
-        _rules.RulesChanged += (_, _) => RaiseChanged();
+        _files.Changed += (_, _) =>
+        {
+            // Only LoadAsync raises this: outside an action it is a folder load; the action's own reload is ignored.
+            if (!IsBusy)
+            {
+                ClearLock();
+            }
+
+            RaiseChanged();
+        };
+        _files.SelectionChanged += (_, _) =>
+        {
+            if (!IsBusy)
+            {
+                ClearLock();
+            }
+
+            RaiseChanged();
+        };
+        _rules.RulesChanged += (_, _) =>
+        {
+            ClearLock();
+            RaiseChanged();
+        };
     }
 
     /// <summary>True from a Rename or Revert click until the folder has reloaded: everything is locked.</summary>
@@ -46,12 +71,12 @@ public sealed class MainActions
 
     /// <summary>True when Rename may run the preview on screen. The only place this rule is written (criterion 2): the
     /// list is loaded, the preview is current and did not fail, and it has at least one changed name, no conflict and
-    /// no rule error.</summary>
+    /// no rule error, and no Rename just ran (until a rule, the selection or the folder changes).</summary>
     public bool CanRename
     {
         get
         {
-            if (IsBusy || _files.State != FileListState.Loaded || !_preview.IsCurrent || _preview.HasFailed)
+            if (IsBusy || _renameLocked || _files.State != FileListState.Loaded || !_preview.IsCurrent || _preview.HasFailed)
             {
                 return false;
             }
@@ -67,8 +92,21 @@ public sealed class MainActions
     /// <summary>True when at least one rule panel has something to reset.</summary>
     public bool CanReset => !IsBusy && _rules.CanResetAny;
 
-    /// <summary>Why Rename is disabled (conflicts, rule errors); "" while busy, with no loaded list, or with nothing to fix.</summary>
-    public string RenameHint => IsBusy || _files.State != FileListState.Loaded ? "" : ActionText.Hint(_preview.Snapshot);
+    /// <summary>Why Rename is disabled: conflicts or rule errors (these win), else "change a rule or the selection" after a
+    /// Rename; "" while busy, with no loaded list, or with nothing to say.</summary>
+    public string RenameHint
+    {
+        get
+        {
+            if (IsBusy || _files.State != FileListState.Loaded)
+            {
+                return "";
+            }
+
+            string hint = ActionText.Hint(_preview.Snapshot);
+            return hint.Length == 0 && _renameLocked ? Strings.RenameHintLocked : hint;
+        }
+    }
 
     /// <summary>What Revert would undo; "" unless CanRevert.</summary>
     public string RevertDescription => CanRevert ? ActionText.RevertDescription(_lastBatch!, CultureInfo.CurrentCulture) : "";
@@ -128,7 +166,9 @@ public sealed class MainActions
             folder,
             new[] { folder },
             () => _renamer.Rename(snapshot.Results, snapshot.Conflicts),
-            ActionText.ForRename);
+            ActionText.ForRename,
+            r => r.Execution != null && r.Execution.Renamed.Count > 0,
+            true);
     }
 
     /// <summary>Reverts the journal's last batch, then reloads the shown folder. Null when not allowed. Never throws.</summary>
@@ -141,7 +181,7 @@ public sealed class MainActions
 
         // Read before the Revert runs: afterwards the journal reads Reverted and its folder list is empty.
         IReadOnlyList<string> changed = RevertFolders(_lastBatch!, _files.FolderPath);
-        return RunAsync(ActionText.Reverting, _files.FolderPath, changed, () => _renamer.Revert(), ActionText.ForRevert);
+        return RunAsync(ActionText.Reverting, _files.FolderPath, changed, () => _renamer.Revert(), ActionText.ForRevert, _ => false, false);
     }
 
     /// <summary>Resets every rule panel; no-op unless CanReset. Never touches files, the journal or the selection.</summary>
@@ -154,11 +194,12 @@ public sealed class MainActions
     }
 
     /// <summary>Locks, runs the action and the journal read in one pool task, applies the result, reloads the folder
-    /// (when there is one), then unlocks. The lock is taken before the first await, and the finally always releases it.
+    /// (when there is one), sets the Rename lock when locksAfter says so (locksIfUnexpected when the action threw) and the
+    /// shown folder is still the action's, then unlocks. The lock is taken before the first await, and the finally always releases it.
     /// A startup journal read may still be running (CanRename does not wait for it): JournaledRenamer is "one operation
     /// at a time", but its read only reads, the read's result is dropped by the version check, and the worst overlap is
     /// a journal file briefly opened by both, which Rename reports as a journal problem in its result, never a wrong rename.</summary>
-    private async Task<ActionReport?> RunAsync<T>(string busyText, string? folder, IReadOnlyList<string> changedFolders, Func<T> action, Func<T, CultureInfo, ActionReport> describe)
+    private async Task<ActionReport?> RunAsync<T>(string busyText, string? folder, IReadOnlyList<string> changedFolders, Func<T> action, Func<T, CultureInfo, ActionReport> describe, Func<T, bool> locksAfter, bool locksIfUnexpected)
     {
         IsBusy = true;
         BusyText = busyText;
@@ -167,6 +208,7 @@ public sealed class MainActions
         {
             RaiseChanged();
             ActionReport report;
+            bool wantLock;
             try
             {
                 (T result, LastBatch last) = await Task.Run(() =>
@@ -176,6 +218,7 @@ public sealed class MainActions
                 });
                 _lastBatch = last;
                 report = describe(result, CultureInfo.CurrentCulture);
+                wantLock = locksAfter(result);
             }
             catch (Exception)
             {
@@ -183,6 +226,7 @@ public sealed class MainActions
                 // state is unknown. Say so, read the journal again (it then reads Interrupted, so Revert is off) and
                 // reload, instead of taking the window down.
                 report = new ActionReport(Strings.ActionUnexpected);
+                wantLock = locksIfUnexpected;
                 _lastBatch = await ReadLastBatchAsync();
             }
 
@@ -190,6 +234,9 @@ public sealed class MainActions
             {
                 await _files.LoadAsync(folder);
             }
+
+            // Locked only if the folder shown is still the action's (a newer load may have superseded the reload).
+            _renameLocked = wantLock && folder != null && _files.FolderPath != null && PathInput.SameFolder(_files.FolderPath, folder);
 
             FolderContentsChanged?.Invoke(this, new FolderContentsChangedEventArgs(changedFolders));
 
@@ -238,6 +285,8 @@ public sealed class MainActions
             return null;
         }
     }
+
+    private void ClearLock() => _renameLocked = false;
 
     private void RaiseChanged() => Changed?.Invoke(this, EventArgs.Empty);
 }
