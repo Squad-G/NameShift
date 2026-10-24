@@ -335,6 +335,7 @@ internal sealed class MainForm : Form
                 return;
             }
 
+            // Folder is never null after Open; the second test is only for the compiler's null analysis.
             if (action != OpenAction.Open || request.Folder is null)
             {
                 if (action == OpenAction.OpenStartFolder)

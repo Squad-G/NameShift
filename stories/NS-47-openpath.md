@@ -1,6 +1,6 @@
 # NS-47: Open a folder from the command line or by drag and drop
 
-Status: In Review
+Status: Done
 Depends on: NS-10, NS-51
 Area: app
 
@@ -116,3 +116,4 @@ In the window (by hand, listed in the PR):
   checks listed; set Ready (po).
 - 2026-10-24: In Progress (builder).
 - 2026-10-24: In Review (builder), PR #51.
+- 2026-10-24: Done (tech-lead), PR #51 approved and merged into dev; review nit folded in (a comment on the null test after Open). Hand checks pending for David: criteria 10 to 13, and the "Ordering" checks from the PR with a slow network path.
