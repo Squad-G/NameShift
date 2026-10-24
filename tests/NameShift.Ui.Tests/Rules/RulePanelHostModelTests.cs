@@ -1,8 +1,15 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using NameShift.Core;
+using NameShift.Ui.Files;
+using NameShift.Ui.Presets;
+using NameShift.Ui.Preview;
 using NameShift.Ui.Rules;
+using NameShift.Ui.Tests.Preview;
 using Xunit;
+using static NameShift.Ui.Tests.FakeFileListSource;
 
 namespace NameShift.Ui.Tests.Rules;
 
@@ -287,5 +294,113 @@ public sealed class RulePanelHostModelTests
         add.Text = "";
         replace.Enabled = true;
         Assert.True(host.CanResetAny);
+    }
+
+    private static RulePanelHostModel RealHost(out CasePanelModel casePanel, out ReplacePanelModel replace, out NumberingPanelModel numbering)
+    {
+        casePanel = new CasePanelModel();
+        replace = new ReplacePanelModel();
+        numbering = new NumberingPanelModel();
+        return new RulePanelHostModel(new IRulePanelModel[] { casePanel, replace, numbering });
+    }
+
+    private static Preset PresetOf(params IRulePanelModel[] models) => Preset.FromPanels("Test", models);
+
+    [Fact]
+    public void ApplyPreset_RaisesRulesChangedOnce()
+    {
+        RulePanelHostModel host = RealHost(out CasePanelModel casePanel, out ReplacePanelModel replace, out _);
+        Preset preset = PresetOf(
+            new CasePanelModel { Mode = CaseMode.Upper, Enabled = true },
+            new ReplacePanelModel { Find = "a", With = "b", MatchCase = true, Enabled = true });
+        int rulesChanged = 0;
+        host.RulesChanged += (_, _) => rulesChanged++;
+
+        host.ApplyPreset(preset);
+
+        Assert.Equal(1, rulesChanged);
+        Assert.Equal(CaseMode.Upper, casePanel.Mode);
+        Assert.Equal("a", replace.Find);
+
+        host.ApplyPreset(preset);
+
+        Assert.Equal(2, rulesChanged);
+    }
+
+    [Fact]
+    public void ApplyPreset_PanelsEqualThePreset()
+    {
+        RulePanelHostModel host = RealHost(out CasePanelModel casePanel, out ReplacePanelModel replace, out NumberingPanelModel numbering);
+        numbering.StartText = "7";
+        numbering.Enabled = true;
+        casePanel.ExceptionsText = "of";
+        Preset preset = PresetOf(
+            new CasePanelModel { Mode = CaseMode.Lower, Enabled = true },
+            new ReplacePanelModel { Find = "x", With = "y" });
+
+        host.ApplyPreset(preset);
+
+        Assert.Equal(CaseMode.Lower, casePanel.Mode);
+        Assert.Equal("", casePanel.ExceptionsText);
+        Assert.True(casePanel.Enabled);
+        Assert.Equal("x", replace.Find);
+        Assert.Equal("y", replace.With);
+        Assert.False(replace.Enabled);
+        Assert.True(numbering.IsDefault);
+        Assert.False(numbering.Enabled);
+        CaseRule rule = Assert.IsType<CaseRule>(Assert.Single(host.Rules));
+        Assert.Equal(CaseMode.Lower, rule.Mode);
+    }
+
+    [Fact]
+    public async Task ApplyPreset_OnePreviewRun()
+    {
+        var source = new FakeFileListSource();
+        source.SetEntries(@"C:\A", File("a1.txt"), File("b.txt"));
+        var files = new FileListModel(source);
+        var delay = new FakeDelay();
+        RulePanelHostModel host = RealHost(out _, out _, out _);
+        var preview = new PreviewModel(host, files, delay.Delay);
+        await files.LoadAsync(@"C:\A");
+        await preview.Pending;
+        Assert.Empty(delay.Calls);
+        Preset preset = PresetOf(
+            new CasePanelModel { Mode = CaseMode.Upper, Enabled = true },
+            new ReplacePanelModel { Find = "a", With = "x", Enabled = true },
+            new NumberingPanelModel { StartText = "5", Enabled = true });
+
+        host.ApplyPreset(preset);
+        delay.ReleaseAll();
+        await preview.Pending;
+
+        Assert.Single(delay.Calls);
+        Assert.Equal(0, delay.Cancelled);
+        Assert.Equal("X1_5.txt", preview.CellForRow(0).Text);
+    }
+
+    [Fact]
+    public void ApplyPreset_UnknownStageForHost_Ignored()
+    {
+        FakeRulePanelModel replace = FakeRulePanelModel.Replace();
+        var host = new RulePanelHostModel(new IRulePanelModel[] { replace });
+        var preset = new Preset("Test", new[]
+        {
+            new PresetPanel(RuleStage.Replace, true, new Dictionary<string, string> { ["Text"] = "a" }),
+            new PresetPanel(RuleStage.Add, true, new Dictionary<string, string> { ["Text"] = "b" }),
+        });
+
+        host.ApplyPreset(preset);
+
+        Assert.Equal("a", replace.Text);
+        Assert.True(replace.Enabled);
+        Assert.IsType<ReplaceRule>(Assert.Single(host.Rules));
+    }
+
+    [Fact]
+    public void ApplyPreset_Null_Throws()
+    {
+        var host = new RulePanelHostModel(new IRulePanelModel[] { FakeRulePanelModel.Replace() });
+
+        Assert.Throws<ArgumentNullException>(() => host.ApplyPreset(null!));
     }
 }
