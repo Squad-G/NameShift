@@ -135,6 +135,26 @@ public sealed class RemovePositionRuleTests
         Assert.Equal("def.txt", RunOne(new RemovePositionRule(2, 2, 1, 1), "abcdefgh.txt").NewName);
 
     [Fact]
+    public void Run_RangeWorksOnWhatFirstAndLastLeft()
+    {
+        // first 2 and last 2 leave "cd"; the range then counts inside "cd" (a range applied first would give "").
+        Assert.Equal("c.txt", RunOne(new RemovePositionRule(2, 2, 2, 3), "abcdef.txt").NewName);
+        // first 1 and last 1 leave "bcde"; the range 2-3 removes "cd" (a range applied first would remove "bc").
+        Assert.Equal("be.txt", RunOne(new RemovePositionRule(1, 1, 2, 3), "abcdef.txt").NewName);
+    }
+
+    [Fact]
+    public void Run_LoneSurrogates_AreNotTreatedAsPairs_AndNeverThrow()
+    {
+        // A lone low surrogate (no high before it) is an ordinary character: cuts at any index, even 0, must not throw.
+        Assert.Equal("\uDE00b.txt", RunOne(new RemovePositionRule(first: 1), "a\uDE00b.txt").NewName);
+        Assert.Equal(".txt", RunOne(new RemovePositionRule(last: 2), "\uDE00b.txt").NewName);
+        Assert.Equal("b.txt", RunOne(new RemovePositionRule(from: 1, to: 1), "\uDE00b.txt").NewName);
+        Assert.Equal("a.txt", RunOne(new RemovePositionRule(from: 2, to: 3), "a\uDE00b.txt").NewName);
+        Assert.Equal("\uDE00.txt", RunOne(new RemovePositionRule(from: 1, to: 1), "a\uDE00.txt").NewName);
+    }
+
+    [Fact]
     public void Run_First_NeverSplitsASurrogatePair() =>
         Assert.Equal("a.txt", RunOne(new RemovePositionRule(first: 1), "\U0001F600a.txt").NewName);
 
