@@ -1,6 +1,6 @@
 # NS-24: RegEx rule
 
-Status: In Progress
+Status: In Review
 Depends on: NS-1
 Area: engine
 
@@ -71,3 +71,4 @@ extension afterwards, as `ReplaceRule` does).
 - 2026-10-18: created (po).
 - 2026-10-23: criteria made testable (options, validation, timeout, group syntax, edge cases), set Ready (po).
 - 2026-10-24: In Progress (builder).
+- 2026-10-24: In Review (builder), PR #38.
