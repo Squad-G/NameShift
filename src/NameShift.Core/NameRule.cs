@@ -24,13 +24,13 @@ public sealed class NameRule : IRenameRule
     /// <summary>What the rule does to the base name.</summary>
     public NameMode Mode { get; }
 
-    /// <summary>The new base name for Fixed, exactly as typed (never trimmed or validated: the checks flag bad names).</summary>
+    /// <summary>The new base name for Fixed, exactly as typed (never trimmed or validated: the checks flag bad names; white space only counts as empty).</summary>
     public string Value { get; }
 
     /// <inheritdoc />
     public RuleStage Stage => RuleStage.Name;
 
-    /// <summary>False for Keep, and for Fixed with an empty <see cref="Value"/>.</summary>
+    /// <summary>False for Keep, and for Fixed with an empty or white-space-only <see cref="Value"/>.</summary>
     public bool Enabled
     {
         get
@@ -38,7 +38,7 @@ public sealed class NameRule : IRenameRule
             switch (Mode)
             {
                 case NameMode.Keep: return false;
-                case NameMode.Fixed: return Value.Length > 0;
+                case NameMode.Fixed: return !string.IsNullOrWhiteSpace(Value);
                 default: return true;
             }
         }
@@ -49,10 +49,10 @@ public sealed class NameRule : IRenameRule
     {
         switch (Mode)
         {
-            // Enabled is false with an empty Value and the pipeline skips the rule; Apply checks again because it is
+            // Enabled is false with an empty or white-space-only Value and the pipeline skips the rule; Apply checks again because it is
             // public and may be called directly.
             case NameMode.Fixed:
-                return Value.Length == 0 ? name : name.WithBaseName(Value);
+                return string.IsNullOrWhiteSpace(Value) ? name : name.WithBaseName(Value);
             case NameMode.Remove:
                 return name.WithBaseName("");
             case NameMode.Reverse:

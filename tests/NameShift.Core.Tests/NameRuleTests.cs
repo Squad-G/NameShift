@@ -188,13 +188,40 @@ public sealed class NameRuleTests
         Assert.Equal("  x  .txt", RunOne(rule, "a.txt").NewName);
     }
 
-    [Fact]
-    public void Fixed_SpacesOnly_IsEnabled_AppliedAsTyped()
+    [Theory]
+    [InlineData("   ")]
+    [InlineData("	")]
+    [InlineData(" 	 ")]
+    public void Fixed_WhitespaceOnly_CountsAsEmpty_Disabled_Unchanged(string value)
     {
-        var rule = new NameRule(NameMode.Fixed, "   ");
+        var rule = new NameRule(NameMode.Fixed, value);
+
+        Assert.False(rule.Enabled);
+        Assert.Equal(new NameParts("a", "jpg"), ApplyTo(rule, "a", "jpg"));
+        Assert.Equal("a.jpg", RunOne(rule, "a.jpg").NewName);
+        Assert.Equal("Old", RunFolder(rule, "Old").NewName);
+    }
+
+    [Fact]
+    public void Fixed_SpacesAroundText_AppliedAsTyped_NotTrimmed()
+    {
+        var rule = new NameRule(NameMode.Fixed, " x ");
 
         Assert.True(rule.Enabled);
-        Assert.Equal("   .jpg", RunOne(rule, "a.jpg").NewName);
+        Assert.Equal(" x .jpg", RunOne(rule, "a.jpg").NewName);
+    }
+
+    [Fact]
+    public void Run_Reverse_MixedCase_KeepsEachCase() =>
+        Assert.Equal("1bA.txt", RunOne(new NameRule(NameMode.Reverse), "Ab1.txt").NewName);
+
+    [Fact]
+    public void Run_Remove_OnAFileWithNoExtension_FlaggedEmptyName()
+    {
+        var result = RunOne(new NameRule(NameMode.Remove), "README");
+
+        Assert.Equal("", result.NewName);
+        Assert.Equal([new Conflict(ConflictCode.EmptyName)], new InvalidNameCheck().Check([result])[0]);
     }
 
     [Fact]
