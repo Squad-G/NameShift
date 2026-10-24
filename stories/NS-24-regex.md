@@ -66,6 +66,14 @@ extension afterwards, as `ReplaceRule` does).
 - No `Compiled`, no `Multiline`: compiling costs startup time for a few names; `^` and `$` mean the start and end of
   the searched text (po, 2026-10-23).
 - Empty result on a file? **Decision:** `.txt` is valid (NS-5); only a folder is flagged (po, 2026-10-23).
+- `Validate(null)`? **Decision:** it throws `ArgumentNullException`, like the constructor: a null pattern is a programmer
+  error, not something to report to the user; an empty pattern is valid (po, 2026-10-24).
+- Wording of the timeout message? **Decision:** plain English written in Core, like every other rule error (the pipeline
+  shows `ex.Message` as is); it does not repeat the parser's text. Only the invalid-pattern message from `Validate`
+  comes from the runtime (po, 2026-10-24).
+- What is a "hidden dotfile" in criterion 9? **Decision:** only the leading dot matters: `.gitignore` is a name whose whole
+  text is the base (NS-1), so `^\.` finds the dot. The hidden attribute plays no part, and the test needs none (po,
+  2026-10-24).
 
 ## Log
 - 2026-10-18: created (po).

@@ -41,7 +41,7 @@ only part that changes. Folder names are used as given (their case is kept).
 12. Given the properties, then `Placement`, `Levels` and `Separator` return the values given.
 
 ## Out of scope
-- The panel (NS-31).
+- The panel (NS-59).
 - Using the folder names of the destination: NameShift never moves files (NS-34 is cancelled).
 - Looking at the disk: the rule only reads the path text in `FolderPath`.
 

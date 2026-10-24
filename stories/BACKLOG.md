@@ -37,16 +37,21 @@ IDs), not the rank: the rank is the row order.
 | 22 | [NS-22 Remove: digits, symbols, accents, high characters](NS-22-removeclasses.md) | Done | NS-1 |
 | 23 | [NS-23 Remove: trim, leading dots, double spaces](NS-23-removetidy.md) | Done | NS-1 |
 | 30 | [NS-30 Panel for Remove](NS-30-morepanels.md) | Done | NS-11, NS-20, NS-21, NS-22, NS-23 |
+| 64 | [NS-64 Tests with a lone surrogate must really use one](NS-64-surrogatetests.md) | Ready | NS-21 |
 | 24 | [NS-24 RegEx rule](NS-24-regex.md) | Ready | NS-1 |
 | 28 | [NS-28 Append folder name rule](NS-28-foldername.md) | Ready | NS-1 |
-| 25 | [NS-25 Move or copy parts of the name](NS-25-moveparts.md) | Draft | NS-1 |
-| 26 | [NS-26 Auto date rule (file dates)](NS-26-autodate.md) | Draft | NS-1 |
-| 27 | [NS-27 Auto date rule: photo (EXIF) date](NS-27-exifdate.md) | Draft | NS-26 |
-| 29 | [NS-29 Numbering rule: bases, roman numerals, break per folder](NS-29-numberingadv.md) | Draft | NS-17 |
+| 63 | [NS-63 Run the engine tests on .NET Framework 4.8 too](NS-63-coretestsnet48.md) | Ready | NS-1 |
+| 25 | [NS-25 Move or copy parts of the name](NS-25-moveparts.md) | Ready | NS-1 |
+| 26 | [NS-26 Auto date rule (file dates)](NS-26-autodate.md) | Ready | NS-1 |
+| 31 | [NS-31 Panels for RegEx and Move/Copy](NS-31-lastpanels.md) | Ready | NS-11, NS-24, NS-25 |
+| 59 | [NS-59 Panels for Auto date and Append folder name](NS-59-datefolderpanels.md) | Ready | NS-11, NS-26, NS-28, NS-31 |
+| 29 | [NS-29 Numbering rule: hex, letters and roman numerals](NS-29-numberingadv.md) | Ready | NS-17 |
+| 27 | [NS-27 Read the photo (EXIF) date from a JPEG](NS-27-exifdate.md) | Ready | NS-1 |
 | 54 | [NS-54 Visual polish](NS-54-visual-polish.md) | Draft | NS-15, NS-55, NS-30 |
-| 31 | [NS-31 Panels for RegEx, Move/Copy, Auto date and Append folder](NS-31-lastpanels.md) | Draft | NS-11, NS-24, NS-25, NS-26, NS-28 |
 | 32 | [NS-32 Filters: mask, regex, kinds and length](NS-32-filterengine.md) | Draft | NS-1 |
 | 33 | [NS-33 Filters panel and sub-folders option](NS-33-filterui.md) | Draft | NS-32, NS-51 |
+| 60 | [NS-60 Numbering rule: restart in each folder](NS-60-numberingfolders.md) | Draft | NS-17 |
+| 61 | [NS-61 Numbering panel: number system and restart per folder](NS-61-numberingpanel2.md) | Draft | NS-53, NS-29, NS-60 |
 | 34 | [NS-34 Copy or move to another folder (engine and executor)](NS-34-copymove.md) | Cancelled | NS-8, NS-9 |
 | 35 | [NS-35 Copy/move to location panel](NS-35-copymoveui.md) | Cancelled | NS-34, NS-15 |
 | 36 | [NS-36 Save and load presets](NS-36-presets.md) | Draft | NS-12 |
@@ -62,5 +67,6 @@ IDs), not the rank: the rank is the row order.
 | 49 | [NS-49 Explorer right-click entry "Bulk Rename Here"](NS-49-explorer-entry.md) | Draft | NS-47, NS-14 |
 | 44 | [NS-44 Installer](NS-44-installer.md) | Draft | NS-15, NS-38, NS-49 |
 | 46 | [NS-46 Clear row messages and column sorting](NS-46-rowhelp.md) | Draft | NS-13 |
+| 62 | [NS-62 Auto date: use the photo date](NS-62-autodatephoto.md) | Draft | NS-26, NS-27, NS-59, NS-46 |
 | 48 | [NS-48 Safe handling of hard cases](NS-48-hardcases.md) | Draft | NS-8 |
 | 50 | [NS-50 "Bulk Rename Here" in the Windows 11 top-level menu](NS-50-win11-menu.md) | Draft | NS-49 |
