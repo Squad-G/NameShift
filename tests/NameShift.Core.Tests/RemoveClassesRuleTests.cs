@@ -234,11 +234,11 @@ public sealed class RemoveClassesRuleTests
         Assert.Equal(RuleStage.Remove, new RemoveClassesRule().Stage);
 
     [Theory]
-    [InlineData("è.txt", "e.txt")]
-    [InlineData("à.txt", "a.txt")]
-    [InlineData("aͯ.txt", "a.txt")]
-    [InlineData("a˿.txt", "a˿.txt")]
-    [InlineData("aͰ.txt", "aͰ.txt")]
+    [InlineData("\u00E8.txt", "e.txt")]
+    [InlineData("a\u0300.txt", "a.txt")]
+    [InlineData("a\u036F.txt", "a.txt")]
+    [InlineData("a\u02FF.txt", "a\u02FF.txt")]
+    [InlineData("a\u0370.txt", "a\u0370.txt")]
     public void Run_Accents_RangeBoundaries(string name, string expected) =>
         Assert.Equal(expected, RunOne(new RemoveClassesRule(accents: true), name).NewName);
 
@@ -250,26 +250,26 @@ public sealed class RemoveClassesRuleTests
 
     [Fact]
     public void Run_Accents_UsesCanonicalFormsNotCompatibility() =>
-        Assert.Equal("ﬁe.txt", RunOne(new RemoveClassesRule(accents: true), "ﬁé.txt").NewName);
+        Assert.Equal("\uFB01e.txt", RunOne(new RemoveClassesRule(accents: true), "\uFB01\u00E9.txt").NewName);
 
     // U+FFFE makes string.Normalize throw; the accent step then does nothing and the other options still apply.
     [Fact]
     public void Run_Accents_InvalidCodePoint_DoesNothing_NoThrow()
     {
-        var result = RunOne(new RemoveClassesRule(accents: true), "a￾́b.txt");
+        var result = RunOne(new RemoveClassesRule(accents: true), "a\uFFFE\u0301b.txt");
 
         Assert.Null(result.Error);
         Assert.Equal(RenameStatus.Unchanged, result.Status);
-        Assert.Equal("a￾́b.txt", result.NewName);
+        Assert.Equal("a\uFFFE\u0301b.txt", result.NewName);
     }
 
     [Fact]
     public void Run_InvalidCodePoint_OtherOptionsStillApply()
     {
-        var result = RunOne(new RemoveClassesRule(true, true, true), "a1￾́_b.txt");
+        var result = RunOne(new RemoveClassesRule(true, true, true), "a1\uFFFE\u0301_b.txt");
 
         Assert.Null(result.Error);
-        Assert.Equal("a￾́b.txt", result.NewName);
+        Assert.Equal("a\uFFFE\u0301b.txt", result.NewName);
     }
 
     [Fact]
