@@ -1,6 +1,6 @@
 # NS-23: Remove: trim, leading dots, double spaces
 
-Status: In Review
+Status: Done
 Depends on: NS-1
 Area: engine
 
@@ -55,3 +55,4 @@ steps run in this order on the base name: double spaces, trim, leading dots, the
 - 2026-10-23: criteria made testable (order, definitions, dotfiles, empty results), set Ready (po).
 - 2026-10-23: In Progress (builder).
 - 2026-10-23: In Review (builder), PR #36.
+- 2026-10-24: Done (tech-lead), PR #36 merged into dev.

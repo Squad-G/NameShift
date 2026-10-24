@@ -28,6 +28,10 @@ public sealed class RemoveTidyRuleTests
         Assert.Equal(expected, RunOne(new RemoveTidyRule(leadingDots: true), name).NewName);
 
     [Fact]
+    public void Run_LeadingDots_KeepsATrailingDotOfTheBase() =>
+        Assert.Equal("a..txt", RunOne(new RemoveTidyRule(leadingDots: true), "a..txt").NewName);
+
+    [Fact]
     public void Run_Dotfile_UnchangedWhenOff()
     {
         var result = RunOne(new RemoveTidyRule(trim: true, doubleSpaces: true), ".gitignore");

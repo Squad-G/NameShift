@@ -75,6 +75,7 @@ public sealed class RemoveTidyRule : IRenameRule
         return result.ToString();
     }
 
+    // char.IsWhiteSpace as the story mandates; a few rare characters (U+180E, U+200B) may differ between runtimes.
     private static string TrimWhiteSpace(string s)
     {
         var start = 0;
