@@ -132,6 +132,8 @@ public sealed class ItemFilterTests
             Assert.True(new ItemFilter("*.JPG").Includes(File("a.jpg")));
             Assert.True(new ItemFilter("*.JPG").Includes(File("I.jpg")));
             Assert.True(new ItemFilter("\u00e9*").Includes(File("\u00c9t\u00e9.txt")));
+            Assert.True(new ItemFilter("i*").Includes(File("I.txt")));
+            Assert.True(new ItemFilter("I*").Includes(File("i.txt")));
         });
 
     [Theory]
