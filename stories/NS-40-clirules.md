@@ -39,20 +39,23 @@ Numbering (the Numbering panel):
    `a.txt`, `b.txt` give `a_1.txt`, `b_2.txt`. Any of the options below also turns numbering on, so `--number` alone is
    needed only for the defaults.
 5. Given `--number-mode prefix|suffix|insert`, `--number-start <n>`, `--number-step <n>`, `--number-pad <n>` (digits),
-   `--number-separator <text>`, `--number-position <n>` (insert mode), `--number-system decimal|hex|letters|roman`
-   and `--number-case upper|lower`, then each sets the matching `NumberingPanelModel` property (`Mode`, `StartText`,
+   `--number-separator <text>`, `--number-position <n>` (insert mode), `--number-system decimal|hex|letters|roman` and
+   `--number-case upper|lower`, then each sets the matching `NumberingPanelModel` property (`Mode`, `StartText`,
    `StepText`, `PadText`, `Separator`, `InsertPositionText`, `Numerals`, `UpperCase`). Examples:
    `--number-mode prefix --number-pad 3` gives `001_a.txt`, `002_b.txt`; `--number-system roman` gives `a_I.txt`,
-   `b_II.txt`. Words are compared ignoring case; `hex` is the only spelling of Hexadecimal. `--number-start` is read in the chosen
-   system, as the panel does (`--number-system roman --number-start V` starts at 5; with hex, `10` is 16); the CLI sets
-   `Numerals` before `StartText`, because the `Numerals` setter rewrites the start. A test for roman and for hex.
-6. Given a value the model refuses (`--number-start x`, `--number-pad 99`, `--number-system octal`, `--number-position 0`
-   in insert mode, a start the chosen system cannot write), then exit 1 with the model's own error text
-   (`StartError`, `StepError`, `PadError`, `InsertPositionError`: new string `OptionError` = `{0}: {1}`, the option and the
-   model's text) or, for an unknown word, new string `BadChoice` = `"{0}" is not a value of {1}: use {2}.` (the value, the
-   option, the allowed values as `prefix, suffix or insert`); nothing renamed. The model's error is read only for the
-   fields that apply (`PadApplies`, `InsertPositionApplies`), as the window does. `--number-position` outside insert mode, `--number-pad` in letters or roman, and `--number-case` in
-   decimal are accepted and ignored, as in the window (the panel disables those fields).
+   `b_II.txt`. Words are compared ignoring case; `hex` is the only spelling of Hexadecimal. `--number-start` is read in
+   the chosen system, as the panel does (`--number-system roman --number-start V` starts at 5; with hex, `10` is 16);
+   the CLI sets `Numerals` before `UpperCase` and `StartText`, because the `Numerals` setter rewrites the start and
+   resets the case to the system's usual one. A test for roman and for hex, each with `--number-case lower` given before
+   `--number-system` (the lower case is kept: `--number-case lower --number-system hex` never gives capitals).
+6. Given a value the model refuses (`--number-start x`, `--number-pad 99`, `--number-system octal`,
+   `--number-position 0` in insert mode, a start the chosen system cannot write), then exit 1 with the model's own error
+   text (`StartError`, `StepError`, `PadError`, `InsertPositionError`: new string `OptionError` = `{0}: {1}`, the option
+   and the model's text) or, for an unknown word, new string `BadChoice` = `"{0}" is not a value of {1}: use {2}.` (the
+   value, the option, the allowed values as `prefix, suffix or insert`); nothing renamed. The model's error is read only
+   for the fields that apply (`PadApplies`, `InsertPositionApplies`), as the window does. `--number-position` outside
+   insert mode, `--number-pad` in letters or roman, and `--number-case` in decimal are accepted and ignored, as in the
+   window (the panel disables those fields).
 7. Given any option, then it takes one value after the flag (`--insert` two, `--from-end`, `--word-space` and `--number`
    none), may come in any position, may not repeat (the usual "can be given only once" error), and a value that is
    an option word counts as missing (NS-38's guard: `--prefix --dry-run` is an error, not a prefix `--dry-run`). Other
@@ -61,19 +64,22 @@ Numbering (the Numbering panel):
 Same as the window, and the rest:
 8. Given each of criteria 1, 2, 4 and 5 (a table of cases covering every option), then a parity test (as NS-38:4) builds
    the same fixture through `PreviewModel` with `AddPanelModel` / `NumberingPanelModel` set to the same values and
-   through the CLI, and compares every new name.
+   through the CLI, and compares every new name. The table has `--number-case lower` before `--number-system hex` and
+   before `--number-system roman`.
 9. Given rules from several panels in one line (`--replace x y --prefix p_ --number --case upper`), then the names are
    the same in any order of the options (a test shuffles three orders).
-10. Given the help (NS-43), then every new option word (`--prefix`, `--suffix`, `--insert`, `--from-end`, `--word-space`,
-    `--number`, `--number-mode`, `--number-start`, `--number-step`, `--number-pad`, `--number-separator`,
-    `--number-position`, `--number-system`, `--number-case`) is added to `CommandLineParser.ApplyOptionWords` (so `Words` and
-    the option-word guard see it), built from constants like the existing ones, and listed with its own line in `HelpApply`
-    (the main help includes it), each line starting with the option word and its values, one short sentence, at most 79
-    ASCII columns (a continuation line is indented to the sentence's column; the column may move right to fit
-    `--number-separator <text>`, which means every line of `HelpApply` is re-aligned). NS-43's `EveryWord_IsInTheHelp`,
-    `HelpLines_AtMost79_AsciiOnly` and `HelpTexts_AreInTheComposedHelps` pass. The usage lines are generic (NS-42) and
-    are not edited. The values of `--number-mode`, `--number-system` and `--number-case` are listed in their lines
-    (`prefix|suffix|insert`, `decimal|hex|letters|roman`, `upper|lower`), as `--case` lists its four.
+10. Given the help (NS-43), then every new option word (`--prefix`, `--suffix`, `--insert`, `--from-end`,
+    `--word-space`, `--number`, `--number-mode`, `--number-start`, `--number-step`, `--number-pad`,
+    `--number-separator`, `--number-position`, `--number-system`, `--number-case`) is added to
+    `CommandLineParser.ApplyOptionWords` (so `Words` and the option-word guard see it), built from constants like the
+    existing ones, and listed with its own line in `HelpApply` (the main help includes it), each line starting with the
+    option word and its values, one short sentence, at most 79 ASCII columns (a continuation line is indented to the
+    sentence's column; the column may move right to fit `--number-separator <text>`, which means every line of
+    `HelpApply` is re-aligned). NS-43's `EveryWord_IsInTheHelp`, `HelpLines_AtMost79_AsciiOnly` and
+    `HelpTexts_AreInTheComposedHelps` pass, and `CommandLineParserTests.Words_AreTheDispatchedWords` (which pins the
+    exact list) is updated to the new list. The usage lines are generic (NS-42) and are not edited. The values of
+    `--number-mode`, `--number-system` and `--number-case` are listed in their lines (`prefix|suffix|insert`,
+    `decimal|hex|letters|roman`, `upper|lower`), as `--case` lists its four.
 11. Given only a new option and no `--replace` or `--case`, then the "needs at least one rule" check of NS-38 is
     satisfied by it (the parser's check reads "any rule option given", not the two old ones). `Strings.NoRule` becomes
     `Give at least one rule option, such as --replace or --case.` (true for every later rule story, so none edits it

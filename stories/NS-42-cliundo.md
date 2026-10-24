@@ -39,14 +39,15 @@ them apart). `CmdSourceScanTests` passes unchanged (no `Delete(` or `Move(` in t
    changed). The entry stays revertable as NS-9:8 says; a test checks that a following `undo` retries the skipped
    files once the cause is fixed.
 6. Given `RevertOutcome.NotStarted` (the journal could not be written before the revert) the exit code is 3, with the
-   window's `ForRevert` text on the error stream. Given `NeedsAttention`, or a `JournalIssue` of AfterFinish, the exit
-   code is 4 with the window's text on the error stream. The mapping is `ExitCodes.For(RevertResult)`, next to the
-   existing `For(RenameRunResult)`: NothingToRevert 0; Reverted 0 (4 with an AfterFinish issue); PartlyReverted 4;
-   NothingReverted 3; NotStarted 3; NeedsAttention 4; one test per row. Given an exception from `Revert()`, the exit code
-   is 4 with `Ui.Strings.ActionUnexpected` (the disk state is unknown), as for `apply` (NS-43:9): the runner's
-   "renamer was called" flag is set just before `Revert()` is called, so the catch-all in `Run` already picks exit 4. Each
-   outcome is tested through a fake `IBatchRenamer` and the stream and the text are checked against `ActionText`.
-   Output goes to the output stream on exit 0 and to the error stream otherwise, as in `apply`.
+   window's `ForRevert` text on the error stream. Given `NeedsAttention`, or `Reverted` with a `JournalIssue` of
+   AfterFinish, the exit code is 4 with the window's text on the error stream. The mapping is
+   `ExitCodes.For(RevertResult)`, next to the existing `For(RenameRunResult)`: NothingToRevert 0; Reverted 0 (4 with an
+   AfterFinish issue); PartlyReverted 4; NothingReverted 3; NotStarted 3; NeedsAttention 4; one test per row. Given an
+   exception from `Revert()`, the exit code is 4 with `Ui.Strings.ActionUnexpected` (the disk state is unknown), as for
+   `apply` (NS-43:9): the runner's "renamer was called" flag is set just before `Revert()` is called, so the catch-all
+   in `Run` already picks exit 4. Each outcome is tested through a fake `IBatchRenamer` and the stream and the text are
+   checked against `ActionText`. Output goes to the output stream on exit 0 and to the error stream otherwise, as in
+   `apply`.
 7. Given `NameShiftCmd undo --dry-run`, then `LoadLastBatch()` is read and, for each entry of the batch, one line
    `<current file name> -> <name it would get back>` (`Path.GetFileName` of `NewPath`, then of `OldPath`; journal
    order; written with `Strings.DryRunLine`) is written to the output stream, then exit 0; no file, no journal and no
@@ -78,7 +79,9 @@ them apart). `CmdSourceScanTests` passes unchanged (no `Delete(` or `Move(` in t
    `CommandLineParser.Words` and `GlobalWords` gain `undo`; a new `UndoOptionWords` (`--dry-run`) is checked against the
    tokens of `HelpUndo` as `ApplyOptionWords` is against `HelpApply`; `HelpLines_AtMost79_AsciiOnly` and
    `HelpTexts_AreInTheComposedHelps` cover `HelpUsageUndo` and `HelpUndo` too (`HelpText.Undo()` returns the help of
-   `undo`, `CommandKind.UndoHelp`).
+   `undo`, `CommandKind.UndoHelp`). `CommandLineParserTests.Words_AreTheDispatchedWords` (which pins the exact list) is
+   updated to the new list, and its `Words == GlobalWords.Concat(ApplyOptionWords)` check stays true (`UndoOptionWords`
+   repeats `--dry-run` but is not part of `Words`).
 10. Given any size of batch, then `undo` never prompts and never reads input (scripts never block). The window's Revert
     needs no confirmation either (NS-15).
 11. Given `undo` runs while no folder or file is given, then it works from any current directory (a test starts it in a

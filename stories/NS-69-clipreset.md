@@ -57,22 +57,39 @@ Saving:
    usual. `--dry-run` does not stop the save: a preset is not a file change. `--quiet` (NS-39) hides the saved line like
    any success line; `--verbose` prints it; the other outputs are NS-39's. The window reads it back with the same panels
    (a test: save from the command line, load with `RulePanelHostModel.ApplyPreset`, equal rules).
-8. Given `NAME` is already used (ignoring case and white space), then nothing is saved or renamed and the message `A preset named
-   "NAME" exists. Add --overwrite to replace it.` goes to the error stream, exit 1; with `--overwrite` it is replaced. `--overwrite`
-   without `--save-preset` is a usage error. A blank NAME is a usage error. A save that fails (read-only folder, disk full)
-   prints `The preset could not be saved: <system message>`, renames nothing, exit 3 (nothing was renamed, NS-43:8).
+8. Given `NAME` is already used (ignoring case and white space), then nothing is saved or renamed and the message
+   `A preset named "NAME" exists. Add --overwrite to replace it.` goes to the error stream, exit 1; with `--overwrite`
+   it is replaced. `--overwrite` without `--save-preset` is a usage error. NAME is checked with NS-72's
+   `PresetNames.Check`, as in the window: `Empty` (blank) and `TooLong` (over 100 characters after trimming) are usage
+   errors, and the trimmed name is what is saved and printed. A save that fails (read-only folder, disk full) prints
+   `The preset could not be saved: <system message>`, renames nothing, exit 3 (nothing was renamed, NS-43:8).
 9. Given `--save-preset` with no rule at all, then it is the usual "no rule" usage error and nothing is saved.
 10. Given `--preset` or `--save-preset` is the last word with no value, or its value is an option word, then it is a usage error
     (a value that is an option word means a value was left out, as NS-38 does for `--replace`).
 
+Messages (new keys of the command line's `Strings` unless named as existing; `{0}` is the name as trimmed):
+- `PresetNotFound` = `Preset "{0}" was not found.`, followed on the same line, after one space, by `SavedPresets` =
+  `Saved presets: {0}.` (the names in the store's order, joined by `, `) or `NoSavedPresets` =
+  `There are no saved presets.`
+- `PresetHasNoRules` = `The preset "{0}" has no rules.`
+- `PresetSaved` = `Preset "{0}" saved.`
+- `PresetExists` = `A preset named "{0}" exists. Add --overwrite to replace it.`
+- `PresetSaveFailed` = `The preset could not be saved: {0}` (`{0}` is the system message).
+- Usage errors (with `Strings.Usage` and `Strings.HelpPointer`): `PresetNameBlank` = `--save-preset needs a name.`,
+  `PresetNameTooLong` = `A preset name has at most 100 characters.`, `OverwriteNeedsSave` =
+  `--overwrite needs --save-preset.`; a missing value of `--preset` or `--save-preset` is NS-40's `OptionNeedsValue`
+  (`{0} needs a value.`).
+
 Help and tests of the words:
-11. The new words (`--preset`, `--save-preset`, `--overwrite`) are added to `CommandLineParser.ApplyOptionWords` (so `Words` and the
-    option-word guard read them), each with its own line in `HelpApply` (`--preset <name>`, `--save-preset <name>`,
-    `--overwrite`), within 79 ASCII columns, and NS-43's `EveryWord_IsInTheHelp`, `HelpLines_AtMost79_AsciiOnly` and
-    `HelpTexts_AreInTheComposedHelps` pass. `HelpApply` keeps its one example line (NS-43's
-    `ApplyHelp_HasItsUsageOptionsAndOneExample` asserts exactly one line that starts with `  NameShiftCmd apply ` and holds
-    `--dry-run`); the preset example `  NameShiftCmd apply "D:\Pics" --preset Photos --dry-run` goes in the Examples of `HelpMain`
-    (the main help only). The usage lines are generic (NS-42) and are not edited.
+11. The new words (`--preset`, `--save-preset`, `--overwrite`) are added to `CommandLineParser.ApplyOptionWords` (so
+    `Words` and the option-word guard read them), each with its own line in `HelpApply` (`--preset <name>`,
+    `--save-preset <name>`, `--overwrite`), within 79 ASCII columns, and NS-43's `EveryWord_IsInTheHelp`,
+    `HelpLines_AtMost79_AsciiOnly` and `HelpTexts_AreInTheComposedHelps` pass;
+    `CommandLineParserTests.Words_AreTheDispatchedWords` (which pins the exact list) is updated to the new list.
+    `HelpApply` keeps its one example line (NS-43's `ApplyHelp_HasItsUsageOptionsAndOneExample` asserts exactly one line
+    that starts with `  NameShiftCmd apply ` and holds `--dry-run`); the preset example
+    `  NameShiftCmd apply "D:\Pics" --preset Photos --dry-run` goes in the Examples of `HelpMain` (the main help only).
+    The usage lines are generic (NS-42) and are not edited.
 12. The runner takes the `PresetStore` as a constructor parameter, last (tests give one over a temp folder: `TestSupport` and
     the direct `new CommandRunner(...)` calls in `CommandRunnerTests` and `CommandRunnerDiskFaultTests` are updated, and the
     null-argument test gets a row); `ForDisk` takes a new `presetsFolder` parameter and makes `new PresetStore(presetsFolder)`.
@@ -83,7 +100,8 @@ Help and tests of the words:
 
 ## Out of scope
 - Importing or exporting presets; deleting or listing presets from the command line (the window does that); filters in
-  presets; rule options beyond those other stories add (NS-40, NS-75, NS-76); the `--quiet` and `--verbose` options themselves (NS-39; only the saved line is decided here).
+  presets; rule options beyond those other stories add (NS-40, NS-75, NS-76); the `--quiet` and `--verbose` options
+  themselves (NS-39; only the saved line is decided here).
 
 ## Decisions
 - Why a separate story? **Decision:** the first CLI story (NS-38) must not wait for presets (NS-36), which are built in the

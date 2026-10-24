@@ -20,6 +20,7 @@ generic since NS-42 and are not touched here. Output today (NS-38): a real run p
    `Words` and the option-word guard see them; NS-43's `EveryWord_IsInTheHelp` fails otherwise). A repeated one, or one
    given in both spellings (`-q --quiet`), is the usual `Strings.RepeatedOption` usage error naming the long form
    (`--quiet can be given only once.`). `undo` does not take them (`undo -q` is NS-42's usage error).
+   `CommandLineParserTests.Words_AreTheDispatchedWords` (which pins the exact list) is updated to the new list.
 2. Given `--quiet` with `--verbose`, or `--quiet` with `--dry-run`, then it is a usage error (exit 1, nothing listed or
    renamed, one line in the NS-43:4 shape: message, `Strings.Usage`, `Strings.HelpPointer`). The two messages are new
    strings: `QuietWithVerbose` = `--quiet and --verbose cannot be used together.` and `QuietWithDryRun` = `--quiet and
