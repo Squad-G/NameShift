@@ -5,12 +5,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using NameShift.App.Controls;
+using NameShift.App.Dialogs;
 using NameShift.Ui;
 using NameShift.Ui.Actions;
 using NameShift.Ui.Files;
 using NameShift.Ui.Folders;
+using NameShift.Ui.Presets;
 using NameShift.Ui.Preview;
 using NameShift.Ui.Rules;
+using MainMenu = NameShift.App.Controls.MainMenu;
 
 namespace NameShift.App;
 
@@ -29,6 +32,7 @@ internal sealed class MainForm : Form
     private readonly FolderTreeModel _folderModel;
     private readonly FolderTree _folderTree;
     private readonly FileList _fileList;
+    private readonly MainMenu _menu;
     private readonly SplitContainer _mainSplit = new SplitContainer();
     private readonly SplitContainer _rightSplit = new SplitContainer();
     private readonly ToolStripStatusLabel _statusText = new ToolStripStatusLabel();
@@ -42,7 +46,7 @@ internal sealed class MainForm : Form
 
     /// <param name="args">The command line: the first path argument opens at start (NS-47).</param>
     /// <param name="currentDirectory">The directory the program started in, for a relative path argument.</param>
-    public MainForm(IFolderSource source, IFileListSource fileListSource, IBatchRenamer renamer, string[] args, string currentDirectory)
+    public MainForm(IFolderSource source, IFileListSource fileListSource, IBatchRenamer renamer, string[] args, string currentDirectory, PresetStore presetStore)
     {
         _source = source;
         _startArgument = OpenTarget.FirstPathArgument(args);
@@ -59,7 +63,12 @@ internal sealed class MainForm : Form
         Preview = new PreviewModel(RuleHost, FileListModel);
         _fileList = new FileList(FileListModel, Preview, ShowStatus) { Dock = DockStyle.Fill };
         Actions = new MainActions(Preview, FileListModel, RuleHost, renamer);
-        ButtonsHost.Controls.Add(new ActionButtons(Actions, ShowReport, ShowStatus));
+        ButtonsHost.Controls.Add(new ActionButtons(Actions, ShowReport, ShowStatus, AskYesNo));
+        var presets = new PresetMenuModel(presetStore, RuleHost, () => Actions.IsBusy);
+        _menu = new MainMenu(presets, AskYesNo, preFill => PresetNameDialog.Ask(this, preFill), ShowStatus, () => IsDisposed)
+        {
+            Dock = DockStyle.Top,
+        };
 
         AutoScaleDimensions = new SizeF(96F, 96F);
         AutoScaleMode = AutoScaleMode.Dpi;
@@ -116,6 +125,9 @@ internal sealed class MainForm : Form
         _statusText.Text = text;
         _statusText.ToolTipText = text; // the full text, when the bar cuts it
     }
+
+    /// <summary>A Yes/No question; Escape is No. The default button is Yes only when asked to.</summary>
+    internal bool AskYesNo(string question, bool yesIsDefault) => YesNoDialog.Ask(this, question, yesIsDefault);
 
     /// <summary>The result of a Rename or Revert: the status bar, plus a dialog only when items need a look.</summary>
     internal void ShowReport(ActionReport report)
@@ -215,6 +227,8 @@ internal sealed class MainForm : Form
         // Add the Fill control first, then the edge-docked ones: WinForms lays the edge-docked ones out first.
         Controls.Add(rootLayout);
         Controls.Add(statusStrip);
+        Controls.Add(_menu);
+        MainMenuStrip = _menu;
     }
 
     private TableLayoutPanel BuildBottomLayout()
@@ -253,6 +267,7 @@ internal sealed class MainForm : Form
         _shownBusy = busy;
         _mainSplit.Enabled = !busy;
         _pathBar.Enabled = !busy;
+        _menu.Enabled = !busy;
         UseWaitCursor = busy;
         _progress.Visible = busy;
         if (busy)

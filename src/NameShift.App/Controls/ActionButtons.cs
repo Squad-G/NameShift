@@ -18,6 +18,7 @@ internal sealed class ActionButtons : UserControl
     private readonly MainActions _actions;
     private readonly Action<ActionReport> _showReport;
     private readonly Action<string> _showStatus;
+    private readonly Func<string, bool, bool> _askYesNo;
     private readonly Button _reset = new Button();
     private readonly Button _revert = new Button();
     private readonly Button _rename = new Button();
@@ -27,11 +28,16 @@ internal sealed class ActionButtons : UserControl
     private Bitmap? _revertIcon;
     private Bitmap? _renameIcon;
 
-    public ActionButtons(MainActions actions, Action<ActionReport> showReport, Action<string> showStatus)
+    public ActionButtons(
+        MainActions actions,
+        Action<ActionReport> showReport,
+        Action<string> showStatus,
+        Func<string, bool, bool> askYesNo)
     {
         _actions = actions ?? throw new ArgumentNullException(nameof(actions));
         _showReport = showReport ?? throw new ArgumentNullException(nameof(showReport));
         _showStatus = showStatus ?? throw new ArgumentNullException(nameof(showStatus));
+        _askYesNo = askYesNo ?? throw new ArgumentNullException(nameof(askYesNo));
         BuildLayout();
         CreateIcons();
         _reset.Click += (_, _) => _actions.Reset();
@@ -168,7 +174,7 @@ internal sealed class ActionButtons : UserControl
     {
         try
         {
-            ActionReport? report = await _actions.RenameAsync(Confirm);
+            ActionReport? report = await _actions.RenameAsync(text => _askYesNo(text, true));
             if (report != null)
             {
                 _showReport(report);
@@ -197,8 +203,4 @@ internal sealed class ActionButtons : UserControl
             _showStatus(Strings.SomethingWentWrong);
         }
     }
-
-    private bool Confirm(string text) =>
-        MessageBox.Show(FindForm(), text, Strings.AppTitle, MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1)
-        == DialogResult.Yes;
 }
