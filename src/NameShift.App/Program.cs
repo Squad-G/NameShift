@@ -4,6 +4,7 @@ using NameShift.Disk;
 using NameShift.Ui.Actions;
 using NameShift.Ui.Files;
 using NameShift.Ui.Folders;
+using NameShift.Ui.Presets;
 
 namespace NameShift.App;
 
@@ -18,6 +19,6 @@ internal static class Program
         Application.SetCompatibleTextRenderingDefault(false);
         // The window's only place that names the real history folder (the command line's is NameShift.Cmd.Exe's Main).
         var renamer = new JournaledBatchRenamer(new JournaledRenamer(JournaledRenamer.DefaultHistoryRoot));
-        Application.Run(new MainForm(new DiskFolderSource(), new DiskFileListSource(), renamer, args, currentDirectory));
+        Application.Run(new MainForm(new DiskFolderSource(), new DiskFileListSource(), renamer, args, currentDirectory, new PresetStore(PresetStore.DefaultFolder)));
     }
 }

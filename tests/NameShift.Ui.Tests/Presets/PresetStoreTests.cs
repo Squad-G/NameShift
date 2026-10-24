@@ -577,6 +577,59 @@ public sealed class PresetStoreTests : IDisposable
         }
     }
 
+    [Fact]
+    public void Save_TrailingSpace_SameAsTrimmed()
+    {
+        PresetStore store = Store();
+        Assert.Equal(PresetSaveStatus.Saved, store.Save(PresetNamed("Photos"), overwrite: false).Status);
+
+        Assert.Equal(PresetSaveStatus.Exists, store.Save(PresetNamed("Photos "), overwrite: false).Status);
+        Assert.Equal(PresetSaveStatus.Saved, store.Save(PresetNamed(" PHOTOS", "b"), overwrite: true).Status);
+
+        Assert.Single(Directory.GetFiles(_folder, "*.json"));
+        Assert.Equal("PHOTOS", Assert.Single(store.List().Presets).Name);
+    }
+
+    [Fact]
+    public void Save_WritesTrimmedNameInside()
+    {
+        PresetStore store = Store();
+
+        PresetSaveResult result = store.Save(PresetNamed(" Photos "), overwrite: false);
+
+        Assert.Equal(PresetSaveStatus.Saved, result.Status);
+        PresetRead read = PresetJson.Read(File.ReadAllBytes(result.FilePath!));
+        Assert.Equal("Photos", read.Preset!.Name);
+        Assert.Equal("Photos", Assert.Single(store.List().Presets).Name);
+    }
+
+    [Fact]
+    public void HandWrittenNameWithSpaces_FoundTrimmed()
+    {
+        string path = WritePreset("hand.json", "Photos ");
+        PresetStore store = Store();
+
+        PresetLoadResult exact = store.Load("Photos");
+        Assert.True(exact.Found);
+        Assert.Equal("Photos", exact.Preset!.Name);
+        Assert.True(store.Load(" photos ").Found);
+        Assert.Equal("Photos", Assert.Single(store.List().Presets).Name);
+
+        Assert.Equal(PresetDeleteStatus.Deleted, store.Delete("Photos").Status);
+        Assert.False(File.Exists(path));
+    }
+
+    [Fact]
+    public void InnerSpacesKept()
+    {
+        PresetStore store = Store();
+
+        Assert.Equal(PresetSaveStatus.Saved, store.Save(PresetNamed("My  photos"), overwrite: false).Status);
+        Assert.Equal(PresetSaveStatus.Saved, store.Save(PresetNamed("My photos"), overwrite: false).Status);
+
+        Assert.Equal(2, store.List().Presets.Count);
+    }
+
     private static string FindRoot()
     {
         string start = AppContext.BaseDirectory;

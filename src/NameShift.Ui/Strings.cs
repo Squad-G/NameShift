@@ -523,6 +523,59 @@ public static class Strings
 
     public static string ActionUnexpected => Get(nameof(ActionUnexpected));
 
+    public static string PresetsMenu => Get(nameof(PresetsMenu));
+
+    public static string PresetsSave => Get(nameof(PresetsSave));
+
+    public static string PresetsLoad => Get(nameof(PresetsLoad));
+
+    public static string PresetsDelete => Get(nameof(PresetsDelete));
+
+    public static string PresetsNone => Get(nameof(PresetsNone));
+
+    public static string PresetUnreadableOne => Get(nameof(PresetUnreadableOne));
+
+    /// <summary>"{0} presets could not be read.".</summary>
+    public static string PresetUnreadableMany => Get(nameof(PresetUnreadableMany));
+
+    /// <summary>"Preset "{0}" saved.".</summary>
+    public static string PresetSaved => Get(nameof(PresetSaved));
+
+    /// <summary>"Preset "{0}" loaded.".</summary>
+    public static string PresetLoaded => Get(nameof(PresetLoaded));
+
+    /// <summary>"Preset "{0}" deleted.".</summary>
+    public static string PresetDeleted => Get(nameof(PresetDeleted));
+
+    /// <summary>"The preset "{0}" was not found.".</summary>
+    public static string PresetNotFound => Get(nameof(PresetNotFound));
+
+    /// <summary>"The preset could not be saved: {0}".</summary>
+    public static string PresetSaveFailed => Get(nameof(PresetSaveFailed));
+
+    /// <summary>"The preset could not be deleted: {0}".</summary>
+    public static string PresetDeleteFailed => Get(nameof(PresetDeleteFailed));
+
+    public static string PresetNotLoadedBusy => Get(nameof(PresetNotLoadedBusy));
+
+    /// <summary>"Replace the preset "{0}"?".</summary>
+    public static string PresetReplaceQuestion => Get(nameof(PresetReplaceQuestion));
+
+    /// <summary>"Delete the preset "{0}"?".</summary>
+    public static string PresetDeleteQuestion => Get(nameof(PresetDeleteQuestion));
+
+    public static string PresetNameDialogTitle => Get(nameof(PresetNameDialogTitle));
+
+    public static string PresetNameLabel => Get(nameof(PresetNameLabel));
+
+    public static string DialogOk => Get(nameof(DialogOk));
+
+    public static string DialogCancel => Get(nameof(DialogCancel));
+
+    public static string DialogYes => Get(nameof(DialogYes));
+
+    public static string DialogNo => Get(nameof(DialogNo));
+
     private static string Get(string key) =>
         Manager.GetString(key, CultureInfo.CurrentUICulture)
         ?? throw new InvalidOperationException("Missing string resource: " + key);

@@ -7,7 +7,7 @@ namespace NameShift.Ui.Presets;
 
 /// <summary>
 /// Saves, lists, loads and deletes presets as version 1 JSON files (<see cref="PresetJson"/>) in one folder. A preset is
-/// known by the name inside its file (compared ignoring case), never by its file name; files are named by
+/// known by the name inside its file (compared trimmed and ignoring case), never by its file name; files are named by
 /// <see cref="PresetFileName"/>. Every path the store writes or deletes comes from its own folder listing or from a safe
 /// file name in its folder, never from the caller. Unreadable files and files of a newer version are counted, never
 /// changed or deleted. The methods do disk work: the window calls them off the UI thread. Not thread-safe.
@@ -56,7 +56,8 @@ public sealed class PresetStore
     /// <summary>The store's folder, a full path without a trailing separator.</summary>
     public string Folder { get; }
 
-    /// <summary>Saves the preset. A preset with the same name (ignoring case) is replaced in its own file when
+    /// <summary>Saves the preset under its trimmed name (white space around it is dropped, inner spaces stay). A
+    /// preset with the same trimmed name (ignoring case) is replaced in its own file when
     /// <paramref name="overwrite"/> is true, otherwise the result is Exists. A new preset gets the first free file
     /// name of <c>name.json</c>, <c>name (2).json</c>, ...: a file that is taken, even an unreadable one, is never
     /// replaced. The write is atomic; a failure returns Failed with the system message and leaves any old file intact.
@@ -74,10 +75,16 @@ public sealed class PresetStore
             return PresetSaveResult.InvalidName();
         }
 
+        string name = preset.Name.Trim();
+        if (name != preset.Name)
+        {
+            preset = new Preset(name, preset.Panels);
+        }
+
         try
         {
             Scan scan = ScanFolder();
-            PresetEntry? existing = scan.Find(preset.Name);
+            PresetEntry? existing = scan.Find(name);
             string path;
             if (existing != null)
             {
@@ -90,7 +97,7 @@ public sealed class PresetStore
             }
             else
             {
-                path = FreePath(preset.Name);
+                path = FreePath(name);
             }
 
             _files.WriteAtomic(path, PresetJson.Serialize(preset));
@@ -126,7 +133,7 @@ public sealed class PresetStore
         return new PresetListing(sorted, scan.UnusableCount);
     }
 
-    /// <summary>The preset with that name (ignoring case), or not found (also for a null or blank name, or an
+    /// <summary>The preset with that name (trimmed, ignoring case), or not found (also for a null or blank name, or an
     /// unreachable folder).</summary>
     public PresetLoadResult Load(string name)
     {
@@ -146,10 +153,10 @@ public sealed class PresetStore
         }
     }
 
-    /// <summary>Deletes the file of the readable preset with that name (ignoring case), found by the name inside the
-    /// files of this folder: never a path from the caller, never another file, never a folder. A name that is not a
-    /// listed preset (such as <c>..\victim</c>) is NotFound. A disk failure returns Failed with the system message and
-    /// the file stays.</summary>
+    /// <summary>Deletes the file of the readable preset with that name (trimmed, ignoring case), found by the name
+    /// inside the files of this folder: never a path from the caller, never another file, never a folder. A name that
+    /// is not a listed preset (such as <c>..\victim</c>) is NotFound. A disk failure returns Failed with the system
+    /// message and the file stays.</summary>
     public PresetDeleteResult Delete(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
@@ -222,7 +229,14 @@ public sealed class PresetStore
 
             if (read.Status == PresetReadStatus.Ok)
             {
-                presets.Add(new Found(new PresetEntry(read.Preset!.Name, path), read.Preset));
+                Preset preset = read.Preset!;
+                string name = preset.Name.Trim();
+                if (name != preset.Name)
+                {
+                    preset = new Preset(name, preset.Panels);
+                }
+
+                presets.Add(new Found(new PresetEntry(name, path), preset));
             }
             else
             {
@@ -259,9 +273,9 @@ public sealed class PresetStore
 
         public int UnusableCount { get; }
 
-        /// <summary>The first preset by path with that name, ignoring case: "the" preset when two files hold one name.</summary>
+        /// <summary>The first preset by path with that name, trimmed and ignoring case: "the" preset when two files hold one name.</summary>
         public Found? FindFound(string name) =>
-            Presets.FirstOrDefault(found => string.Equals(found.Entry.Name, name, StringComparison.OrdinalIgnoreCase));
+            Presets.FirstOrDefault(found => string.Equals(found.Entry.Name, name.Trim(), StringComparison.OrdinalIgnoreCase));
 
         public PresetEntry? Find(string name) => FindFound(name)?.Entry;
     }
