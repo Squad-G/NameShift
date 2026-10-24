@@ -136,6 +136,40 @@ public static class Strings
 
     public static string CaseModeSentence => Get(nameof(CaseModeSentence));
 
+    public static string NameTitle => Get(nameof(NameTitle));
+
+    public static string NameMode => Get(nameof(NameMode));
+
+    public static string NameText => Get(nameof(NameText));
+
+    public static string NameModeKeep => Get(nameof(NameModeKeep));
+
+    public static string NameModeFixed => Get(nameof(NameModeFixed));
+
+    public static string NameModeRemove => Get(nameof(NameModeRemove));
+
+    public static string NameModeReverse => Get(nameof(NameModeReverse));
+
+    public static string ExtensionTitle => Get(nameof(ExtensionTitle));
+
+    public static string ExtensionMode => Get(nameof(ExtensionMode));
+
+    public static string ExtensionText => Get(nameof(ExtensionText));
+
+    public static string ExtensionModeSame => Get(nameof(ExtensionModeSame));
+
+    public static string ExtensionModeLower => Get(nameof(ExtensionModeLower));
+
+    public static string ExtensionModeUpper => Get(nameof(ExtensionModeUpper));
+
+    public static string ExtensionModeFixed => Get(nameof(ExtensionModeFixed));
+
+    public static string ExtensionModeExtra => Get(nameof(ExtensionModeExtra));
+
+    public static string ExtensionModeRemove => Get(nameof(ExtensionModeRemove));
+
+    public static string ExtensionNote => Get(nameof(ExtensionNote));
+
     public static string AddTitle => Get(nameof(AddTitle));
 
     public static string AddPrefix => Get(nameof(AddPrefix));

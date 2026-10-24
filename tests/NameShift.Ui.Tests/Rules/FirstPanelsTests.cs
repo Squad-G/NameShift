@@ -57,10 +57,82 @@ public sealed class FirstPanelsTests
                 Strings.NumberingMode, Strings.NumberingStart, Strings.NumberingStep, Strings.NumberingPad,
                 Strings.NumberingSeparator, Strings.NumberingPosition,
             }),
+            (Strings.NameTitle, new[] { Strings.NameMode, Strings.NameText }),
+            (Strings.ExtensionTitle, new[] { Strings.ExtensionMode, Strings.ExtensionText }),
         };
 
         Assert.Empty(MnemonicCheck.Problems(panels));
         Assert.Equal(MnemonicCheck.LetterOf(Strings.AddPosition), MnemonicCheck.LetterOf(Strings.AddPositionFromEnd));
+    }
+
+    [Fact]
+    public void NewPanels_UseTheStoryLetters()
+    {
+        Assert.Equal(
+            new[] { 'M', 'E', 'T' },
+            new[] { Strings.NameTitle, Strings.NameMode, Strings.NameText }.Select(MnemonicCheck.LetterOf).ToArray());
+        Assert.Equal(
+            new[] { 'X', 'M', 'T' },
+            new[] { Strings.ExtensionTitle, Strings.ExtensionMode, Strings.ExtensionText }
+                .Select(MnemonicCheck.LetterOf).ToArray());
+        Assert.Equal(
+            new[] { 'R', 'C', 'A', 'N', 'M', 'X' },
+            new[]
+            {
+                Strings.ReplaceTitle, Strings.CaseTitle, Strings.AddTitle, Strings.NumberingTitle, Strings.NameTitle,
+                Strings.ExtensionTitle,
+            }.Select(MnemonicCheck.LetterOf).ToArray());
+    }
+
+    [Fact]
+    public void NameFixedAndExtensionLower_PreviewTripJpg()
+    {
+        var name = new NamePanelModel { Enabled = true, Mode = NameMode.Fixed, Text = "trip" };
+        var extension = new ExtensionPanelModel { Enabled = true, Mode = ExtensionMode.Lower };
+        var host = new RulePanelHostModel(new IRulePanelModel[] { extension, name });
+
+        var results = new RenamePipeline(host.Rules).Run(new[] { new RenameItem("IMG_9.JPG", @"C:\f") });
+
+        Assert.Equal("trip.jpg", results[0].NewName);
+    }
+
+    [Fact]
+    public void AllSixPanels_ListedInPipelineOrder()
+    {
+        var host = new RulePanelHostModel(new IRulePanelModel[]
+        {
+            new ExtensionPanelModel(), new AddPanelModel(), new NamePanelModel(), new NumberingPanelModel(),
+            new CasePanelModel(), new ReplacePanelModel(),
+        });
+
+        Assert.Equal(
+            new[]
+            {
+                RuleStage.Name, RuleStage.Replace, RuleStage.Case, RuleStage.Add, RuleStage.Numbering,
+                RuleStage.Extension,
+            },
+            host.Panels.Select(p => p.Stage).ToArray());
+    }
+
+    [Fact]
+    public void EnabledPanelsWithNullRule_ChangeNothing()
+    {
+        var keep = new NamePanelModel { Enabled = true };
+        var blankFixed = new NamePanelModel { Enabled = true, Mode = NameMode.Fixed, Text = "   " };
+        var same = new ExtensionPanelModel { Enabled = true };
+        var host = new RulePanelHostModel(new IRulePanelModel[] { keep, same });
+        var blankHost = new RulePanelHostModel(new IRulePanelModel[] { blankFixed, same });
+
+        Assert.Null(keep.BuildRule());
+        Assert.Null(same.BuildRule());
+        Assert.All(host.Rules, r => Assert.False(r.Enabled));
+        Assert.All(blankHost.Rules, r => Assert.False(r.Enabled));
+        Assert.Equal(
+            RenameStatus.Unchanged,
+            new RenamePipeline(host.Rules).Run(new[] { new RenameItem("a.txt", @"C:\f") })[0].Status);
+        Assert.Equal(
+            RenameStatus.Unchanged,
+            new RenamePipeline(blankHost.Rules).Run(new[] { new RenameItem("a.txt", @"C:\f") })[0].Status);
     }
 
     [Fact]
@@ -86,6 +158,8 @@ public sealed class FirstPanelsTests
     {
         var replace = new ReplacePanelModel { Find = text!, With = text! };
         var @case = new CasePanelModel { Mode = CaseMode.Title, ExceptionsText = text! };
+        var name = new NamePanelModel { Mode = NameMode.Fixed, Text = text! };
+        var extension = new ExtensionPanelModel { Mode = ExtensionMode.Fixed, Text = text! };
         foreach (bool fromEnd in new[] { false, true })
         {
             var add = new AddPanelModel
@@ -98,6 +172,8 @@ public sealed class FirstPanelsTests
                 replace.BuildRule();
                 @case.BuildRule();
                 add.BuildRule();
+                name.BuildRule();
+                extension.BuildRule();
             });
 
             Assert.Null(exception);
@@ -110,7 +186,9 @@ public sealed class FirstPanelsTests
         var replace = new ReplacePanelModel();
         var @case = new CasePanelModel();
         var add = new AddPanelModel();
-        foreach (IRulePanelModel model in new IRulePanelModel[] { replace, @case, add })
+        var name = new NamePanelModel();
+        var extension = new ExtensionPanelModel();
+        foreach (IRulePanelModel model in new IRulePanelModel[] { replace, @case, add, name, extension })
         {
             Assert.True(model.IsDefault);
             Assert.False(model.Enabled);
@@ -129,6 +207,8 @@ public sealed class FirstPanelsTests
         Assert.Equal(engineAdd.Suffix, add.Suffix);
         Assert.Equal(engineAdd.WordSpace, add.WordSpace);
         Assert.Equal(CaseMode.Same, @case.Mode);
+        Assert.Equal(NameMode.Keep, name.Mode);
+        Assert.Equal(ExtensionMode.Same, extension.Mode);
     }
 
     public static IEnumerable<object[]> SettingChanges() => new[]
@@ -140,6 +220,10 @@ public sealed class FirstPanelsTests
         Change(new ReplacePanelModel(), m => m.KeepCase = true),
         Change(new CasePanelModel(), m => m.Mode = CaseMode.Upper),
         Change(new CasePanelModel(), m => m.ExceptionsText = "x"),
+        Change(new NamePanelModel(), m => m.Mode = NameMode.Fixed),
+        Change(new NamePanelModel(), m => m.Text = "x"),
+        Change(new ExtensionPanelModel(), m => m.Mode = ExtensionMode.Upper),
+        Change(new ExtensionPanelModel(), m => m.Text = "x"),
         Change(new AddPanelModel(), m => m.Prefix = "x"),
         Change(new AddPanelModel(), m => m.Insert = "x"),
         Change(new AddPanelModel(), m => m.InsertPositionText = "2"),
