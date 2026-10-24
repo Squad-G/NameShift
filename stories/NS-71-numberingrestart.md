@@ -1,6 +1,6 @@
 # NS-71: Numbering panel: restart in each folder
 
-Status: Ready
+Status: In Progress
 Depends on: NS-60, NS-61
 Area: app
 
@@ -42,3 +42,4 @@ In `NumberingPanelModel` (on top of NS-61) and `NumberingPanel`:
 ## Log
 - 2026-10-24: split out of NS-33 (po); Draft until NS-60 is merged.
 - 2026-10-24: NS-60 and NS-61 merged; mnemonic test pointed at `FirstPanelsTests`; set Ready (po).
+- 2026-10-24: In Progress (builder).
