@@ -170,6 +170,60 @@ public static class Strings
 
     public static string ExtensionNote => Get(nameof(ExtensionNote));
 
+    public static string RemoveTitle => Get(nameof(RemoveTitle));
+
+    public static string RemoveGroupPosition => Get(nameof(RemoveGroupPosition));
+
+    public static string RemoveGroupText => Get(nameof(RemoveGroupText));
+
+    public static string RemoveGroupClasses => Get(nameof(RemoveGroupClasses));
+
+    public static string RemoveGroupTidy => Get(nameof(RemoveGroupTidy));
+
+    public static string RemoveFirst => Get(nameof(RemoveFirst));
+
+    public static string RemoveLast => Get(nameof(RemoveLast));
+
+    public static string RemoveFrom => Get(nameof(RemoveFrom));
+
+    public static string RemoveTo => Get(nameof(RemoveTo));
+
+    public static string RemoveCharacters => Get(nameof(RemoveCharacters));
+
+    public static string RemoveText => Get(nameof(RemoveText));
+
+    public static string RemoveWholeWord => Get(nameof(RemoveWholeWord));
+
+    public static string RemoveMatchCase => Get(nameof(RemoveMatchCase));
+
+    public static string RemoveCropBefore => Get(nameof(RemoveCropBefore));
+
+    public static string RemoveCropAfter => Get(nameof(RemoveCropAfter));
+
+    public static string RemoveKeepMarker => Get(nameof(RemoveKeepMarker));
+
+    public static string RemoveDigits => Get(nameof(RemoveDigits));
+
+    public static string RemoveSymbols => Get(nameof(RemoveSymbols));
+
+    public static string RemoveAccents => Get(nameof(RemoveAccents));
+
+    public static string RemoveHighCharacters => Get(nameof(RemoveHighCharacters));
+
+    public static string RemoveTrim => Get(nameof(RemoveTrim));
+
+    public static string RemoveLeadingDots => Get(nameof(RemoveLeadingDots));
+
+    public static string RemoveDoubleSpaces => Get(nameof(RemoveDoubleSpaces));
+
+    public static string RemoveCharactersHint => Get(nameof(RemoveCharactersHint));
+
+    public static string RemoveRangeHint => Get(nameof(RemoveRangeHint));
+
+    public static string RemovePositionInvalid => Get(nameof(RemovePositionInvalid));
+
+    public static string RemoveRangeInvalid => Get(nameof(RemoveRangeInvalid));
+
     public static string AddTitle => Get(nameof(AddTitle));
 
     public static string AddPrefix => Get(nameof(AddPrefix));

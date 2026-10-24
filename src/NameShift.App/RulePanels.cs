@@ -12,6 +12,7 @@ internal static class RulePanels
     {
         var replace = new ReplacePanelModel();
         var @case = new CasePanelModel();
+        var remove = new RemovePanelModel();
         var add = new AddPanelModel();
         var numbering = new NumberingPanelModel();
         var name = new NamePanelModel();
@@ -20,6 +21,7 @@ internal static class RulePanels
         {
             new RulePanelEntry(replace, new ReplacePanel(replace)),
             new RulePanelEntry(@case, new CasePanel(@case)),
+            new RulePanelEntry(remove, new RemovePanel(remove)),
             new RulePanelEntry(add, new AddPanel(add)),
             new RulePanelEntry(numbering, new NumberingPanel(numbering)),
             new RulePanelEntry(name, new NamePanel(name)),

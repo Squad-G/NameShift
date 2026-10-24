@@ -81,6 +81,33 @@
   <data name="ExtensionModeExtra" xml:space="preserve"><value>Extra</value></data>
   <data name="ExtensionModeRemove" xml:space="preserve"><value>Remove</value></data>
   <data name="ExtensionNote" xml:space="preserve"><value>Only renames the file. It does not convert its content.</value></data>
+  <data name="RemoveTitle" xml:space="preserve"><value>R&amp;emove</value></data>
+  <data name="RemoveGroupPosition" xml:space="preserve"><value>Position</value></data>
+  <data name="RemoveGroupText" xml:space="preserve"><value>Text</value></data>
+  <data name="RemoveGroupClasses" xml:space="preserve"><value>Character types</value></data>
+  <data name="RemoveGroupTidy" xml:space="preserve"><value>Tidy</value></data>
+  <data name="RemoveFirst" xml:space="preserve"><value>&amp;First characters</value></data>
+  <data name="RemoveLast" xml:space="preserve"><value>&amp;Last characters</value></data>
+  <data name="RemoveFrom" xml:space="preserve"><value>Fro&amp;m position</value></data>
+  <data name="RemoveTo" xml:space="preserve"><value>&amp;To position</value></data>
+  <data name="RemoveCharacters" xml:space="preserve"><value>C&amp;haracters</value></data>
+  <data name="RemoveText" xml:space="preserve"><value>Te&amp;xt</value></data>
+  <data name="RemoveWholeWord" xml:space="preserve"><value>&amp;Whole word</value></data>
+  <data name="RemoveMatchCase" xml:space="preserve"><value>Match &amp;case</value></data>
+  <data name="RemoveCropBefore" xml:space="preserve"><value>Crop &amp;before</value></data>
+  <data name="RemoveCropAfter" xml:space="preserve"><value>Crop &amp;after</value></data>
+  <data name="RemoveKeepMarker" xml:space="preserve"><value>&amp;Keep the marker</value></data>
+  <data name="RemoveDigits" xml:space="preserve"><value>&amp;Digits</value></data>
+  <data name="RemoveSymbols" xml:space="preserve"><value>&amp;Symbols</value></data>
+  <data name="RemoveAccents" xml:space="preserve"><value>Acce&amp;nts</value></data>
+  <data name="RemoveHighCharacters" xml:space="preserve"><value>Hi&amp;gh characters</value></data>
+  <data name="RemoveTrim" xml:space="preserve"><value>T&amp;rim spaces</value></data>
+  <data name="RemoveLeadingDots" xml:space="preserve"><value>Leading d&amp;ots</value></data>
+  <data name="RemoveDoubleSpaces" xml:space="preserve"><value>Double s&amp;paces</value></data>
+  <data name="RemoveCharactersHint" xml:space="preserve"><value>Each character typed is removed wherever it occurs; a space counts</value></data>
+  <data name="RemoveRangeHint" xml:space="preserve"><value>Positions count from 1; both ends are removed</value></data>
+  <data name="RemovePositionInvalid" xml:space="preserve"><value>Type a whole number from 1. Until then this part is skipped.</value></data>
+  <data name="RemoveRangeInvalid" xml:space="preserve"><value>Type two whole numbers from 1, From not after To. Until then the range is skipped.</value></data>
   <data name="AddTitle" xml:space="preserve"><value>&amp;Add</value></data>
   <data name="AddPrefix" xml:space="preserve"><value>&amp;Prefix</value></data>
   <data name="AddInsert" xml:space="preserve"><value>&amp;Insert</value></data>

@@ -47,6 +47,14 @@ public sealed class FirstPanelsTests
                 Strings.ReplaceIncludeExtension,
             }),
             (Strings.CaseTitle, new[] { Strings.CaseMode, Strings.CaseExceptions }),
+            (Strings.RemoveTitle, new[]
+            {
+                Strings.RemoveFirst, Strings.RemoveLast, Strings.RemoveFrom, Strings.RemoveTo,
+                Strings.RemoveCharacters, Strings.RemoveText, Strings.RemoveWholeWord, Strings.RemoveMatchCase,
+                Strings.RemoveCropBefore, Strings.RemoveCropAfter, Strings.RemoveKeepMarker, Strings.RemoveDigits,
+                Strings.RemoveSymbols, Strings.RemoveAccents, Strings.RemoveHighCharacters, Strings.RemoveTrim,
+                Strings.RemoveLeadingDots, Strings.RemoveDoubleSpaces,
+            }),
             (Strings.AddTitle, new[]
             {
                 Strings.AddPrefix, Strings.AddInsert, Strings.AddPosition, Strings.AddFromEnd, Strings.AddSuffix,
@@ -76,12 +84,34 @@ public sealed class FirstPanelsTests
             new[] { Strings.ExtensionTitle, Strings.ExtensionMode, Strings.ExtensionText }
                 .Select(MnemonicCheck.LetterOf).ToArray());
         Assert.Equal(
-            new[] { 'R', 'C', 'A', 'N', 'M', 'X' },
+            new[] { 'R', 'C', 'E', 'A', 'N', 'M', 'X' },
             new[]
             {
-                Strings.ReplaceTitle, Strings.CaseTitle, Strings.AddTitle, Strings.NumberingTitle, Strings.NameTitle,
-                Strings.ExtensionTitle,
+                Strings.ReplaceTitle, Strings.CaseTitle, Strings.RemoveTitle, Strings.AddTitle,
+                Strings.NumberingTitle, Strings.NameTitle, Strings.ExtensionTitle,
             }.Select(MnemonicCheck.LetterOf).ToArray());
+    }
+
+    [Fact]
+    public void RemovePanel_UsesTheStoryLetters()
+    {
+        Assert.Equal(
+            new[] { 'E', 'F', 'L', 'M', 'T', 'H', 'X', 'W', 'C', 'B', 'A', 'K', 'D', 'S', 'N', 'G', 'R', 'O', 'P' },
+            new[]
+            {
+                Strings.RemoveTitle, Strings.RemoveFirst, Strings.RemoveLast, Strings.RemoveFrom, Strings.RemoveTo,
+                Strings.RemoveCharacters, Strings.RemoveText, Strings.RemoveWholeWord, Strings.RemoveMatchCase,
+                Strings.RemoveCropBefore, Strings.RemoveCropAfter, Strings.RemoveKeepMarker, Strings.RemoveDigits,
+                Strings.RemoveSymbols, Strings.RemoveAccents, Strings.RemoveHighCharacters, Strings.RemoveTrim,
+                Strings.RemoveLeadingDots, Strings.RemoveDoubleSpaces,
+            }.Select(MnemonicCheck.LetterOf).ToArray());
+        Assert.All(
+            new[]
+            {
+                Strings.RemoveGroupPosition, Strings.RemoveGroupText, Strings.RemoveGroupClasses,
+                Strings.RemoveGroupTidy,
+            },
+            caption => Assert.DoesNotContain("&", caption));
     }
 
     [Fact]
@@ -97,21 +127,33 @@ public sealed class FirstPanelsTests
     }
 
     [Fact]
-    public void AllSixPanels_ListedInPipelineOrder()
+    public void AllSevenPanels_ListedInPipelineOrder()
     {
         var host = new RulePanelHostModel(new IRulePanelModel[]
         {
             new ExtensionPanelModel(), new AddPanelModel(), new NamePanelModel(), new NumberingPanelModel(),
-            new CasePanelModel(), new ReplacePanelModel(),
+            new CasePanelModel(), new ReplacePanelModel(), new RemovePanelModel(),
         });
 
         Assert.Equal(
             new[]
             {
-                RuleStage.Name, RuleStage.Replace, RuleStage.Case, RuleStage.Add, RuleStage.Numbering,
-                RuleStage.Extension,
+                RuleStage.Name, RuleStage.Replace, RuleStage.Case, RuleStage.Remove, RuleStage.Add,
+                RuleStage.Numbering, RuleStage.Extension,
             },
             host.Panels.Select(p => p.Stage).ToArray());
+    }
+
+    [Fact]
+    public void ReplaceRunsBeforeRemove()
+    {
+        var replace = new ReplacePanelModel { Enabled = true, Find = "a", With = "x" };
+        var remove = new RemovePanelModel { Enabled = true, Characters = "x" };
+        var host = new RulePanelHostModel(new IRulePanelModel[] { remove, replace });
+
+        Assert.Equal(new[] { RuleStage.Replace, RuleStage.Remove }, host.Rules.Select(r => r.Stage).ToArray());
+        var results = new RenamePipeline(host.Rules).Run(new[] { new RenameItem("abc.txt", @"C:\f") });
+        Assert.Equal("bc.txt", results[0].NewName);
     }
 
     [Fact]
@@ -160,6 +202,13 @@ public sealed class FirstPanelsTests
         var @case = new CasePanelModel { Mode = CaseMode.Title, ExceptionsText = text! };
         var name = new NamePanelModel { Mode = NameMode.Fixed, Text = text! };
         var extension = new ExtensionPanelModel { Mode = ExtensionMode.Fixed, Text = text! };
+        var remove = new RemovePanelModel
+        {
+            FirstText = text!, LastText = text!, FromText = text!, ToText = text!, Characters = text!, Text = text!,
+            WholeWord = true, MatchCase = true, CropBefore = text!, CropAfter = text!, KeepMarker = true,
+            Digits = true, Symbols = true, Accents = true, HighCharacters = true, Trim = true, LeadingDots = true,
+            DoubleSpaces = true,
+        };
         foreach (bool fromEnd in new[] { false, true })
         {
             var add = new AddPanelModel
@@ -174,6 +223,7 @@ public sealed class FirstPanelsTests
                 add.BuildRule();
                 name.BuildRule();
                 extension.BuildRule();
+                remove.BuildRule();
             });
 
             Assert.Null(exception);
@@ -188,7 +238,8 @@ public sealed class FirstPanelsTests
         var add = new AddPanelModel();
         var name = new NamePanelModel();
         var extension = new ExtensionPanelModel();
-        foreach (IRulePanelModel model in new IRulePanelModel[] { replace, @case, add, name, extension })
+        var remove = new RemovePanelModel();
+        foreach (IRulePanelModel model in new IRulePanelModel[] { replace, @case, add, name, extension, remove })
         {
             Assert.True(model.IsDefault);
             Assert.False(model.Enabled);
@@ -230,6 +281,24 @@ public sealed class FirstPanelsTests
         Change(new AddPanelModel(), m => m.InsertFromEnd = true),
         Change(new AddPanelModel(), m => m.Suffix = "x"),
         Change(new AddPanelModel(), m => m.WordSpace = true),
+        Change(new RemovePanelModel(), m => m.FirstText = "1"),
+        Change(new RemovePanelModel(), m => m.LastText = "1"),
+        Change(new RemovePanelModel(), m => m.FromText = "1"),
+        Change(new RemovePanelModel(), m => m.ToText = "1"),
+        Change(new RemovePanelModel(), m => m.Characters = "x"),
+        Change(new RemovePanelModel(), m => m.Text = "x"),
+        Change(new RemovePanelModel(), m => m.WholeWord = true),
+        Change(new RemovePanelModel(), m => m.MatchCase = true),
+        Change(new RemovePanelModel(), m => m.CropBefore = "x"),
+        Change(new RemovePanelModel(), m => m.CropAfter = "x"),
+        Change(new RemovePanelModel(), m => m.KeepMarker = true),
+        Change(new RemovePanelModel(), m => m.Digits = true),
+        Change(new RemovePanelModel(), m => m.Symbols = true),
+        Change(new RemovePanelModel(), m => m.Accents = true),
+        Change(new RemovePanelModel(), m => m.HighCharacters = true),
+        Change(new RemovePanelModel(), m => m.Trim = true),
+        Change(new RemovePanelModel(), m => m.LeadingDots = true),
+        Change(new RemovePanelModel(), m => m.DoubleSpaces = true),
     };
 
     [Theory]
