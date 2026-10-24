@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using NameShift.Disk;
@@ -204,17 +203,10 @@ public sealed class MainActions
         }
     }
 
-    /// <summary>The batch's folders, else the folders of its renames, then the shown folder; no duplicates (case-insensitive).</summary>
+    /// <summary>The batch's folders (a revertable batch always has them), then the shown folder; no duplicates (case-insensitive).</summary>
     private static IReadOnlyList<string> RevertFolders(LastBatch batch, string? shown)
     {
-        IEnumerable<string> folders = batch.Folders.Count > 0
-            ? batch.Folders
-            : batch.Renames.Select(r => Path.GetDirectoryName(r.OldPath)).Where(p => p != null).Select(p => p!);
-        if (shown != null)
-        {
-            folders = folders.Concat(new[] { shown });
-        }
-
+        IEnumerable<string> folders = shown is null ? batch.Folders : batch.Folders.Concat(new[] { shown });
         return folders.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
     }
 

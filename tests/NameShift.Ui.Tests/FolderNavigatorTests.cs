@@ -162,4 +162,5 @@ public sealed class FolderNavigatorTests
         _navigator.SelectFromTree(@"C:\T");
 
         Assert.Equal(new[] { @"C:\T" }, _events);
-    }}
+    }
+}

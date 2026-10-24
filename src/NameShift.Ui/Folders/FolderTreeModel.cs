@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -58,7 +58,7 @@ public sealed class FolderTreeModel
         foreach (string segment in location.Segments)
         {
             await ExpandAsync(node);
-            FolderNode? child = node.Children.FirstOrDefault(c => string.Equals(c.Name, segment, StringComparison.OrdinalIgnoreCase));
+            FolderNode? child = FindChild(node, segment);
             if (child is null)
             {
                 return null;
@@ -156,6 +156,30 @@ public sealed class FolderTreeModel
         return result;
     }
 
+    /// <summary>The model's answer to "has the shown folder gone?", confirmed with the disk: the fallback folder from
+    /// <see cref="FindReplacementFor"/> only when the disk says <paramref name="shown"/> is not there. The tree can leave
+    /// out folders that exist (hidden ones, folders created after their parent was listed), so the model alone is not
+    /// proof. The check runs off the calling thread. Null when there is no sign it is gone, it exists, or the check
+    /// fails. Never throws.</summary>
+    public async Task<string?> FindFallbackAsync(string shown)
+    {
+        string? fallback = FindReplacementFor(shown);
+        if (fallback is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            FolderCheck check = await Task.Run(() => _source.CheckFolder(shown));
+            return check == FolderCheck.NotFound ? fallback : null;
+        }
+        catch (Exception)
+        {
+            return null;
+        }
+    }
+
     private static FolderNode? FindChild(FolderNode node, string name) =>
         node.Children.FirstOrDefault(c => string.Equals(c.Name, name, StringComparison.OrdinalIgnoreCase));
 
@@ -194,8 +218,6 @@ public sealed class FolderTreeModel
                 listing = FolderListing.Failed(FolderProblem.Unavailable);
             }
 
-            // The entry is removed on the calling thread before the task returns, and before any further await.
-            _refreshing.Remove(node);
             if (listing.Problem is FolderProblem problem)
             {
                 return await ApplyProblemAsync(node, problem);
@@ -209,6 +231,8 @@ public sealed class FolderTreeModel
         }
         finally
         {
+            // Runs on the calling thread before the task completes. A second caller during the climb gets this same task,
+            // so the entry is always this task's own.
             _refreshing.Remove(node);
         }
     }
@@ -279,6 +303,7 @@ public sealed class FolderTreeModel
 
         return children;
     }
+
     private async Task LoadAsync(FolderNode node)
     {
         FolderListing listing;
@@ -295,9 +320,7 @@ public sealed class FolderTreeModel
         _loading.Remove(node);
         if (listing.Problem is FolderProblem problem)
         {
-            node.Children = Array.Empty<FolderNode>();
-            node.Problem = problem;
-            node.State = FolderNodeState.Failed;
+            Fail(node, problem);
             return;
         }
 

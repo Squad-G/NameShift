@@ -984,4 +984,5 @@ public sealed class MainActionsTests
         await actions.RevertAsync();
 
         Assert.Empty(events);
-    }}
+    }
+}

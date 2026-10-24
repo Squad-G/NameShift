@@ -436,6 +436,10 @@ public sealed class FolderTreeModelTests
         Assert.Equal(FolderNodeState.Loading, model.Roots[1].State);
 
         Task<string?> refresh = model.RefreshAsync(@"C:\");
+        await Task.Delay(100);
+
+        // The expand's listing is held at the gate: the refresh must not have listed yet (it waits for the expand).
+        Assert.Equal(1, _source.ListCalls);
         Assert.False(refresh.IsCompleted);
         gate.Set();
         await expand;
@@ -518,8 +522,9 @@ public sealed class FolderTreeModelTests
         Assert.Contains(@"C:\B", result);
         Assert.Equal(new[] { "New" }, model.FindHeld(@"C:\B")!.Children.Select(c => c.Name));
     }
+
     [Fact]
-    public async Task RefreshAllAsync_DuplicatePaths_RefreshOnce()
+    public async Task RefreshAllAsync_DuplicatePaths_ReturnedOnce()
     {
         _source.SetChildren(@"C:\", "A");
         var model = new FolderTreeModel(_source);
@@ -541,6 +546,46 @@ public sealed class FolderTreeModelTests
     }
 
     [Fact]
+    public async Task FindFallbackAsync_HiddenFolderThatExists_ReturnsNull()
+    {
+        _source.SetChildren(@"C:\", "Users");
+        _source.SetChildren(@"C:\Users", "Public");
+        var model = new FolderTreeModel(_source);
+        await Held(model, @"C:\Users");
+        _source.Folders.Add(@"C:\Users\AppData");
+        Assert.Equal(@"C:\Users", model.FindReplacementFor(@"C:\Users\AppData"));
+
+        Assert.Null(await model.FindFallbackAsync(@"C:\Users\AppData"));
+        Assert.Equal(1, _source.CheckCalls);
+    }
+
+    [Fact]
+    public async Task FindFallbackAsync_FolderCreatedAfterParentWasListed_ReturnsNull()
+    {
+        (FolderTreeModel model, _) = await PhotosAsync();
+        _source.Folders.Add(@"C:\Photos\Fresh");
+
+        Assert.Null(await model.FindFallbackAsync(@"C:\Photos\Fresh"));
+    }
+
+    [Fact]
+    public async Task FindFallbackAsync_FolderReallyGone_ReturnsLoadedAncestor()
+    {
+        (FolderTreeModel model, _) = await PhotosAsync();
+
+        Assert.Equal(@"C:\Photos", await model.FindFallbackAsync(@"C:\Photos\Missing"));
+    }
+
+    [Fact]
+    public async Task FindFallbackAsync_NoSignItIsGone_DoesNotTouchTheDisk()
+    {
+        (FolderTreeModel model, _) = await PhotosAsync();
+
+        Assert.Null(await model.FindFallbackAsync(@"C:\Photos\Keep"));
+        Assert.Equal(0, _source.CheckCalls);
+    }
+
+    [Fact]
     public async Task FindReplacementFor_StillHeldOrUnknown_ReturnsNull()
     {
         (FolderTreeModel model, _) = await PhotosAsync();
@@ -548,4 +593,5 @@ public sealed class FolderTreeModelTests
         Assert.Null(model.FindReplacementFor(@"C:\Photos\Keep"));
         Assert.Null(model.FindReplacementFor(@"C:\Photos\Keep\Below"));
         Assert.Null(model.FindReplacementFor(@"\\server\share"));
-    }}
+    }
+}

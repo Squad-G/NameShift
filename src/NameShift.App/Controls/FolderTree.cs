@@ -1,7 +1,7 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -90,7 +90,7 @@ internal sealed class FolderTree : UserControl
 
             foreach (FolderNode folder in nodes)
             {
-                TreeNode? treeNode = FindRendered(folder);
+                TreeNode? treeNode = FindTreeNode(folder, render: false);
                 if (treeNode != null && IsRendered(treeNode))
                 {
                     ReRender(treeNode, folder);
@@ -103,42 +103,9 @@ internal sealed class FolderTree : UserControl
         }
     }
 
-    /// <summary>The tree node of a model node, through rendered levels only: nothing is expanded or rendered.</summary>
-    private TreeNode? FindRendered(FolderNode target)
-    {
-        var chain = new Stack<FolderNode>();
-        for (FolderNode? n = target; n != null; n = n.Parent)
-        {
-            chain.Push(n);
-        }
-
-        TreeNodeCollection level = _tree.Nodes;
-        TreeNode? current = null;
-        foreach (FolderNode folder in chain)
-        {
-            current = null;
-            foreach (TreeNode candidate in level)
-            {
-                if (ReferenceEquals(candidate.Tag, folder))
-                {
-                    current = candidate;
-                    break;
-                }
-            }
-
-            if (current is null)
-            {
-                return null;
-            }
-
-            level = current.Nodes;
-        }
-
-        return current;
-    }
-
     /// <summary>Edits the children of a rendered node to match the model, keeping the tree nodes of surviving folders
-    /// (their expanded state, children and the selection). Never clears.</summary>
+    /// (their expanded state, children and the selection). Never clears. Surviving children keep the source's order (it is
+    /// sorted), so an in-place insert is enough; a reordered survivor would need a move.</summary>
     private void ReRender(TreeNode treeNode, FolderNode folder)
     {
         _suppressSelect = true;
@@ -273,8 +240,9 @@ internal sealed class FolderTree : UserControl
         }
     }
 
-    /// <summary>Walks the tree nodes down to a model node, rendering each level from the model.</summary>
-    private TreeNode? FindTreeNode(FolderNode target)
+    /// <summary>Walks the tree nodes down to a model node. With render, each level is rendered from the model and expanded;
+    /// without it nothing changes and a level that is not rendered ends the walk.</summary>
+    private TreeNode? FindTreeNode(FolderNode target, bool render = true)
     {
         var chain = new System.Collections.Generic.Stack<FolderNode>();
         for (FolderNode? n = target; n != null; n = n.Parent)
@@ -301,7 +269,7 @@ internal sealed class FolderTree : UserControl
                 return null;
             }
 
-            if (folder != target)
+            if (render && folder != target)
             {
                 if (folder.State == FolderNodeState.Loaded && !IsRendered(current))
                 {

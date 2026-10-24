@@ -259,14 +259,29 @@ internal sealed class MainForm : Form
                 return;
             }
 
-            // Read after the await: the user may have moved. The shown folder is gone when a refreshed Loaded ancestor
-            // no longer lists it.
+            // The shown folder is gone when the tree no longer lists it and the disk agrees (the tree leaves out hidden
+            // folders). The user may move during the check, so the folder is read again after it.
             string? shown = _navigator.CurrentFolder;
-            string? fallback = shown is null ? null : _folderModel.FindReplacementFor(shown);
+            if (shown is null)
+            {
+                return;
+            }
+
+            string? fallback = await _folderModel.FindFallbackAsync(shown);
+            if (IsDisposed || !string.Equals(_navigator.CurrentFolder, shown, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
             if (fallback != null)
             {
                 _navigator.SelectFromTree(fallback); // FolderChanged clears the status bar, so say it after.
                 ShowStatus(string.Format(Strings.ShownFolderGone, shown));
+            }
+            else
+            {
+                // A replaced tree node (a case-only rename) makes the TreeView highlight a sibling: select the shown one again.
+                await _folderTree.RevealAsync(shown);
             }
         }
         catch (Exception)
