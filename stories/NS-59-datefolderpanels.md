@@ -1,6 +1,6 @@
 # NS-59: Panels for Auto date and Append folder name
 
-Status: Ready
+Status: Done
 Depends on: NS-11, NS-26, NS-28, NS-31
 Area: app
 
@@ -94,3 +94,6 @@ In the window (by hand, listed in the PR):
 ## Log
 - 2026-10-24: created when NS-31 was split (po).
 - 2026-10-24: criteria made testable, set Ready; build after NS-26, NS-28 and NS-31 are merged (po).
+- 2026-10-24: In Progress (builder).
+- 2026-10-24: In Review (builder), PR #46.
+- 2026-10-24: Done (tech-lead), PR #46 approved and merged into dev. Hand checks pending for David: the editable format ComboBox must not rewrite `yyyy-mm-dd` (or `YYYY-MM-DD`) when the list opens and closes, the fit at 100 % and 200 %, the screen reader, and the tab order.

@@ -77,6 +77,14 @@ public sealed class FirstPanelsTests
                 Strings.MoveCopyMode, Strings.MoveCopySource, Strings.MoveCopyCount, Strings.MoveCopyTarget,
                 Strings.MoveCopyPosition, Strings.MoveCopySeparator,
             }),
+            (Strings.AutoDateTitle, new[]
+            {
+                Strings.AutoDateSource, Strings.AutoDateFormat, Strings.AutoDatePlace, Strings.AutoDateSeparator,
+            }),
+            (Strings.FolderNameTitle, new[]
+            {
+                Strings.FolderNamePlace, Strings.FolderNameLevels, Strings.FolderNameSeparator,
+            }),
         };
 
         Assert.Empty(MnemonicCheck.Problems(panels));
@@ -94,13 +102,57 @@ public sealed class FirstPanelsTests
             new[] { Strings.ExtensionTitle, Strings.ExtensionMode, Strings.ExtensionText }
                 .Select(MnemonicCheck.LetterOf).ToArray());
         Assert.Equal(
-            new[] { 'R', 'C', 'E', 'A', 'N', 'M', 'X', 'G', 'V' },
+            new[] { 'R', 'C', 'E', 'A', 'N', 'M', 'X', 'G', 'V', 'D', 'F' },
             new[]
             {
                 Strings.ReplaceTitle, Strings.CaseTitle, Strings.RemoveTitle, Strings.AddTitle,
                 Strings.NumberingTitle, Strings.NameTitle, Strings.ExtensionTitle, Strings.RegexTitle,
-                Strings.MoveCopyTitle,
+                Strings.MoveCopyTitle, Strings.AutoDateTitle, Strings.FolderNameTitle,
             }.Select(MnemonicCheck.LetterOf).ToArray());
+    }
+
+    [Fact]
+    public void AutoDateAndFolderName_UseTheStoryLetters()
+    {
+        Assert.Equal(
+            new[] { 'D', 'S', 'F', 'P', 'B' },
+            new[]
+            {
+                Strings.AutoDateTitle, Strings.AutoDateSource, Strings.AutoDateFormat, Strings.AutoDatePlace,
+                Strings.AutoDateSeparator,
+            }.Select(MnemonicCheck.LetterOf).ToArray());
+        Assert.Equal(
+            new[] { 'F', 'P', 'L', 'B' },
+            new[]
+            {
+                Strings.FolderNameTitle, Strings.FolderNamePlace, Strings.FolderNameLevels,
+                Strings.FolderNameSeparator,
+            }.Select(MnemonicCheck.LetterOf).ToArray());
+        Assert.All(
+            new[]
+            {
+                Strings.AutoDateSourceModified, Strings.AutoDateSourceCreated, Strings.AutoDatePlaceBefore,
+                Strings.AutoDatePlaceAfter, Strings.FolderNamePlaceBefore, Strings.FolderNamePlaceAfter,
+                Strings.AutoDateExample,
+            },
+            word => Assert.DoesNotContain("&", word));
+    }
+
+    [Fact]
+    public void AddAutoDateNumberingFolder_InStageOrder()
+    {
+        var add = new AddPanelModel { Enabled = true, Suffix = "-x" };
+        var autoDate = new AutoDatePanelModel { Enabled = true, Placement = DatePlacement.Suffix };
+        var numbering = new NumberingPanelModel { Enabled = true };
+        var folderName = new FolderNamePanelModel { Enabled = true, Placement = FolderNamePlacement.Suffix };
+        var host = new RulePanelHostModel(new IRulePanelModel[] { folderName, numbering, add, autoDate });
+
+        Assert.Equal(
+            new[] { RuleStage.Add, RuleStage.AutoDate, RuleStage.Numbering, RuleStage.FolderName },
+            host.Rules.Select(r => r.Stage).ToArray());
+        var item = new RenameItem("a.jpg", @"C:\Photos\Paris", modified: new DateTime(2024, 3, 9, 14, 5, 7));
+        var results = new RenamePipeline(host.Rules).Run(new[] { item });
+        Assert.Equal("a-x_2024-03-09_1_Paris.jpg", results[0].NewName);
     }
 
     [Fact]
@@ -165,20 +217,21 @@ public sealed class FirstPanelsTests
     }
 
     [Fact]
-    public void AllNinePanels_ListedInPipelineOrder()
+    public void AllElevenPanels_ListedInPipelineOrder()
     {
         var host = new RulePanelHostModel(new IRulePanelModel[]
         {
-            new ExtensionPanelModel(), new MoveCopyPanelModel(), new AddPanelModel(), new NamePanelModel(),
-            new NumberingPanelModel(), new CasePanelModel(), new RegexPanelModel(), new ReplacePanelModel(),
-            new RemovePanelModel(),
+            new ExtensionPanelModel(), new MoveCopyPanelModel(), new FolderNamePanelModel(), new AddPanelModel(),
+            new NamePanelModel(), new NumberingPanelModel(), new CasePanelModel(), new AutoDatePanelModel(),
+            new RegexPanelModel(), new ReplacePanelModel(), new RemovePanelModel(),
         });
 
         Assert.Equal(
             new[]
             {
                 RuleStage.RegEx, RuleStage.Name, RuleStage.Replace, RuleStage.Case, RuleStage.Remove,
-                RuleStage.MoveCopy, RuleStage.Add, RuleStage.Numbering, RuleStage.Extension,
+                RuleStage.MoveCopy, RuleStage.Add, RuleStage.AutoDate, RuleStage.Numbering, RuleStage.FolderName,
+                RuleStage.Extension,
             },
             host.Panels.Select(p => p.Stage).ToArray());
     }
@@ -296,6 +349,13 @@ public sealed class FirstPanelsTests
                 {
                     new MoveCopyPanelModel { CountText = text!, Target = target, PositionText = text! }.BuildRule();
                 }
+
+                var autoDate = new AutoDatePanelModel { Format = text!, Separator = text! };
+                autoDate.BuildRule();
+                _ = autoDate.Example;
+                _ = autoDate.ExampleText;
+                _ = autoDate.FormatError;
+                new FolderNamePanelModel { LevelsText = text!, Separator = text! }.BuildRule();
             });
 
             Assert.Null(exception);
@@ -345,6 +405,24 @@ public sealed class FirstPanelsTests
         Assert.Equal(engineMoveCopy.Source, moveCopy.Source);
         Assert.Equal(engineMoveCopy.Target, moveCopy.Target);
         Assert.Equal(engineMoveCopy.Separator, moveCopy.Separator);
+
+        var autoDate = new AutoDatePanelModel();
+        var folderName = new FolderNamePanelModel();
+        foreach (IRulePanelModel model in new IRulePanelModel[] { autoDate, folderName })
+        {
+            Assert.True(model.IsDefault);
+            Assert.False(model.Enabled);
+        }
+
+        var engineAutoDate = new AutoDateRule();
+        Assert.Equal(engineAutoDate.Source, autoDate.Source);
+        Assert.Equal(engineAutoDate.Format, autoDate.Format);
+        Assert.Equal(engineAutoDate.Placement, autoDate.Placement);
+        Assert.Equal(engineAutoDate.Separator, autoDate.Separator);
+        var engineFolderName = new FolderNameRule();
+        Assert.Equal(engineFolderName.Placement, folderName.Placement);
+        Assert.Equal(engineFolderName.Separator, folderName.Separator);
+        Assert.Equal(engineFolderName.Levels, folderName.Levels);
     }
 
     public static IEnumerable<object[]> SettingChanges() => new[]
@@ -394,6 +472,13 @@ public sealed class FirstPanelsTests
         Change(new MoveCopyPanelModel(), m => m.Target = MoveCopyTarget.Start),
         Change(new MoveCopyPanelModel(), m => m.PositionText = "2"),
         Change(new MoveCopyPanelModel(), m => m.Separator = "x"),
+        Change(new AutoDatePanelModel(), m => m.Source = DateSource.Created),
+        Change(new AutoDatePanelModel(), m => m.Format = "yyyy"),
+        Change(new AutoDatePanelModel(), m => m.Placement = DatePlacement.Suffix),
+        Change(new AutoDatePanelModel(), m => m.Separator = "x"),
+        Change(new FolderNamePanelModel(), m => m.Placement = FolderNamePlacement.Suffix),
+        Change(new FolderNamePanelModel(), m => m.LevelsText = "2"),
+        Change(new FolderNamePanelModel(), m => m.Separator = "x"),
     };
 
     [Theory]

@@ -130,6 +130,25 @@
   <data name="MoveCopyTargetEnd" xml:space="preserve"><value>End of the name</value></data>
   <data name="MoveCopyTargetPosition" xml:space="preserve"><value>A position</value></data>
   <data name="MoveCopyNumberInvalid" xml:space="preserve"><value>Type a whole number from 1. Until then nothing is moved or copied.</value></data>
+  <data name="AutoDateTitle" xml:space="preserve"><value>Auto &amp;date</value></data>
+  <data name="AutoDateSource" xml:space="preserve"><value>&amp;Source</value></data>
+  <data name="AutoDateFormat" xml:space="preserve"><value>&amp;Format</value></data>
+  <data name="AutoDatePlace" xml:space="preserve"><value>&amp;Place</value></data>
+  <data name="AutoDateSeparator" xml:space="preserve"><value>Text &amp;between</value></data>
+  <data name="AutoDateSourceModified" xml:space="preserve"><value>Modified date</value></data>
+  <data name="AutoDateSourceCreated" xml:space="preserve"><value>Created date</value></data>
+  <data name="AutoDatePlaceBefore" xml:space="preserve"><value>Before the name</value></data>
+  <data name="AutoDatePlaceAfter" xml:space="preserve"><value>After the name</value></data>
+  <data name="AutoDateExample" xml:space="preserve"><value>Example: {0}</value></data>
+  <data name="AutoDateFormatInvalid" xml:space="preserve"><value>This format is not valid. {0} Until then the date is skipped.</value></data>
+  <data name="AutoDateFormatHint" xml:space="preserve"><value>A .NET date format, such as yyyy-MM-dd; put letters to keep in quotes</value></data>
+  <data name="FolderNameTitle" xml:space="preserve"><value>Append &amp;folder name</value></data>
+  <data name="FolderNamePlace" xml:space="preserve"><value>&amp;Place</value></data>
+  <data name="FolderNameLevels" xml:space="preserve"><value>Folder &amp;levels</value></data>
+  <data name="FolderNameSeparator" xml:space="preserve"><value>Text &amp;between</value></data>
+  <data name="FolderNamePlaceBefore" xml:space="preserve"><value>Before the name</value></data>
+  <data name="FolderNamePlaceAfter" xml:space="preserve"><value>After the name</value></data>
+  <data name="FolderNameLevelsInvalid" xml:space="preserve"><value>Type a whole number from 1. Until then the folder name is skipped.</value></data>
   <data name="AddTitle" xml:space="preserve"><value>&amp;Add</value></data>
   <data name="AddPrefix" xml:space="preserve"><value>&amp;Prefix</value></data>
   <data name="AddInsert" xml:space="preserve"><value>&amp;Insert</value></data>
