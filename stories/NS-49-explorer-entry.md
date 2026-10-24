@@ -31,3 +31,6 @@ Start NameShift from Explorer on a folder, or on exactly the files I selected, w
 
 ## Log
 - 2026-10-18: created (po).
+- 2026-10-24: stays Draft: too big for one story (single-instance window and the hand-off of many paths, then the
+  selection in the window, then the registry entry the installer writes). To split in a later round, after the filters
+  and presets are in (po).
