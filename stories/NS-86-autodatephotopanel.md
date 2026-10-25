@@ -20,9 +20,10 @@ that have no photo date. Second wave: set to Ready when NS-85 is merged (NS-62 i
   `Batch` must stay the original batch, and the filled items are only what the planner gets.
 - `StatusCell(text, isConflict)`; `PreviewModel.StatusForRow` builds it from the conflicts only; `FileList` colours a
   conflict row with `Palette.ConflictText` and has no colour for a note (`Palette` has no muted colour).
-- The command line (`CommandRunner.Run` apply path) lists with `ListEntries(folder, false, ...)`, sorts with
-  `FileListOrder.Sort`, filters with `ItemFilter` (NS-41 replaces that), then calls `RenamePlanner.Plan`; warnings and
-  errors go to `_error`.
+- The command line (`CommandRunner.RunApply`) lists with `ListEntries(folder, false, ...)`, sorts with
+  `FileListOrder.Sort`, filters with `options.Filter` (NS-41, merged), returns early on `No files match.`, then calls
+  `RenamePlanner.Plan`; warnings and errors go to `_error`. NS-87 (`--recurse`) edits the same method: build it first
+  (order: NS-85 and NS-87 together, then NS-86).
 
 ## Acceptance criteria
 Logic in `NameShift.Ui` and `NameShift.Cmd` with tests on net10.0 and net48; the window code stays thin.
@@ -72,3 +73,5 @@ Logic in `NameShift.Ui` and `NameShift.Cmd` with tests on net10.0 and net48; the
 - 2026-10-25: created from the second half of NS-62 (po).
 - 2026-10-25: re-checked against dev after NS-62 (306e581): stale facts fixed (what NS-62 already did, the snapshot batch
   rule, the CLI help and values texts, the note colour); stays Draft until NS-85 is merged (po).
+- 2026-10-25: NS-41 merged (3dca426): the command-line fact refreshed; build after NS-87 (same method of
+  `CommandRunner`); still Draft until NS-85 is merged (po).
