@@ -230,8 +230,10 @@ internal sealed class FileList : UserControl
         }
     }
 
-    /// <summary>After a sort: selects the model's selected rows again (the same items, at their new rows), scrolls the
-    /// first into view and moves the sort arrow. The rows repaint from the new order.</summary>
+    /// <summary>After a sort or a filter (NS-70: the row count may change): sizes the list to the model's rows before
+    /// any row is selected, selects the model's selected rows again (the same items, at their new rows), scrolls to the
+    /// first of them, or to the top when the list shrank and nothing is selected, shows or hides the empty message,
+    /// and redraws the count, the conflict line and the sort arrow. The rows repaint from the new order.</summary>
     private void RenderOrder()
     {
         if (IsDisposed)
@@ -239,13 +241,24 @@ internal sealed class FileList : UserControl
             return;
         }
 
+        int count = _model.Items.Count;
+        int oldCount = _shownCount < 0 ? 0 : _shownCount;
+
         // Render must not clear the selection again for this list.
         _shownItems = _model.Items;
+
+        // Cleared before the size changes, so no selected or focused row points past the new end.
         if (_list.IsHandleCreated)
         {
-            IReadOnlyList<int> rows = _model.SelectedRows;
             SetAllRowsSelected(false);
-            if (rows.Count > 0 && rows.Count == _model.Items.Count)
+        }
+
+        _list.VirtualListSize = count;
+        _shownCount = count;
+        if (_list.IsHandleCreated && count > 0)
+        {
+            int[] rows = FileListRows.InRange(_model.SelectedRows, count);
+            if (rows.Length > 0 && rows.Length == count)
             {
                 SetAllRowsSelected(true);
             }
@@ -257,15 +270,23 @@ internal sealed class FileList : UserControl
                 }
             }
 
-            if (rows.Count > 0)
+            if (FileListRows.ScrollTarget(rows, oldCount, count) is int target)
             {
-                _list.FocusedItem = _list.Items[rows[0]];
-                _list.EnsureVisible(rows[0]);
+                if (rows.Length > 0)
+                {
+                    _list.FocusedItem = _list.Items[target];
+                }
+
+                _list.EnsureVisible(target);
             }
         }
 
+        string? text = _model.Message;
+        _message.Text = text ?? "";
+        _message.Visible = text != null;
         _list.Invalidate();
         RenderCount();
+        RenderSummary();
         UpdateSortArrow();
     }
 
@@ -327,7 +348,7 @@ internal sealed class FileList : UserControl
         }
 
         string text = _model.State == FileListState.Loaded && _model.Items.Count > 0
-            ? FileListText.SelectionCount(_model.Batch.Count, _model.Items.Count, CultureInfo.CurrentCulture)
+            ? FileListText.SelectionCount(_model.Batch.Count, _model.Items.Count, _model.IsNarrowedByFilter, CultureInfo.CurrentCulture)
             : "";
         _count.Text = text;
         _count.AccessibleName = text;
@@ -369,10 +390,11 @@ internal sealed class FileList : UserControl
             return;
         }
 
-        // One O(k) copy: in virtual mode each SelectedIndices[i] walks from the start.
+        // One O(k) copy: in virtual mode each SelectedIndices[i] walks from the start. A read queued before a filter
+        // shrank the list keeps only the rows still in it.
         var rows = new int[_list.SelectedIndices.Count];
         _list.SelectedIndices.CopyTo(rows, 0);
-        _model.SetSelection(rows);
+        _model.SetSelection(FileListRows.InRange(rows, _model.Items.Count));
     }
 
     private void OnListKeyDown(object? sender, KeyEventArgs e)

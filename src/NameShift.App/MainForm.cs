@@ -41,6 +41,7 @@ internal sealed class MainForm : Form
     private readonly string? _startArgument;
     private readonly string _currentDirectory;
     private readonly OpenSequence _opens = new OpenSequence();
+    private readonly FilterBinding _filterBinding;
     private (string Folder, string FileName)? _pendingSelection;
     private bool _shownBusy;
 
@@ -62,7 +63,10 @@ internal sealed class MainForm : Form
 
         Preview = new PreviewModel(RuleHost, FileListModel);
         _fileList = new FileList(FileListModel, Preview, ShowStatus) { Dock = DockStyle.Fill };
-        Actions = new MainActions(Preview, FileListModel, RuleHost, renamer);
+        Filters = new FilterPanelModel();
+        _filterBinding = new FilterBinding(Filters, FileListModel);
+        FilterHost.Controls.Add(new FilterRow(Filters) { Dock = DockStyle.Fill });
+        Actions = new MainActions(Preview, FileListModel, RuleHost, Filters, renamer);
         ButtonsHost.Controls.Add(new ActionButtons(Actions, ShowReport, ShowStatus, AskYesNo));
         var presets = new PresetMenuModel(presetStore, RuleHost, () => Actions.IsBusy);
         _menu = new MainMenu(presets, AskYesNo, preFill => PresetNameDialog.Ask(this, preFill), ShowStatus, () => IsDisposed)
@@ -104,6 +108,13 @@ internal sealed class MainForm : Form
     /// <summary>Rename, Revert and Reset (NS-15).</summary>
     internal MainActions Actions { get; }
 
+    /// <summary>The filter row's settings (NS-70): created once, at default, never saved; they stay when another folder
+    /// opens. Reset clears them with the rules.</summary>
+    internal FilterPanelModel Filters { get; }
+
+    /// <summary>Where the filter row docks (NS-70), above the file list.</summary>
+    internal Panel FilterHost { get; } = new Panel { Dock = DockStyle.Fill, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink };
+
     /// <summary>Where the file list docks.</summary>
     internal Panel FileListHost { get; } = new Panel { Dock = DockStyle.Fill };
 
@@ -137,6 +148,19 @@ internal sealed class MainForm : Form
         {
             MessageBox.Show(this, report.Details, Strings.AppTitle, MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            // Before the controls go: a filter run or a load still in flight never raises an event on a dead window.
+            // The filter row disposes its own typing delay when the base disposes the controls.
+            _filterBinding.Dispose();
+            FileListModel.Dispose();
+        }
+
+        base.Dispose(disposing);
     }
 
     protected override void OnFormClosing(FormClosingEventArgs e)
@@ -198,7 +222,23 @@ internal sealed class MainForm : Form
         _rightSplit.Orientation = Orientation.Horizontal;
         _rightSplit.FixedPanel = FixedPanel.Panel2;
         FileListHost.Controls.Add(_fileList);
-        _rightSplit.Panel1.Controls.Add(FileListHost);
+
+        // The filter row above the list, added first so the Tab order is filter row, then file list (NS-70).
+        var listLayout = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 1,
+            RowCount = 2,
+            Margin = Padding.Empty,
+        };
+        listLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        listLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        listLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100F));
+        FilterHost.Margin = Padding.Empty;
+        FileListHost.Margin = Padding.Empty;
+        listLayout.Controls.Add(FilterHost, 0, 0);
+        listLayout.Controls.Add(FileListHost, 0, 1);
+        _rightSplit.Panel1.Controls.Add(listLayout);
         _rightSplit.Panel2.Controls.Add(BuildBottomLayout());
         _mainSplit.Panel2.Controls.Add(_rightSplit);
 
