@@ -14,7 +14,7 @@ internal sealed class ApplyOptions
 {
     public ApplyOptions(string folderText, string? find, string? with, CaseMode? caseMode, bool dryRun,
         OutputLevel output = OutputLevel.Normal, ApplyPanels? panels = null, string? presetName = null,
-        string? saveName = null, bool overwrite = false)
+        string? saveName = null, bool overwrite = false, ItemFilter? filter = null, bool filtered = false)
     {
         FolderText = folderText ?? throw new ArgumentNullException(nameof(folderText));
         if ((find == null) != (with == null))
@@ -41,6 +41,8 @@ internal sealed class ApplyOptions
         PresetName = presetName?.Trim();
         SaveName = saveName?.Trim();
         Overwrite = overwrite;
+        Filter = filter ?? new ItemFilter(includeFolders: false);
+        Filtered = filtered;
 
         var given = new List<IRulePanelModel>();
         if (find != null)
@@ -86,6 +88,12 @@ internal sealed class ApplyOptions
 
     /// <summary>True with --overwrite (only ever with a save name).</summary>
     public bool Overwrite { get; }
+
+    /// <summary>Which items are planned: the filter options' filter, or files only (hidden and system left out).</summary>
+    public ItemFilter Filter { get; }
+
+    /// <summary>True when a filter option or a mask in the folder text was given.</summary>
+    public bool Filtered { get; }
 
     /// <summary>The models the rule options filled (Replace, Case, Add, Numbering...), each enabled, in stage order.</summary>
     public IReadOnlyList<IRulePanelModel> GivenPanels { get; }

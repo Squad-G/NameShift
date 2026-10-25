@@ -142,6 +142,15 @@ public static class Strings
     /// <summary>Usage error: --regex has fewer than two values.</summary>
     public static string RegexNeedsValues => Get(nameof(RegexNeedsValues));
 
+    /// <summary>The flags of the filter's kinds, for <see cref="OneModeOnly"/>.</summary>
+    public static string FilterKindOptions => Get(nameof(FilterKindOptions));
+
+    /// <summary>Usage error: a mask in the folder text and --mask.</summary>
+    public static string MaskTwice => Get(nameof(MaskTwice));
+
+    /// <summary>The filters left no file: a line, exit code 0.</summary>
+    public static string NoFilesMatch => Get(nameof(NoFilesMatch));
+
     /// <summary>The flags of the Move or copy panel's modes.</summary>
     public static string MoveModeOptions => Get(nameof(MoveModeOptions));
 

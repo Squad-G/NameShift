@@ -315,7 +315,8 @@ public sealed class CommandLineParserTests
                 "--regex", "--regex-ignore-case", "--regex-extension", "--move", "--copy", "--move-from", "--move-to",
                 "--move-position", "--move-separator", "--date", "--date-source", "--date-format",
                 "--date-placement", "--date-separator", "--folder-name", "--folder-levels", "--folder-placement",
-                "--folder-separator",
+                "--folder-separator", "--mask", "--filter-regex", "--filter-ignore-case", "--min-length",
+                "--max-length", "--include-hidden", "--files-only", "--folders-only", "--include-folders",
                 "--preset", "--save-preset", "--overwrite",
             },
             CommandLineParser.Words);
