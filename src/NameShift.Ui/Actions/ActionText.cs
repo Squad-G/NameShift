@@ -50,6 +50,9 @@ public static class ActionText
     /// <summary>"Reverting...".</summary>
     public static string Reverting => Strings.Reverting;
 
+    /// <summary>"Checking the files...".</summary>
+    public static string CheckingRevert => Strings.RevertChecking;
+
     /// <summary>"Undo the last rename: 12 names in D:\Photos" (the batch's first folder); "" unless it can be reverted.</summary>
     public static string RevertDescription(LastBatch last, CultureInfo culture)
     {

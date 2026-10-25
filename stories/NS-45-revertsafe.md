@@ -1,6 +1,6 @@
 # NS-45: Safer Revert: detect changed files
 
-Status: Ready
+Status: Done
 Depends on: NS-90, NS-15, NS-42
 Area: app
 
@@ -54,3 +54,15 @@ every text in `Strings`. Names are indicative.
 - 2026-10-18: created (po).
 - 2026-10-25: checked against dev 57d695b: the journal keeps no size or date, so the check is split into NS-90 (engine);
   this story is the window and the command line; set Ready (po).
+- 2026-10-25: started (builder). Decisions in the brief, accepted by the po: `undo --dry-run` now checks the files, so
+  `HelpUndo`'s second sentence becomes `Checks the files and the history.`; a `RenameFailed` reason, which
+  a check cannot produce, has the word `could not be renamed` so nothing throws.
+- 2026-10-25: built; PR open, in review (builder).
+- 2026-10-25: Done (tech-lead), PR #94 approved on re-review and squash-merged. Hand checks for David (PR #94): the
+  dialog buttons (an edited file gives one line with `Revert the rest` and `Revert changed files too`; the first
+  restores the other name, the second the edited one); Cancel, Esc and the close box revert nothing and show
+  `Revert cancelled.`, while `Close` alone (every entry missing or taken) shows no status; the default button is
+  `Revert the rest`, never the override; the reasons list shows 10 lines and `and N more`, wrapping at high DPI; the
+  window is locked while `Checking the files...` shows; a name now taken is reported and the new file untouched; a
+  long name with no break point wraps in the dialog; no problems means no dialog. The "no release between NS-90 and
+  NS-45" window is now closed: the window can revert an edited file again, through the dialog.

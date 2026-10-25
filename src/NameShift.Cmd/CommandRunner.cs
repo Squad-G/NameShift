@@ -251,9 +251,20 @@ public sealed class CommandRunner
             case LastBatchState.Revertable:
                 if (dryRun)
                 {
+                    // The check reads the disk and changes nothing; every entry prints in journal order.
+                    var skipped = new Dictionary<(string, string), SkippedRevert>();
+                    foreach (SkippedRevert s in _renamer.CheckRevert().Skipped)
+                    {
+                        skipped[(s.Entry.NewPath, s.Entry.OldPath)] = s;
+                    }
+
                     foreach (CompletedRename rename in last.Renames)
                     {
-                        _output.WriteLine(Format(Strings.DryRunLine, Path.GetFileName(rename.NewPath), Path.GetFileName(rename.OldPath)));
+                        skipped.TryGetValue((rename.NewPath, rename.OldPath), out SkippedRevert? skip);
+                        string name = Path.GetFileName(rename.NewPath);
+                        _output.WriteLine(skip != null
+                            ? Format(Strings.DryRunSkippedLine, name, RevertCheckText.Reason(skip.Reason))
+                            : Format(Strings.DryRunLine, name, Path.GetFileName(rename.OldPath)));
                     }
 
                     return (int)ExitCode.Success;

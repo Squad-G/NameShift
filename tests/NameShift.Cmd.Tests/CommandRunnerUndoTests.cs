@@ -339,6 +339,83 @@ public sealed class CommandRunnerUndoTests
         }
     }
 
+    private static RevertCheck Skipping(params (RevertSkipReason Reason, string Old, string New)[] skips) =>
+        new RevertCheck(
+            skips.Select(s => new SkippedRevert(
+                CmdResults.Done(s.Old, s.New),
+                s.Reason,
+                s.Reason == RevertSkipReason.NameTaken || s.Reason == RevertSkipReason.WaitsForSkippedItem ? s.Old : null)).ToArray(),
+            anyRevertable: true);
+
+    [Fact]
+    public void DryRun_PrintsSkippedWithReason()
+    {
+        var renamer = new FakeBatchRenamer
+        {
+            LastBatch = CmdResults.Batch(
+                LastBatchState.Revertable,
+                CmdResults.Done(@"C:\A\A.txt", @"C:\A\a.txt"),
+                CmdResults.Done(@"C:\A\B.txt", @"C:\A\b.txt"),
+                CmdResults.Done(@"C:\A\C.txt", @"C:\A\c.txt")),
+            CheckResult = Skipping(
+                (RevertSkipReason.Modified, @"C:\A\B.txt", @"C:\A\b.txt"),
+                (RevertSkipReason.ItemMissing, @"C:\A\C.txt", @"C:\A\c.txt")),
+        };
+
+        var run = Cmd.Run(renamer, @"C:\nowhere", new[] { "undo", "--dry-run" });
+
+        Assert.Equal(0, run.Code);
+        Assert.Equal(
+            Cmd.Written("a.txt -> A.txt", "b.txt: skipped (changed since the rename)", "c.txt: skipped (no longer there)"),
+            run.Output);
+        Assert.Equal("", run.Error);
+        Assert.Equal(0, renamer.RevertCalls);
+    }
+
+    [Fact]
+    public void Undo_SkipsModified_Exit4_ModifiedLine()
+    {
+        string changed = Path.Combine(@"C:\A", "x_g.txt");
+        var skip = new SkippedRevert(CmdResults.Done(Path.Combine(@"C:\A", "g.txt"), changed), RevertSkipReason.Modified);
+        var renamer = Revertable(new RevertResult(RevertOutcome.PartlyReverted, CmdResults.Renames(2), new[] { skip }));
+        ActionReport report = ActionText.ForRevert(renamer.RevertResult!, Cmd.EnUs);
+
+        var run = Cmd.Run(renamer, @"C:\nowhere", Undo);
+
+        Assert.Equal(4, run.Code);
+        Assert.Equal(Cmd.Written(report.Status, report.Details!), run.Error);
+        Assert.Contains(string.Format(CultureInfo.InvariantCulture, UiStrings.SkipModified, changed), run.Error);
+        Assert.Equal(false, renamer.LastIncludeModified);
+    }
+
+    [Fact]
+    public void Undo_NeverAsks_NeverIncludesModified()
+    {
+        var renamer = Revertable(CmdResults.Reverted(3));
+        TextReader original = Console.In;
+        Console.SetIn(new ThrowingReader());
+        try
+        {
+            Cmd.Run(renamer, @"C:\nowhere", Undo);
+        }
+        finally
+        {
+            Console.SetIn(original);
+        }
+
+        Assert.Equal(1, renamer.RevertCalls);
+        Assert.Equal(false, renamer.LastIncludeModified);
+    }
+
+    private sealed class ThrowingReader : TextReader
+    {
+        public override int Peek() => throw new InvalidOperationException("undo must never read the console.");
+
+        public override int Read() => throw new InvalidOperationException("undo must never read the console.");
+
+        public override string ReadLine() => throw new InvalidOperationException("undo must never read the console.");
+    }
+
     private sealed class ThrowingFileListSource : NameShift.Ui.Files.IFileListSource
     {
         public NameShift.Ui.Files.FileListing ListEntries(string folderPath, bool includeSubfolders, CancellationToken cancellationToken) => throw new InvalidOperationException("listing failed");

@@ -1574,4 +1574,79 @@ public sealed class MainActionsTests
         Assert.False(actions.CanRename);
         Assert.Equal(LockText, actions.RenameHint);
     }
+
+    [Fact]
+    public async Task CheckRevert_NoProblem_ThenRevert()
+    {
+        _source.SetEntries(FolderA, File("x_a.txt"), File("x_b.txt"), File("x_c.txt"));
+        MainActions actions = await BuildLoaded(Prefix());
+        _renamer.Last = DiskResults.Last(LastBatchState.Revertable);
+        await actions.LoadJournalAsync();
+        bool busyDuring = false;
+        string busyText = "";
+        _renamer.CheckDuring = () =>
+        {
+            busyDuring = actions.IsBusy;
+            busyText = actions.BusyText;
+        };
+
+        RevertCheck? check = await actions.CheckRevertAsync();
+
+        Assert.Same(_renamer.CheckResult, check);
+        Assert.Empty(check!.Skipped);
+        Assert.True(busyDuring);
+        Assert.Equal("Checking the files...", busyText);
+        Assert.False(actions.IsBusy);
+        Assert.Equal("", actions.BusyText);
+        Assert.Equal(1, _renamer.CheckCalls);
+        Assert.Equal(0, _renamer.RevertCalls);
+
+        await actions.RevertAsync();
+
+        Assert.Equal(1, _renamer.RevertCalls);
+        Assert.False(_renamer.LastIncludeModified);
+    }
+
+    [Fact]
+    public async Task CheckRevertAsync_NotRevertable_Null()
+    {
+        MainActions actions = await BuildLoaded(Prefix());
+        _renamer.Last = DiskResults.Last(LastBatchState.Reverted);
+        await actions.LoadJournalAsync();
+
+        Assert.Null(await actions.CheckRevertAsync());
+        Assert.Equal(0, _renamer.CheckCalls);
+        Assert.False(actions.IsBusy);
+    }
+
+    [Fact]
+    public async Task CheckRevertAsync_Throws_Empty()
+    {
+        MainActions actions = await BuildLoaded(Prefix());
+        _renamer.Last = DiskResults.Last(LastBatchState.Revertable);
+        await actions.LoadJournalAsync();
+        _renamer.CheckThrows = true;
+
+        RevertCheck? check = await actions.CheckRevertAsync();
+
+        Assert.Same(RevertCheck.Empty, check);
+        Assert.False(actions.IsBusy);
+        Assert.Equal("", actions.BusyText);
+        Assert.True(actions.CanRevert);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task RevertAsync_IncludeModified_Passed(bool includeModified)
+    {
+        MainActions actions = await BuildLoaded(Prefix());
+        _renamer.Last = DiskResults.Last(LastBatchState.Revertable);
+        await actions.LoadJournalAsync();
+
+        await actions.RevertAsync(includeModified);
+
+        Assert.Equal(includeModified, _renamer.LastIncludeModified);
+        Assert.Equal(1, _renamer.RevertCalls);
+    }
 }
