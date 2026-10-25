@@ -1,6 +1,6 @@
 # NS-89: One window at all times
 
-Status: Ready
+Status: Done
 Depends on: NS-88
 Area: app
 
@@ -77,3 +77,5 @@ a named pipe per user session). Names are indicative.
 ## Log
 - 2026-10-25: created from NS-49's split (po).
 - 2026-10-25: PR #90 review: pipe hardening, lower caps, one disk check, names with the SID, owner-only saving (po).
+- 2026-10-25: built: the request format, caps, timed reader, gathering and owner flag in NameShift.Ui; the mutex, pipe and foreground hand-over in the App. On net48 the first instance is created through CreateNamedPipe (no FirstPipeInstance option there); each next instance is created while the previous one is open (builder).
+- 2026-10-25: Done (tech-lead), PR #97 approved and squash-merged. Hand checks for David (PR #97): two starts; start with a folder while minimised; start during a Rename; 15 starts in a loop; several at once; close and start again; NameShiftCmd beside the window; a hung window -> the fallback window, which does not save settings; the window run as administrator, then a normal start; start with a folder while a dialog is open. Follow-ups from the review: SingleInstance.cs is 582 lines (split into server and client); no mutex retry after Failed; more than 2,000 arguments opens a non-owner window; a start with no path during a dialog now shows the busy message (a visible change from AC 3); a long re-create against a squatted name gives the user no notice.
