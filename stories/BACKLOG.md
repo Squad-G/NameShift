@@ -6,7 +6,8 @@ IDs), not the rank: the rank is the row order.
 
 Order after NS-37 (po, 2026-10-25): NS-81, NS-84 and NS-80 are Done; then safety and trust (NS-91
 hardening, NS-90 and NS-45 safer Revert), then the Explorer launch path (NS-88, NS-89), then the photo date (NS-62, then
-NS-85 and NS-86) and the command line (NS-93 cleanup first, then NS-41 filters, then NS-87), then the small chores (NS-92, NS-94). NS-49 and
+NS-85) and the command line (NS-93 cleanup first, then NS-41 filters, then NS-87), then the photo date's window and
+command-line choice (NS-86, after NS-87), then the small chores (NS-92, NS-94). NS-49 and
 NS-44 (the registry entry and the installer) are built together at the very end, just before the v1 release (David,
 2026-10-25); NS-44 is the last story of v1. NS-50 (Windows 11 compact menu) was cancelled by David on 2026-10-25. NS-85 is merged and NS-86 is Ready, but
 NS-86 and NS-87 both edit the command line's apply path: NS-87 is being built now, and NS-86 starts after NS-87 merges.
@@ -100,8 +101,8 @@ NS-86 and NS-87 both edit the command line's apply path: NS-87 is being built no
 | 93 | [NS-93 Command line readers: remove the copies](NS-93-clireadercleanup.md) | Done | NS-40, NS-69, NS-75, NS-76 |
 | 41 | [NS-41 Command line: filters](NS-41-clifilters.md) | Done | NS-38, NS-32, NS-33, NS-70, NS-79, NS-76, NS-93 |
 | 85 | [NS-85 Read the photo dates of the listed files](NS-85-photodates.md) | Done | NS-62, NS-27 |
-| 86 | [NS-86 Auto date panel: the Photo date choice](NS-86-autodatephotopanel.md) | Ready | NS-62, NS-85, NS-87, NS-59, NS-76 |
 | 87 | [NS-87 Command line: --recurse](NS-87-clirecurse.md) | Ready | NS-41, NS-74, NS-78 |
+| 86 | [NS-86 Auto date panel: the Photo date choice](NS-86-autodatephotopanel.md) | Ready | NS-62, NS-85, NS-87, NS-59, NS-76 |
 | 92 | [NS-92 Move the settings-saving logic out of MainForm into NameShift.Ui](NS-92-savesettingslogic.md) | Ready | NS-37, NS-84 |
 | 94 | [NS-94 Close gaps in the tests: PathInput prefixes, both orders of the list model, broken path literals](NS-94-testgaps.md) | Done | NS-10, NS-70, NS-78, NS-80 |
 | 49 | [NS-49 Explorer right-click entry "Bulk Rename Here": the registry keys](NS-49-explorer-entry.md) | Draft | NS-88, NS-89 |

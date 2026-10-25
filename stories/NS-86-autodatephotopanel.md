@@ -39,29 +39,49 @@ Logic in `NameShift.Ui` and `NameShift.Cmd` with tests on net10.0 and net48; the
    (`AutoDatePanelModel.Sources`, `IndexOf`, `DateSourceText`); the default stays Modified; Reset and `IsDefault` as today.
 2. Given a preset saved with source Photo date, then it stores `Taken` (the enum name, like the other two) and loads back
    to Photo date; a preset written before this story loads as before; an unknown name still falls back to Modified.
-3. Given the preview with an Auto date rule enabled and the source Photo date, then the preview run (`PreviewModel`'s
-   background compute, on the pool) fills the photo dates of the batch's items through NS-85 before planning; only the
-   batch is read (unselected rows are not). The snapshot keeps the original `Batch` (the row mapping still works). With
-   another source, or the rule off, no file is opened (counted with a fake source). Editing the format or the separator
-   runs again without reading any file (the cache answers). The fill takes the run's cancellation token.
-4. Given that rule and a file row whose item has no photo date (not a JPEG, no Exif date, unreadable, a folder), then the
-   Status cell shows `No photo date: modified date used` (new string in `NameShift.Ui.Strings`; `StatusCell.IsConflict`
-   is false), Rename is not blocked by it, and the new name uses the modified date (NS-62). A row that also has a
-   conflict shows the conflict text only. A row with a photo date shows nothing. The note shows for a row in the
-   snapshot's batch when an Auto date rule is enabled with source Photo date and the item has no photo date (nothing else
-   decides it). `PreviewSnapshot` carries that information (the filled items or a per-row flag), since `Batch` stays the
-   original. In the list the cell uses `SystemColors.GrayText` (readable in a Windows contrast theme), never the conflict
-   colour.
+3. The one trigger, in the window and on the command line: the built rules (`RulePanelHostModel.Rules`, or what
+   `CommandRunner.BuildRules` returns) contain an `AutoDateRule` with `Source == DateSource.Taken`. A panel that is on
+   but builds no rule (empty or refused format) triggers nothing: no file is read and no note or warning appears.
+   Given the trigger, the preview run (`PreviewModel`'s background compute, on the pool) fills the photo dates of the
+   batch's items through NS-85 before planning; only the batch is read (unselected rows are not). The planner gets the
+   filled items; `PreviewSnapshot.Batch` and `Items` stay the original list (the row mapping works, and `MainActions`
+   still passes `snapshot.Items` to `RenameFolders`); update the doc comment "the exact list the pipeline ran on". With
+   another source, or no rule, no file is opened (counted with a fake source). Editing the format or the separator runs
+   again without reading any file, when the fake reads succeed (a failed read is not cached and is tried again, by NS-85
+   design). The fill takes the run's cancellation token; a test records the thread id and shows the fill ran on a pool
+   thread, not the caller's.
+4. Given the trigger and a file row whose item has no photo date (not a JPEG, no Exif date, unreadable, a folder), then
+   the Status cell shows `No photo date: modified date used` (new string in `NameShift.Ui.Strings`;
+   `StatusCell.IsConflict` is false), Rename is not blocked by it, and the new name uses the modified date (NS-62). A row
+   that also has a conflict shows the conflict text only. A row with a photo date shows nothing. The snapshot records at
+   compute time whether photo dates were read (a flag on `PreviewSnapshot`, set by `Compute`), and the note follows that
+   flag, never the live panel: an outdated snapshot never shows notes that do not match the names beside it.
+   `RenameResult.Item` already carries the filled item, so the row has a photo date when `Results[i].Item.Taken` is
+   neither null nor `default(DateTime)` (the same test as `AutoDateRule`); only the flag is new. `StatusCell` is not
+   changed: `FileList` greys any non-empty Status cell that is not a conflict with `SystemColors.GrayText` (readable in
+   a Windows contrast theme), never the conflict colour (a one-line rule, checked by hand).
+
 5. Given `apply --date-source taken` on the command line, then it is accepted (`DateSourceValues` becomes `modified, created
    or taken`, in the style of the other values texts, and the apply help line reads `--date-source modified|created|taken`),
    the photo dates are filled before planning with the same class (after the filter, so only the files that will be
-   planned are read; only when the Auto date panel is enabled with source Taken, so no other run opens a file), and a name
-   uses the photo date. A file without one uses its modified date and, once (counting only
-   the files planned, not every file listed) before the
-   rename or the dry run, one line goes to the error stream: `N files have no photo date; their modified date was used.`
-   (one: `1 file has no photo date; its modified date was used.`). The exit code is not changed by the line and `--quiet`
-   does not hide it (warnings are not success output; NS-41 decision).
-6. Given `--save-preset` with `--date-source taken`, then the saved preset holds `Taken` (criterion 2).
+   planned are read; only on the trigger of criterion 3, so no other run opens a file), and a name uses the photo date.
+   A file without one uses its modified date and, once (counting only the files planned, not every file listed), one
+   line goes to the error stream: `N files have no photo date; their modified date was used.` (one: `1 file has no
+   photo date; its modified date was used.`). N is plain digits with `N0` grouping like NS-87's `SkippedFoldersNotice`.
+   Placement: right after the fill, after NS-87's skipped-folders line, before any plan output; it is written whatever
+   the plan turns out to be (Blocked, Nothing to rename, dry run or rename, because the names were built with the
+   fallback), and not written when `No files match` returned first. The exit code is not changed by the line and
+   `--quiet` does not hide it (warnings are not success output; NS-41 decision). Test seam: an internal settable
+   `PhotoDates` property on `CommandRunner`, next to `BuildRules`, that the tests set to a `PhotoDates` over a fake
+   `IPhotoFile` (the `Cmd.Tests` project sees Ui internals); left null, `RunApply` creates one `PhotoDates` per run.
+6. Given `--save-preset` with `--date-source taken`, then the saved preset holds `Taken` (criterion 2). Traced on
+   226ff59: `SaveSettings` already writes `Source.ToString()` ("Taken") and `ApplySettings` loads it only when
+   `IndexOf(source) >= 0`, so adding `Taken` to `SourceList` is the whole fix for save and load; `IsDefault` and Reset
+   (`Source = Modified`) are unchanged. A test saves with Taken, loads it, and checks the window's panel shows Photo date.
+11. Existing tests that change (the builder updates them, not deletes them): `RegexMoveDateFolderParserTests` (about line
+   150: `--date-source taken` is a bad choice today), `CmdStringsTests` (about line 82: the `DateSourceValues` text),
+   the help-text tests that hold the apply help line, `WindowParityRegexMoveDateFolderTests` (add a Taken row),
+   `AutoDatePanelModelTests` (the list of two becomes three), and `CommandLineParserTests` if it names the values.
 7. Given the Rename of such a batch, then the journal and Revert work as for any batch (a hand check with two JPEGs, one
    with no Exif date).
 8. By hand, written in the PR: a folder of 2,000 photos with Photo date chosen stays responsive (the list does not freeze
@@ -98,4 +118,7 @@ Logic in `NameShift.Ui` and `NameShift.Cmd` with tests on net10.0 and net48; the
   `CommandRunner`); still Draft until NS-85 is merged (po).
 - 2026-10-25: NS-85 merged (226ff59): every criterion re-checked against the merged code, facts refreshed, placeholder
   gaps and the listing rule folded into criteria 9 and 10; depends on NS-87 (same `RunApply`); set Ready (po).
+- 2026-10-25: PR #104 review nits folded in: one trigger (built `AutoDateRule` with Taken), snapshot flag at compute
+  time, grey rule in `FileList`, `CommandRunner.PhotoDates` seam, warning placement and format, clean-read and
+  pool-thread test notes, the list of existing tests that change, preset trace; BACKLOG rows swapped (po).
 - 2026-10-25: from the PR #103 review (NS-85), for the hand checks: a file that becomes an online-only placeholder between the attribute check and the open is recalled, and a file symlink whose target is a placeholder is opened (it shows only ReparsePoint); items given to PhotoDates.Fill must come from a listing (tech-lead).
