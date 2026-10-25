@@ -537,7 +537,8 @@ internal sealed class MainForm : Form
     {
         try
         {
-            string? text = FolderOpenText.For(await _navigator.NavigateToFolderAsync(path), path, CultureInfo.CurrentCulture);
+            PathBarResult result = await _navigator.NavigateToFolderAsync(path);
+            string? text = FolderOpenText.For(result, path, CultureInfo.CurrentCulture);
             if (text != null)
             {
                 ShowStatus(text);
