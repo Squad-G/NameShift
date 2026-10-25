@@ -109,3 +109,4 @@ Same as the window, and the rest:
   strings chosen, `ApplyOptions` shape constraint, `NoRule` and help text made generic, depends on NS-42 and NS-39 for the
   build order; set Ready, third of NS-42, NS-39, NS-40, NS-69 (po).
 - 2026-10-24: In Progress (builder).
+- 2026-10-24: In Review (builder), PR #74.
