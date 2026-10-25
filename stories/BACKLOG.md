@@ -91,7 +91,7 @@ spec (NS-85, NS-86, NS-87) become Ready when the story they build on is merged.
 | 34 | [NS-34 Copy or move to another folder (engine and executor)](NS-34-copymove.md) | Cancelled | NS-8, NS-9 |
 | 35 | [NS-35 Copy/move to location panel](NS-35-copymoveui.md) | Cancelled | NS-34, NS-15 |
 | 50 | [NS-50 "Bulk Rename Here" in the Windows 11 top-level menu](NS-50-win11-menu.md) | Cancelled | NS-49 |
-| 91 | [NS-91 Settings, presets and history: deep files, leftover temp files, no profile folder](NS-91-filehardening.md) | In Progress | NS-37, NS-36, NS-9 |
+| 91 | [NS-91 Settings, presets and history: deep files, leftover temp files, no profile folder](NS-91-filehardening.md) | In Review | NS-37, NS-36, NS-9 |
 | 90 | [NS-90 Undo journal: remember each file's size and date, and check before Revert](NS-90-journalfingerprint.md) | Ready | NS-9 |
 | 45 | [NS-45 Safer Revert: detect changed files](NS-45-revertsafe.md) | Ready | NS-90, NS-15, NS-42 |
 | 88 | [NS-88 Start on several files: one folder, those items selected](NS-88-multipath.md) | Ready | NS-47, NS-14 |
