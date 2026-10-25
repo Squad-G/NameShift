@@ -34,7 +34,7 @@ The five rules (the "option rules"):
   the last `Until then` (new string `SkipSentenceMarker` = `Until then`, replacing NS-40's `NumberingSkippedSentence`;
   the numbering messages read as before). The two tests that name the old key are edited to the new key and helper with the
   same asserted outputs: `CmdStringsTests` (the exact text of the key, line 55) and `CommandLineParserTests` (the expected
-  cut, lines 550-551), trimmed. A test asserts that every window string
+  cut, lines 550-551). A test asserts that every window string
   the command line shows (NS-75 and NS-76 list them) contains the marker and that the cut text contains neither `Until` nor
   `skipped`.
 

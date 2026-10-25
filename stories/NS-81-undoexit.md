@@ -28,7 +28,7 @@ review asked whether this run should exit 3 or 4. Nothing pins the answer: `Exit
    folder, then one of its renamed files held open with `FileShare.None`, so that every planned rename fails after the plan
    (an empty plan would return `NothingReverted` before any pending file is written, with no issue); (b) a
    `JournaledBatchRenamer` built over the internal `JournaledRenamer` constructor with an injected `IJournalFiles` whose
-   `Delete("pending.json")` throws (as `HookedJournalFiles` with `FailDelete` does in `Disk.Tests`; `InternalsVisibleTo`
+   `Delete` throws for a path whose file name is `pending.json` (the method receives a full path; a small equivalent of `HookedJournalFiles` with `FailDelete` in `Disk.Tests`, written in `Cmd.Tests`; `InternalsVisibleTo`
    gives `NameShift.Cmd.Tests` the constructor), the `CommandRunner` built by the test with that renamer (`ForDisk` takes
    only a history root). The second `undo` uses a renamer over the same root without the hook. The test fails with the
    command's output if the scenario cannot be built (it never skips) and releases the file in `Dispose`.
