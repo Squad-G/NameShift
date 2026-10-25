@@ -1,6 +1,6 @@
 # NS-44: Installer
 
-Status: Ready
+Status: In Progress
 Depends on: NS-15, NS-38
 Order: built first in the last round before the v1 release (David, 2026-10-24/25); NS-49 follows and depends on it.
 Area: installer
@@ -117,3 +117,4 @@ never need Inno Setup. Nothing in `tools/` or `docs/RELEASING.md` is changed by 
   silent-mode wording, PATH kind, data-folder guard, README Layout line, check script execution policy (po).
 - 2026-10-25: PR #107 re-review nit folded in: the `/DIR` guard also refuses a folder inside the two data folders
   (criteria 2 and 13) (tech-lead).
+- 2026-10-25: In Progress (builder).
