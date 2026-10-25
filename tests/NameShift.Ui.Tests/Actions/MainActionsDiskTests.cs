@@ -37,7 +37,7 @@ public sealed class MainActionsDiskTests : IDisposable
         prefix.Enabled = true;
         var host = new RulePanelHostModel(new IRulePanelModel[] { prefix });
         _preview = new PreviewModel(host, _files, (_, _) => Task.CompletedTask);
-        _actions = new MainActions(_preview, _files, host, new JournaledBatchRenamer(new JournaledRenamer(_history)));
+        _actions = new MainActions(_preview, _files, host, new FilterPanelModel(), new JournaledBatchRenamer(new JournaledRenamer(_history)));
     }
 
     public void Dispose()

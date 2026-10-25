@@ -21,6 +21,7 @@ public sealed class MainActions
     private readonly PreviewModel _preview;
     private readonly FileListModel _files;
     private readonly RulePanelHostModel _rules;
+    private readonly FilterPanelModel _filters;
     private readonly IBatchRenamer _renamer;
 
     /// <summary>The last journal read; null until the first read finished, or when it failed (Revert off).</summary>
@@ -34,11 +35,12 @@ public sealed class MainActions
     /// Revert that ran. While set, Rename is off.</summary>
     private bool _renameLocked;
 
-    public MainActions(PreviewModel preview, FileListModel files, RulePanelHostModel rules, IBatchRenamer renamer)
+    public MainActions(PreviewModel preview, FileListModel files, RulePanelHostModel rules, FilterPanelModel filters, IBatchRenamer renamer)
     {
         _preview = preview ?? throw new ArgumentNullException(nameof(preview));
         _files = files ?? throw new ArgumentNullException(nameof(files));
         _rules = rules ?? throw new ArgumentNullException(nameof(rules));
+        _filters = filters ?? throw new ArgumentNullException(nameof(filters));
         _renamer = renamer ?? throw new ArgumentNullException(nameof(renamer));
         _preview.Changed += (_, _) => RaiseChanged();
         _preview.Outdated += (_, _) => RaiseChanged();
@@ -73,6 +75,9 @@ public sealed class MainActions
             ClearLock();
             RaiseChanged();
         };
+
+        // CanReset follows the filters. The Rename lock is cleared by the list's OrderChanged once the filter applies.
+        _filters.Changed += (_, _) => RaiseChanged();
     }
 
     /// <summary>True from a Rename or Revert click until the folder has reloaded: everything is locked.</summary>
@@ -97,8 +102,9 @@ public sealed class MainActions
     /// <summary>True when the last journal read says the last batch can be reverted.</summary>
     public bool CanRevert => !IsBusy && _lastBatch != null && _lastBatch.CanRevert;
 
-    /// <summary>True when at least one rule panel has something to reset.</summary>
-    public bool CanReset => !IsBusy && _rules.CanResetAny;
+    /// <summary>True when at least one rule panel has something to reset or the filters are not at default, and
+    /// nothing is running.</summary>
+    public bool CanReset => !IsBusy && (_rules.CanResetAny || !_filters.IsDefault);
 
     /// <summary>Why Rename is disabled: conflicts or rule errors (these win), else "change a rule or the selection" after a
     /// Rename; "" while busy, with no loaded list, or with nothing to say.</summary>
@@ -192,13 +198,21 @@ public sealed class MainActions
         return RunAsync(ActionText.Reverting, _files.FolderPath, changed, () => _renamer.Revert(), ActionText.ForRevert, _ => false, false);
     }
 
-    /// <summary>Resets every rule panel; no-op unless CanReset. Never touches files, the journal or the selection.</summary>
+    /// <summary>Resets every rule panel and every filter; no-op unless CanReset. Never touches files, the journal, the
+    /// folder, the sort or the selection: the selected items still listed after the filter change stay selected.</summary>
     public void Reset()
     {
-        if (CanReset)
+        if (!CanReset)
+        {
+            return;
+        }
+
+        if (_rules.CanResetAny)
         {
             _rules.ResetAll();
         }
+
+        _filters.Reset();
     }
 
     /// <summary>Locks, runs the action and the journal read in one pool task, applies the result, reloads the folder

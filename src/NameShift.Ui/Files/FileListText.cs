@@ -20,16 +20,22 @@ public static class FileListText
     }
 
     /// <summary>"N of M files" for the line under the list; empty when the list has no items.</summary>
-    public static string SelectionCount(int batchCount, int total, CultureInfo culture)
+    public static string SelectionCount(int batchCount, int total, CultureInfo culture) =>
+        SelectionCount(batchCount, total, false, culture);
+
+    /// <summary>"N of M files" for the line under the list, followed by " (filtered)" when <paramref name="filtered"/>
+    /// (NS-70: the filter is not at default and hides an entry); empty when the list has no items.</summary>
+    public static string SelectionCount(int batchCount, int total, bool filtered, CultureInfo culture)
     {
         if (total <= 0)
         {
             return "";
         }
 
-        return total == 1
+        string text = total == 1
             ? Strings.SelectionCountOne
             : string.Format(culture, Strings.SelectionCountMany, batchCount.ToString("N0", culture), total.ToString("N0", culture));
+        return filtered ? string.Format(culture, Strings.SelectionCountFiltered, text) : text;
     }
 
     /// <summary>Short date and time; empty when the date is unknown (never invented).</summary>

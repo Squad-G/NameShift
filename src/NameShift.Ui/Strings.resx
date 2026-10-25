@@ -46,6 +46,20 @@
   <data name="FolderEmpty" xml:space="preserve"><value>This folder is empty</value></data>
   <data name="NoItemMatchesFilter" xml:space="preserve"><value>No item matches the filters.</value></data>
   <data name="FilterLengthInvalid" xml:space="preserve"><value>Enter a whole number for the length.</value></data>
+  <data name="FilterRowName" xml:space="preserve"><value>Filters</value></data>
+  <data name="FilterMask" xml:space="preserve"><value>Mas&amp;k:</value></data>
+  <data name="FilterFiles" xml:space="preserve"><value>Fi&amp;les</value></data>
+  <data name="FilterFolders" xml:space="preserve"><value>Folder&amp;s</value></data>
+  <data name="FilterHidden" xml:space="preserve"><value>&amp;Hidden</value></data>
+  <data name="FilterMore" xml:space="preserve"><value>M&amp;ore</value></data>
+  <data name="FilterMoreMarked" xml:space="preserve"><value>M&amp;ore *</value></data>
+  <data name="FilterMoreActive" xml:space="preserve"><value>Regex or length filter active</value></data>
+  <data name="FilterRegex" xml:space="preserve"><value>Regex:</value></data>
+  <data name="FilterIgnoreCase" xml:space="preserve"><value>Ignore case</value></data>
+  <data name="FilterMinLength" xml:space="preserve"><value>Min length:</value></data>
+  <data name="FilterMaxLength" xml:space="preserve"><value>Max length:</value></data>
+  <data name="FilterErrorName" xml:space="preserve"><value>Filter problem</value></data>
+  <data name="SelectionCountFiltered" xml:space="preserve"><value>{0} (filtered)</value></data>
   <data name="FileListName" xml:space="preserve"><value>Files</value></data>
   <data name="PreviewError" xml:space="preserve"><value>Error: {0}</value></data>
   <data name="RulePanelHeading" xml:space="preserve"><value>{0}. {1}</value></data>

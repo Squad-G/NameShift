@@ -26,8 +26,10 @@ public sealed class MainActionsTests
     private readonly FakeDelay _delay = new FakeDelay();
     private readonly FakeBatchRenamer _renamer = new FakeBatchRenamer();
     private readonly FileListModel _files;
+    private readonly FilterPanelModel _filters = new FilterPanelModel();
     private readonly List<string> _confirmations = new List<string>();
     private PreviewModel _preview = null!;
+    private RulePanelHostModel _host = null!;
     private MainActions _actions = null!;
     private int _changes;
 
@@ -41,8 +43,9 @@ public sealed class MainActionsTests
     private MainActions Build(params FakeRulePanelModel[] panels)
     {
         var host = new RulePanelHostModel(panels);
+        _host = host;
         _preview = new PreviewModel(host, _files, _delay.Delay);
-        _actions = new MainActions(_preview, _files, host, _renamer);
+        _actions = new MainActions(_preview, _files, host, _filters, _renamer);
         _actions.Changed += (_, _) => Interlocked.Increment(ref _changes);
         return _actions;
     }
@@ -550,6 +553,101 @@ public sealed class MainActionsTests
         Assert.Equal(calls, _delay.Calls.Count);
     }
 
+    // NS-70 AC 6: Reset clears the filters too
+
+    [Fact]
+    public async Task FilterSet_EnablesReset()
+    {
+        MainActions actions = await BuildLoaded(FakeRulePanelModel.Add());
+        Assert.False(actions.CanReset);
+        int before = _changes;
+
+        _filters.Mask = "a";
+
+        Assert.True(actions.CanReset);
+        Assert.True(_changes > before);
+    }
+
+    [Fact]
+    public async Task Reset_ClearsRulesAndFilters()
+    {
+        FakeRulePanelModel add = Prefix();
+        MainActions actions = await BuildLoaded(add);
+        _filters.Mask = "a*";
+        _filters.IncludeHidden = true;
+
+        actions.Reset();
+
+        Assert.False(add.Enabled);
+        Assert.True(add.IsDefault);
+        Assert.True(_filters.IsDefault);
+        Assert.False(actions.CanReset);
+    }
+
+    [Fact]
+    public async Task Reset_FiltersOnly_DoesNotTouchRules()
+    {
+        MainActions actions = await BuildLoaded(FakeRulePanelModel.Add());
+        int rulesChanged = 0;
+        _host.RulesChanged += (_, _) => rulesChanged++;
+        _filters.Mask = "a";
+
+        actions.Reset();
+
+        Assert.Equal(0, rulesChanged);
+        Assert.True(_filters.IsDefault);
+    }
+
+    [Fact]
+    public async Task Busy_KeepsResetOff()
+    {
+        MainActions actions = await BuildLoaded(Prefix());
+        _filters.Mask = "*.txt";
+        var gate = new ManualResetEventSlim(false);
+        _renamer.Gate = gate;
+        try
+        {
+            Task<ActionReport?> running = Rename();
+
+            Assert.True(actions.IsBusy);
+            Assert.False(actions.CanReset);
+            actions.Reset();
+            Assert.Equal("*.txt", _filters.Mask);
+
+            gate.Set();
+            await TestWait.Within(running);
+        }
+        finally
+        {
+            gate.Set();
+        }
+    }
+
+    [Fact]
+    public async Task Reset_KeepsFolderSortAndSelection()
+    {
+        MainActions actions = await BuildLoaded(FakeRulePanelModel.Add());
+        using var binding = new FilterBinding(_filters, _files);
+        _files.SortBy(FileListColumn.Size);
+        FileListSort sort = _files.Sort;
+        _files.SetSelection(new[] { 0, 2 });
+        RenameItem kept = _files.Items[0];
+        RenameItem dropped = _files.Items[2];
+        _filters.Mask = kept.Name;
+        Assert.True(await TestWait.Within(binding.LastRun));
+        Assert.Equal(new[] { kept }, _files.Items);
+
+        actions.Reset();
+        Assert.True(await TestWait.Within(binding.LastRun));
+
+        Assert.Equal(FolderA, _files.FolderPath);
+        Assert.Equal(sort, _files.Sort);
+        Assert.Equal(3, _files.Items.Count);
+        Assert.Equal(new[] { _files.Items.ToList().IndexOf(kept) }, _files.SelectedRows);
+        Assert.DoesNotContain(_files.Items.ToList().IndexOf(dropped), _files.SelectedRows);
+        Assert.True(_filters.IsDefault);
+    }
+
     // AC 7
 
     [Fact]
@@ -786,11 +884,12 @@ public sealed class MainActionsTests
         var host = new RulePanelHostModel(Array.Empty<IRulePanelModel>());
         var preview = new PreviewModel(host, _files);
 
-        Assert.Throws<ArgumentNullException>(() => new MainActions(null!, _files, host, _renamer));
-        Assert.Throws<ArgumentNullException>(() => new MainActions(preview, null!, host, _renamer));
-        Assert.Throws<ArgumentNullException>(() => new MainActions(preview, _files, null!, _renamer));
-        Assert.Throws<ArgumentNullException>(() => new MainActions(preview, _files, host, null!));
-        var actions = new MainActions(preview, _files, host, _renamer);
+        Assert.Throws<ArgumentNullException>(() => new MainActions(null!, _files, host, _filters, _renamer));
+        Assert.Throws<ArgumentNullException>(() => new MainActions(preview, null!, host, _filters, _renamer));
+        Assert.Throws<ArgumentNullException>(() => new MainActions(preview, _files, null!, _filters, _renamer));
+        Assert.Equal("filters", Assert.Throws<ArgumentNullException>(() => new MainActions(preview, _files, host, null!, _renamer)).ParamName);
+        Assert.Throws<ArgumentNullException>(() => new MainActions(preview, _files, host, _filters, null!));
+        var actions = new MainActions(preview, _files, host, _filters, _renamer);
         Assert.Throws<ArgumentNullException>(() => { _ = actions.RenameAsync(null!); });
     }
 

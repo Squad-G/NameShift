@@ -61,7 +61,7 @@ public sealed class MainActionsSubfolderDiskTests : IDisposable
         panel.Enabled = true;
         var host = new RulePanelHostModel(new IRulePanelModel[] { panel });
         _preview = new PreviewModel(host, _files, (_, _) => Task.CompletedTask);
-        _actions = new MainActions(_preview, _files, host, new JournaledBatchRenamer(new JournaledRenamer(_history)));
+        _actions = new MainActions(_preview, _files, host, new FilterPanelModel(), new JournaledBatchRenamer(new JournaledRenamer(_history)));
 
         Assert.False(await _files.SetIncludeSubfoldersAsync(true));
         Assert.True(await _files.LoadAsync(_root));

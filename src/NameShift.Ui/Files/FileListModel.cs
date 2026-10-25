@@ -81,6 +81,10 @@ public sealed class FileListModel : IDisposable
     /// <summary>True when <see cref="Filter"/> has every setting at its default.</summary>
     public bool IsFilterDefault => IsDefaultFilter(Filter);
 
+    /// <summary>True when the applied filter is not at default and hides at least one entry (NS-70: the count line
+    /// says "(filtered)"). The default filter alone, which hides hidden and system items, never counts.</summary>
+    public bool IsNarrowedByFilter => !IsFilterDefault && Items.Count < AllItems.Count;
+
     /// <summary>Every entry name, per folder path (ignoring case), hidden and system included, never filtered: for the
     /// duplicate check (NS-6:3), the map the planner takes. Not rebuilt by a filter or a sort. Empty before a load,
     /// while loading and when the listing failed. A snapshot of the folder at load time: a file created later is not

@@ -1481,6 +1481,52 @@ public sealed class FileListModelTests
         Assert.Equal(Strings.FolderEmpty, _model.Message);
     }
 
+    // NS-70 AC 7: the count line says "(filtered)" only for a filter the user set that hides something
+
+    [Fact]
+    public async Task IsNarrowedByFilter_DefaultFilterHidingAHiddenFile_False()
+    {
+        _source.SetEntries(@"C:\A", new[] { "h.txt" }, File("a.txt"));
+
+        await _model.LoadAsync(@"C:\A");
+
+        Assert.True(_model.Items.Count < _model.AllItems.Count);
+        Assert.False(_model.IsNarrowedByFilter);
+    }
+
+    [Fact]
+    public async Task IsNarrowedByFilter_MaskHidingAnEntry_True()
+    {
+        _source.SetEntries(@"C:\A", File("a.txt"), File("b.jpg"));
+        await _model.LoadAsync(@"C:\A");
+
+        Assert.True(await Within(_model.SetFilterAsync(new ItemFilter(mask: "*.txt"))));
+
+        Assert.True(_model.IsNarrowedByFilter);
+    }
+
+    [Fact]
+    public async Task IsNarrowedByFilter_FilterHidingNothing_False()
+    {
+        _source.SetEntries(@"C:\A", File("a.txt"), File("b.txt"));
+        await _model.LoadAsync(@"C:\A");
+
+        Assert.True(await Within(_model.SetFilterAsync(new ItemFilter(mask: "*.txt"))));
+
+        Assert.False(_model.IsFilterDefault);
+        Assert.False(_model.IsNarrowedByFilter);
+    }
+
+    [Fact]
+    public async Task IsNarrowedByFilter_EmptyFolder_False()
+    {
+        await _model.LoadAsync(@"C:\Empty");
+        await Within(_model.SetFilterAsync(new ItemFilter(mask: "*.txt")));
+
+        Assert.False(_model.IsFilterDefault);
+        Assert.False(_model.IsNarrowedByFilter);
+    }
+
     [Fact]
     public async Task Message_NoEntry_FolderEmpty()
     {
