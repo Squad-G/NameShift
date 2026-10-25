@@ -246,6 +246,7 @@
   <data name="RevertCheckCancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="RevertCheckClose" xml:space="preserve"><value>Close</value></data>
   <data name="WaitForAction" xml:space="preserve"><value>Wait until the rename finishes.</value></data>
+  <data name="InstanceBusy" xml:space="preserve"><value>NameShift is busy. Open the folder again when it is done.</value></data>
   <data name="PreviewChanged" xml:space="preserve"><value>The new names changed. Check them and click Rename again.</value></data>
   <data name="RenameDoneOne" xml:space="preserve"><value>1 file renamed.</value></data>
   <data name="RenameDoneMany" xml:space="preserve"><value>{0} files renamed.</value></data>

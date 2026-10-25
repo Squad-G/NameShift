@@ -560,6 +560,9 @@ public static class Strings
 
     public static string WaitForAction => Get(nameof(WaitForAction));
 
+    /// <summary>"NameShift is busy. Open the folder again when it is done." (a second start while a Rename or Revert runs, NS-89).</summary>
+    public static string InstanceBusy => Get(nameof(InstanceBusy));
+
     public static string PreviewChanged => Get(nameof(PreviewChanged));
 
     public static string RenameDoneOne => Get(nameof(RenameDoneOne));

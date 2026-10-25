@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
@@ -10,6 +11,7 @@ using NameShift.App.Dialogs;
 using NameShift.Ui;
 using NameShift.Ui.Actions;
 using NameShift.Ui.Files;
+using NameShift.Ui.Instance;
 using NameShift.Ui.Folders;
 using NameShift.Ui.Presets;
 using NameShift.Ui.Preview;
@@ -54,12 +56,17 @@ internal sealed class MainForm : Form
     private readonly AppSettings _saved;
     private PlacedWindow? _placed;
     private bool _maximizedBeforeMinimize;
+    private readonly InstanceOwnership _ownership;
+    private readonly Stopwatch _clock = Stopwatch.StartNew();
+    private readonly RequestGatherer _gatherer;
+    private readonly Timer _gatherTimer = new Timer();
 
     /// <param name="args">The command line: the first path argument opens at start (NS-47).</param>
     /// <param name="currentDirectory">The directory the program started in, for a relative path argument.</param>
     /// <param name="settingsStore">Where the window facts and the last rules are saved at close (NS-37).</param>
     /// <param name="saved">The window facts read at start (NS-37).</param>
     /// <param name="rules">The last rules read at start, or null (NS-37).</param>
+    /// <param name="ownership">Whether this window owns the single instance: only the owner saves the settings (NS-89).</param>
     public MainForm(
         IFolderSource source,
         IFileListSource fileListSource,
@@ -69,9 +76,13 @@ internal sealed class MainForm : Form
         PresetStore presetStore,
         AppSettingsStore settingsStore,
         AppSettings saved,
-        Preset? rules)
+        Preset? rules,
+        InstanceOwnership ownership)
     {
         _source = source;
+        _ownership = ownership;
+        _gatherer = new RequestGatherer(MonotonicNow);
+        _gatherTimer.Tick += OnGatherTick;
         _settingsStore = settingsStore;
         _saved = saved;
         _startArgument = OpenTarget.FirstPathArgument(args);
@@ -216,6 +227,7 @@ internal sealed class MainForm : Form
             _skippedFolders.Dispose();
             FileListModel.Dispose();
             PanelCollapse.Dispose();
+            _gatherTimer.Dispose(); // stops it: a gathered request never runs on a dead window
         }
 
         base.Dispose(disposing);
@@ -234,8 +246,13 @@ internal sealed class MainForm : Form
 
     protected override void OnFormClosed(FormClosedEventArgs e)
     {
-        // Only reached when the close was not cancelled: a close refused while a Rename or Revert runs saves nothing.
-        SaveSettings();
+        // Only reached when the close was not cancelled: a close refused while a Rename or Revert runs saves nothing. A
+        // fallback window (the first one did not answer, NS-89) never saves, so two windows never overwrite each other.
+        if (_ownership.ShouldSaveSettings)
+        {
+            SaveSettings();
+        }
+
         base.OnFormClosed(e);
     }
 
@@ -619,12 +636,17 @@ internal sealed class MainForm : Form
     }
 
     /// <summary>Opens a path from the command line or a drop. Resolves off the UI thread; never throws.</summary>
-    private async Task OpenAsync(string text)
+    private Task OpenAsync(string text) => OpenAsync(text, _currentDirectory);
+
+    /// <summary>Opens a path joined to the given directory (a request from another start keeps its own, NS-89): a folder
+    /// opens, a file opens its folder with it selected (NS-47). Resolves off the UI thread; never throws.</summary>
+    private async Task OpenAsync(string text, string currentDirectory)
     {
         try
         {
             int ticket = _opens.Begin();
-            OpenRequest request = await Task.Run(() => OpenTarget.Resolve(text, _currentDirectory, _source));
+            IFolderSource source = _source;
+            OpenRequest request = await Task.Run(() => OpenTarget.Resolve(text, currentDirectory, source));
             if (IsDisposed)
             {
                 return;
@@ -672,15 +694,18 @@ internal sealed class MainForm : Form
 
     /// <summary>Opens several paths from the command line: the folder of the first that exists, with those items selected
     /// (NS-88). Resolves off the UI thread; never throws.</summary>
-    private async Task OpenManyAsync(IReadOnlyList<string> texts)
+    private Task OpenManyAsync(IReadOnlyList<string> texts) =>
+        OpenManyAsync(texts.Select(t => new PathArgument(t, _currentDirectory)).ToList());
+
+    /// <summary>Opens several paths, each joined to its own directory (gathered requests of other starts keep theirs,
+    /// NS-89). One disk check per tried path only (NS-88). Resolves off the UI thread; never throws.</summary>
+    private async Task OpenManyAsync(IReadOnlyList<PathArgument> paths)
     {
         try
         {
             int ticket = _opens.Begin();
-            string currentDirectory = _currentDirectory;
             IFolderSource source = _source;
-            MultiOpenRequest many = await Task.Run(() =>
-                OpenTarget.ResolveMany(texts.Select(t => new PathArgument(t, currentDirectory)).ToList(), source));
+            MultiOpenRequest many = await Task.Run(() => OpenTarget.ResolveMany(paths, source));
             if (IsDisposed)
             {
                 return;
@@ -718,6 +743,109 @@ internal sealed class MainForm : Form
         }
         catch (Exception)
         {
+            ShowStatus(Strings.SomethingWentWrong);
+        }
+    }
+
+    /// <summary>
+    /// A request from another start (NS-89), on the UI thread: the window comes to the front. While a Rename or Revert
+    /// runs, the request is dropped with a message (nothing is queued). With no path, nothing else happens; otherwise
+    /// its paths are gathered with the others of a burst and opened together once the burst is over.
+    /// </summary>
+    internal void HandleInstanceRequest(InstanceRequest request)
+    {
+        try
+        {
+            if (IsDisposed)
+            {
+                return;
+            }
+
+            ComeToFront();
+            if (Actions.IsBusy)
+            {
+                ShowStatus(Strings.InstanceBusy);
+                return;
+            }
+
+            if (_gatherer.Add(request))
+            {
+                ScheduleGatherCheck();
+            }
+        }
+        catch (Exception)
+        {
+            // Raised from the message loop: an escaping exception would end the process.
+            ShowStatus(Strings.SomethingWentWrong);
+        }
+    }
+
+    /// <summary>Restores a minimised window (maximised again when it was) and brings it to the front. The other start
+    /// allowed this process the foreground.</summary>
+    private void ComeToFront()
+    {
+        if (WindowState == FormWindowState.Minimized)
+        {
+            WindowState = _maximizedBeforeMinimize ? FormWindowState.Maximized : FormWindowState.Normal;
+        }
+
+        Activate();
+        BringToFront();
+    }
+
+    /// <summary>A clock that never jumps with the system time, for the gathering.</summary>
+    private DateTime MonotonicNow() => DateTime.MinValue + _clock.Elapsed;
+
+    private void ScheduleGatherCheck()
+    {
+        _gatherTimer.Stop();
+        TimeSpan? wait = _gatherer.NextCheck(MonotonicNow());
+        if (wait is not { } w)
+        {
+            return;
+        }
+
+        _gatherTimer.Interval = Math.Max(1, (int)Math.Ceiling(w.TotalMilliseconds));
+        _gatherTimer.Start();
+    }
+
+    private void OnGatherTick(object? sender, EventArgs e)
+    {
+        try
+        {
+            _gatherTimer.Stop();
+            if (IsDisposed)
+            {
+                return;
+            }
+
+            if (!_gatherer.IsDue(MonotonicNow()))
+            {
+                ScheduleGatherCheck();
+                return;
+            }
+
+            IReadOnlyList<PathArgument> paths = _gatherer.Take();
+            if (Actions.IsBusy)
+            {
+                // A Rename started during the burst: dropped, as a request that came while busy.
+                ShowStatus(Strings.InstanceBusy);
+                return;
+            }
+
+            if (paths.Count >= 2)
+            {
+                _ = OpenManyAsync(paths);
+            }
+            else if (paths.Count == 1)
+            {
+                // One path goes through NS-47's resolve, where a folder opens (NS-88 would select it as an item).
+                _ = OpenAsync(paths[0].Text, paths[0].CurrentDirectory);
+            }
+        }
+        catch (Exception)
+        {
+            // A timer tick runs from the message loop: an escaping exception would end the process.
             ShowStatus(Strings.SomethingWentWrong);
         }
     }
