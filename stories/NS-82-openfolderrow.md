@@ -29,7 +29,7 @@ point: `FolderNavigator` (`NavigateToTypedPathAsync`, `SelectFromTree`, its vers
    check off the UI thread and the `Change` step with `NavigateToTypedPathAsync`, so a later navigation supersedes it.
    Tests (fake `IFolderSource`) that would fail without this story: a folder named `100%` opens that folder; a folder
    named `%TEMP%` opens `...\%TEMP%` and not the expansion (the fake records the path it was asked about); a name with
-   a leading or trailing space or a quote is passed unchanged; exists gives `Navigated` and one `FolderChanged`; the shown
+   a leading space or a quote is passed unchanged (a trailing space is not tested: `GetFullPath` on net48 strips it); exists gives `Navigated` and one `FolderChanged`; the shown
    folder gives `Unchanged` and no second `FolderChanged`; a newer navigation started meanwhile gives `Superseded`; a path
    `Path.GetFullPath` rejects (too long on net48) gives `Invalid`, never an exception. The existing tests of the typed
    path stay as they are and are not repeated.

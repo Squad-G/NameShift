@@ -39,7 +39,8 @@ Model (`NameShift.Ui`, a `PanelCollapseModel` over the `RulePanelHostModel`; the
    scroll is needed. A panel's height is its title-only height when collapsed, its open height otherwise; a row is as
    tall as its tallest panel; the total is the sum of the row heights plus margins. The result is never below `minimum`
    and never above `cap` (the window area minus the file list's minimum, 160 logical pixels); above the cap the height
-   is the cap and the answer is "scroll". Tests: all collapsed (one or a few short rows); one open; two open in one row
+   is the cap and the answer is "scroll". The cap applies to the total including the horizontal scroll bar height when
+   one shows. Tests: all collapsed (one or a few short rows); one open; two open in one row
    (the tallest wins); two open in separate rows (heights add); collapsing the tallest shrinks its row to the next one;
    a narrower width wraps more rows and makes the total taller; a panel wider than the width; the cap and the scroll
    flag; the minimum; zero panels.
@@ -63,7 +64,7 @@ Window (App; by hand, written in the PR, with a screenshot of each state):
    vertical scroll bar when needed. It is not changed to a single row. Each frame keeps the width it has when open, also
    when collapsed. Rule (frames are `AutoSize`, so they would shrink when the content is hidden): before the content is
    hidden the frame measures its open width and sets `MinimumSize.Width` to it; that width is measured again after a
-   DPI or font change while open, and kept (not re-measured) while collapsed. Expanding clears nothing, the content
+   DPI or font change while open, and kept (not re-measured) while collapsed. Expanding keeps `MinimumSize.Width` as it is, and the content
    returns at that width. Checked by hand: toggle every panel and the panels to its right do not move sideways.
 7. A collapsed panel shows only its title line: the enable check box with the number and name, the Reset button (enabled
    by `CanReset` as today), and the arrow. The content is hidden. The active look (accent border, bold title) is kept
@@ -81,7 +82,7 @@ Window (App; by hand, written in the PR, with a screenshot of each state):
    vertically instead of clipping (the file list keeps its 160 px minimum). The splitter between the list and the bottom
    area is no longer dragged by hand (`IsSplitterFixed`), since the height now follows the content. The action buttons
    (`ButtonsHost`) still fit in the bottom area when all panels are collapsed (the minimum of criterion 4 is their
-   preferred height). `_rightSplit.Panel2MinSize` (120 logical pixels in `MainForm.OnLoad` today) is removed, so it does
+   preferred height). `_rightSplit.Panel2MinSize` (120 logical pixels in `MainForm.OnLoad` today) is no longer set (left at its default), so it does
    not hold the area open when everything is collapsed; `Panel1MinSize` (160) stays and gives the cap. The splitter
    distance is set in code only (with `IsSplitterFixed`).
 10. Guard: whatever collapses a panel (the arrow, or code later), focus is never left in a hidden control: if focus is
