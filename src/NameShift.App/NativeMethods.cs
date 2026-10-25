@@ -63,4 +63,9 @@ internal static class NativeMethods
     [DllImport("user32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     internal static extern bool AllowSetForegroundWindow(uint processId);
+
+    /// <summary>False while a modal dialog (a form or a message box) has disabled the window.</summary>
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static extern bool IsWindowEnabled(IntPtr window);
 }

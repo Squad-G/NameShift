@@ -749,8 +749,9 @@ internal sealed class MainForm : Form
 
     /// <summary>
     /// A request from another start (NS-89), on the UI thread: the window comes to the front. While a Rename or Revert
-    /// runs, the request is dropped with a message (nothing is queued). With no path, nothing else happens; otherwise
-    /// its paths are gathered with the others of a burst and opened together once the burst is over.
+    /// runs or a dialog is open, the request is dropped with a message (nothing is queued). With no path, nothing else
+    /// happens; otherwise its paths are gathered with the others of a burst and opened together once the burst is over.
+    /// The decisions are <see cref="RequestPlan"/>'s.
     /// </summary>
     internal void HandleInstanceRequest(InstanceRequest request)
     {
@@ -762,15 +763,15 @@ internal sealed class MainForm : Form
             }
 
             ComeToFront();
-            if (Actions.IsBusy)
+            switch (RequestPlan.OnArrival(request, Actions.IsBusy, IsDialogOpen()))
             {
-                ShowStatus(Strings.InstanceBusy);
-                return;
-            }
-
-            if (_gatherer.Add(request))
-            {
-                ScheduleGatherCheck();
+                case ArrivalAction.Busy:
+                    ShowStatus(Strings.InstanceBusy);
+                    break;
+                case ArrivalAction.Gather:
+                    _gatherer.Add(request);
+                    ScheduleGatherCheck();
+                    break;
             }
         }
         catch (Exception)
@@ -791,6 +792,26 @@ internal sealed class MainForm : Form
 
         Activate();
         BringToFront();
+    }
+
+    /// <summary>True while a dialog of this window is open: a modal form (the Revert check, a preset name, a question),
+    /// or any window that disabled this one, such as a message box.</summary>
+    private bool IsDialogOpen()
+    {
+        if (IsHandleCreated && !NativeMethods.IsWindowEnabled(Handle))
+        {
+            return true;
+        }
+
+        foreach (Form form in Application.OpenForms)
+        {
+            if (form != this && form.Modal)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>A clock that never jumps with the system time, for the gathering.</summary>
@@ -825,22 +846,21 @@ internal sealed class MainForm : Form
                 return;
             }
 
+            // The timer also ticks inside a dialog's message loop: a Rename started or a dialog opened during the burst
+            // drops the paths, as a request that came while busy.
             IReadOnlyList<PathArgument> paths = _gatherer.Take();
-            if (Actions.IsBusy)
+            switch (RequestPlan.OnDue(paths.Count, Actions.IsBusy, IsDialogOpen()))
             {
-                // A Rename started during the burst: dropped, as a request that came while busy.
-                ShowStatus(Strings.InstanceBusy);
-                return;
-            }
-
-            if (paths.Count >= 2)
-            {
-                _ = OpenManyAsync(paths);
-            }
-            else if (paths.Count == 1)
-            {
-                // One path goes through NS-47's resolve, where a folder opens (NS-88 would select it as an item).
-                _ = OpenAsync(paths[0].Text, paths[0].CurrentDirectory);
+                case DueAction.Busy:
+                    ShowStatus(Strings.InstanceBusy);
+                    break;
+                case DueAction.OpenOne:
+                    // NS-47's resolve, where a folder opens (NS-88 would select it as an item).
+                    _ = OpenAsync(paths[0].Text, paths[0].CurrentDirectory);
+                    break;
+                case DueAction.OpenMany:
+                    _ = OpenManyAsync(paths);
+                    break;
             }
         }
         catch (Exception)

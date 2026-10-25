@@ -31,6 +31,9 @@ internal sealed class SingleInstance : IDisposable
     private static readonly TimeSpan ReplyWrite = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan StopWait = TimeSpan.FromSeconds(1);
     private const int RetryMilliseconds = 100;
+    private const int NextAttempts = 3;
+    private static readonly TimeSpan RetryPause = TimeSpan.FromMilliseconds(100);
+    private static readonly TimeSpan RecreatePauseMax = TimeSpan.FromSeconds(2);
 
     private readonly object _gate = new object();
     private readonly SecurityIdentifier? _user;
@@ -415,7 +418,7 @@ internal sealed class SingleInstance : IDisposable
                 // A bad, slow or vanished client is dropped; the loop goes on.
             }
 
-            NamedPipeServerStream? next = token.IsCancellationRequested ? null : CreateServer(first: false);
+            NamedPipeServerStream? next = await CreateNextAsync(token).ConfigureAwait(false);
             lock (_gate)
             {
                 if (_pipe == pipe)
@@ -425,7 +428,76 @@ internal sealed class SingleInstance : IDisposable
             }
 
             pipe.Dispose(); // also ends a read or a drain still pending
-            pipe = next;
+            pipe = next ?? await RecreateAsync(token).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>The next instance, created while the current one is open: a few quick tries. Null when they all fail
+    /// (for example, out of handles) or on stop.</summary>
+    private async Task<NamedPipeServerStream?> CreateNextAsync(CancellationToken token)
+    {
+        for (int attempt = 0; attempt < NextAttempts; attempt++)
+        {
+            if (token.IsCancellationRequested)
+            {
+                return null;
+            }
+
+            NamedPipeServerStream? next = CreateServer(first: false);
+            if (next != null)
+            {
+                return next;
+            }
+
+            if (!await PauseAsync(RetryPause, token).ConfigureAwait(false))
+            {
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// When no next instance could be made, the current one is closed and the pipe is created again first-instance-only,
+    /// retried with a growing pause (up to <see cref="RecreatePauseMax"/>) for as long as the window lives, so serving
+    /// never ends silently. The window keeps the mutex, so it stays the only one that saves the settings (AC 11); a start
+    /// during the gap retries for 5 s and then opens a window that is not the owner. The first-instance flag still
+    /// refuses a name another process took meanwhile. Null only on stop.
+    /// </summary>
+    private async Task<NamedPipeServerStream?> RecreateAsync(CancellationToken token)
+    {
+        TimeSpan pause = RetryPause;
+        while (!token.IsCancellationRequested)
+        {
+            NamedPipeServerStream? pipe = CreateServer(first: true);
+            if (pipe != null)
+            {
+                return pipe;
+            }
+
+            if (!await PauseAsync(pause, token).ConfigureAwait(false))
+            {
+                return null;
+            }
+
+            pause = TimeSpan.FromTicks(Math.Min(pause.Ticks * 2, RecreatePauseMax.Ticks));
+        }
+
+        return null;
+    }
+
+    /// <summary>Waits; false when stopped meanwhile.</summary>
+    private static async Task<bool> PauseAsync(TimeSpan pause, CancellationToken token)
+    {
+        try
+        {
+            await Task.Delay(pause, token).ConfigureAwait(false);
+            return true;
+        }
+        catch (OperationCanceledException)
+        {
+            return false;
         }
     }
 
@@ -556,27 +628,50 @@ internal sealed class SingleInstance : IDisposable
     /// <summary>Exactly one of the window (accept) and the pipe thread (expire, after the wait) wins.</summary>
     private sealed class Handoff
     {
+        // A lock and Monitor.Wait/Pulse: nothing to dispose, and no event the window's thread could set after the pipe
+        // thread stopped waiting.
         private const int Pending = 0;
         private const int Accepted = 1;
         private const int Expired = 2;
-        private readonly ManualResetEventSlim _accepted = new ManualResetEventSlim(false);
+        private readonly object _lock = new object();
         private int _state;
 
         public bool TryAccept()
         {
-            if (Interlocked.CompareExchange(ref _state, Accepted, Pending) != Pending)
+            lock (_lock)
             {
-                return false;
-            }
+                if (_state != Pending)
+                {
+                    return false;
+                }
 
-            _accepted.Set();
-            return true;
+                _state = Accepted;
+                Monitor.PulseAll(_lock);
+                return true;
+            }
         }
 
         public bool WaitAccepted(TimeSpan within)
         {
-            _accepted.Wait(within);
-            return Interlocked.CompareExchange(ref _state, Expired, Pending) == Accepted;
+            var watch = Stopwatch.StartNew();
+            lock (_lock)
+            {
+                while (_state == Pending)
+                {
+                    TimeSpan left = within - watch.Elapsed;
+                    if (left <= TimeSpan.Zero || !Monitor.Wait(_lock, left))
+                    {
+                        break;
+                    }
+                }
+
+                if (_state == Pending)
+                {
+                    _state = Expired;
+                }
+
+                return _state == Accepted;
+            }
         }
     }
 }
