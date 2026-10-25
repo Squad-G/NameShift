@@ -15,7 +15,19 @@
   <data name="EmptyFind" xml:space="preserve"><value>The text to find in --replace cannot be empty.</value></data>
   <data name="TwoFolders" xml:space="preserve"><value>Give one folder only: "{0}" and "{1}" were both given.</value></data>
   <data name="NoFolder" xml:space="preserve"><value>Give the folder to rename in.</value></data>
-  <data name="NoRule" xml:space="preserve"><value>Give at least one rule: --replace or --case.</value></data>
+  <data name="NoRule" xml:space="preserve"><value>Give at least one rule option, such as --replace or --case.</value></data>
+  <data name="EmptyPrefix" xml:space="preserve"><value>The text of --prefix cannot be empty.</value></data>
+  <data name="EmptySuffix" xml:space="preserve"><value>The text of --suffix cannot be empty.</value></data>
+  <data name="EmptyInsert" xml:space="preserve"><value>The text of --insert cannot be empty.</value></data>
+  <data name="InsertNeedsValues" xml:space="preserve"><value>--insert needs two values: the text and the position.</value></data>
+  <data name="BadInsertPosition" xml:space="preserve"><value>"{0}" is not a position of --insert: use a whole number from 1.</value></data>
+  <data name="FromEndNeedsInsert" xml:space="preserve"><value>--from-end needs --insert.</value></data>
+  <data name="OptionNeedsValue" xml:space="preserve"><value>{0} needs a value.</value></data>
+  <data name="OptionError" xml:space="preserve"><value>{0}: {1}</value></data>
+  <data name="BadChoice" xml:space="preserve"><value>"{0}" is not a value of {1}: use {2}.</value></data>
+  <data name="NumberModeValues" xml:space="preserve"><value>prefix, suffix or insert</value></data>
+  <data name="NumberSystemValues" xml:space="preserve"><value>decimal, hex, letters or roman</value></data>
+  <data name="NumberCaseValues" xml:space="preserve"><value>upper or lower</value></data>
   <data name="QuoteInFolder" xml:space="preserve"><value>The folder {0} contains a quote: remove the backslash before the closing quote, as in "D:\Pics" instead of "D:\Pics\".</value></data>
   <data name="InvalidFolder" xml:space="preserve"><value>"{0}" is not a valid folder path.</value></data>
   <data name="FolderIsFile" xml:space="preserve"><value>{0} is a file, not a folder.</value></data>
@@ -59,13 +71,29 @@ Examples:
   NameShiftCmd undo --dry-run
   NameShiftCmd apply --help</value></data>
   <data name="HelpApply" xml:space="preserve"><value>Options of apply:
-  --replace &lt;find&gt; &lt;with&gt;  Replace &lt;find&gt; with &lt;with&gt; in each file name.
-  --case &lt;mode&gt;            Change the case: lower, upper, title or sentence.
-  --dry-run                Only list the new names; rename nothing.
-  --quiet, -q              Print nothing on success; errors are still shown.
-  --verbose, -v            Also list each renamed file and each unchanged file.
-  --help, -h, /?           Show this help.
-Give at least one of --replace and --case. Options can come in any order.
+  --replace &lt;find&gt; &lt;with&gt;    Replace &lt;find&gt; with &lt;with&gt; in each file name.
+  --case &lt;mode&gt;              Change the case: lower, upper, title or sentence.
+  --prefix &lt;text&gt;            Add &lt;text&gt; before each name.
+  --suffix &lt;text&gt;            Add &lt;text&gt; after each name, before the extension.
+  --insert &lt;text&gt; &lt;pos&gt;      Insert &lt;text&gt; at character &lt;pos&gt; (from 1).
+  --from-end                 Count the --insert position from the end.
+  --word-space               Put a space between joined words (camelCase).
+  --number                   Number the files: suffix, from 1, step 1.
+  --number-mode prefix|suffix|insert
+                             Where the number goes.
+  --number-start &lt;n&gt;         The first number, written in the chosen system.
+  --number-step &lt;n&gt;          Add &lt;n&gt; to the number for each next file.
+  --number-pad &lt;n&gt;           The minimum number of digits (decimal, hex).
+  --number-separator &lt;text&gt;  The text between the name and the number.
+  --number-position &lt;n&gt;      The character the number goes at (insert mode).
+  --number-system decimal|hex|letters|roman
+                             The kind of numbers written.
+  --number-case upper|lower  Capital or small letters (not for decimal).
+  --dry-run                  Only list the new names; rename nothing.
+  --quiet, -q                Print nothing on success; errors are still shown.
+  --verbose, -v              Also list the renamed and the unchanged files.
+  --help, -h, /?             Show this help.
+Give at least one rule option. Options can come in any order.
 
 Example of apply:
   NameShiftCmd apply "D:\Pics" --replace IMG Trip --case lower --dry-run</value></data>

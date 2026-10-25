@@ -5,11 +5,13 @@ using NameShift.Ui.Rules;
 
 namespace NameShift.Cmd;
 
-/// <summary>The options of one <c>apply</c> command line, as parsed. Immutable.</summary>
+/// <summary>The options of one <c>apply</c> command line, as parsed. Immutable. Replace and Case keep their own
+/// properties; every later rule panel goes through <see cref="Panels"/> and never gets a constructor parameter of its
+/// own.</summary>
 internal sealed class ApplyOptions
 {
     public ApplyOptions(string folderText, string? find, string? with, CaseMode? caseMode, bool dryRun,
-        OutputLevel output = OutputLevel.Normal)
+        OutputLevel output = OutputLevel.Normal, ApplyPanels? panels = null)
     {
         FolderText = folderText ?? throw new ArgumentNullException(nameof(folderText));
         if ((find == null) != (with == null))
@@ -27,6 +29,7 @@ internal sealed class ApplyOptions
         Case = caseMode;
         DryRun = dryRun;
         Output = output;
+        Panels = panels ?? ApplyPanels.None;
     }
 
     /// <summary>The folder, as typed.</summary>
@@ -46,6 +49,9 @@ internal sealed class ApplyOptions
 
     /// <summary>What a successful run writes: normal, nothing (--quiet) or each file too (--verbose).</summary>
     public OutputLevel Output { get; }
+
+    /// <summary>The Add and Numbering panels the command line filled (null entries when no option of a panel was given).</summary>
+    public ApplyPanels Panels { get; }
 
     /// <summary>The rules, built by the window's own panel models, so the defaults are the window's by construction
     /// (Replace: ignore case, leave the extension; Case: no exceptions). The pipeline sorts them by stage.</summary>
@@ -67,6 +73,15 @@ internal sealed class ApplyOptions
             if (caseRule != null)
             {
                 rules.Add(caseRule);
+            }
+        }
+
+        foreach (IRulePanelModel model in Panels.Given)
+        {
+            IRenameRule? rule = model.BuildRule();
+            if (rule != null)
+            {
+                rules.Add(rule);
             }
         }
 

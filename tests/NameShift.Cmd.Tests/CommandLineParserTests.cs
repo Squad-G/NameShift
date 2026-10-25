@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using NameShift.Core;
+using NameShift.Ui.Rules;
 using Xunit;
 
 namespace NameShift.Cmd.Tests;
@@ -226,6 +227,31 @@ public sealed class CommandLineParserTests
         new object?[] { @"apply|D:\P|--replace|IMG|-v", "ReplaceNeedsValues", null, null },
         new object?[] { @"apply|D:\P|--replace|-q|x", "ReplaceNeedsValues", null, null },
         new object?[] { @"apply|D:\P|--case|-q", "BadCase", "-q", null },
+        new object?[] { @"apply|D:\P|--prefix|", "EmptyPrefix", null, null },
+        new object?[] { @"apply|D:\P|--suffix|", "EmptySuffix", null, null },
+        new object?[] { @"apply|D:\P|--insert||2", "EmptyInsert", null, null },
+        new object?[] { @"apply|D:\P|--insert|X", "InsertNeedsValues", null, null },
+        new object?[] { @"apply|D:\P|--insert|X|--dry-run", "InsertNeedsValues", null, null },
+        new object?[] { @"apply|D:\P|--insert|X|0", "BadInsertPosition", "0", null },
+        new object?[] { @"apply|D:\P|--insert|X|a", "BadInsertPosition", "a", null },
+        new object?[] { @"apply|D:\P|--from-end|--case|lower", "FromEndNeedsInsert", null, null },
+        new object?[] { @"apply|D:\P|--case|lower|--prefix", "OptionNeedsValue", "--prefix", null },
+        new object?[] { @"apply|D:\P|--prefix|--dry-run", "OptionNeedsValue", "--prefix", null },
+        new object?[] { @"apply|D:\P|--number-start|-q", "OptionNeedsValue", "--number-start", null },
+        new object?[] { @"apply|D:\P|--prefix|a|--prefix|b", "RepeatedOption", "--prefix", null },
+        new object?[] { @"apply|D:\P|--suffix|a|--suffix|b", "RepeatedOption", "--suffix", null },
+        new object?[] { @"apply|D:\P|--insert|X|2|--insert|Y|3", "RepeatedOption", "--insert", null },
+        new object?[] { @"apply|D:\P|--from-end|--from-end", "RepeatedOption", "--from-end", null },
+        new object?[] { @"apply|D:\P|--word-space|--word-space", "RepeatedOption", "--word-space", null },
+        new object?[] { @"apply|D:\P|--number|--number", "RepeatedOption", "--number", null },
+        new object?[] { @"apply|D:\P|--number-mode|prefix|--number-mode|suffix", "RepeatedOption", "--number-mode", null },
+        new object?[] { @"apply|D:\P|--number-start|1|--number-start|2", "RepeatedOption", "--number-start", null },
+        new object?[] { @"apply|D:\P|--number-step|1|--number-step|2", "RepeatedOption", "--number-step", null },
+        new object?[] { @"apply|D:\P|--number-pad|1|--number-pad|2", "RepeatedOption", "--number-pad", null },
+        new object?[] { @"apply|D:\P|--number-separator|-|--number-separator|.", "RepeatedOption", "--number-separator", null },
+        new object?[] { @"apply|D:\P|--number-position|1|--number-position|2", "RepeatedOption", "--number-position", null },
+        new object?[] { @"apply|D:\P|--number-system|hex|--number-system|roman", "RepeatedOption", "--number-system", null },
+        new object?[] { @"apply|D:\P|--number-case|upper|--number-case|lower", "RepeatedOption", "--number-case", null },
         new object?[] { @"undo|C:\x", "UndoOnlyDryRun", null, null },
         new object?[] { @"undo|--case|lower", "UndoOnlyDryRun", null, null },
         new object?[] { @"undo|--replace|a|b", "UndoOnlyDryRun", null, null },
@@ -266,7 +292,9 @@ public sealed class CommandLineParserTests
             new[]
             {
                 "apply", "undo", "help", "--help", "-h", "/?", "--version", "--replace", "--case", "--dry-run",
-                "--quiet", "-q", "--verbose", "-v",
+                "--quiet", "-q", "--verbose", "-v", "--prefix", "--suffix", "--insert", "--from-end", "--word-space",
+                "--number", "--number-mode", "--number-start", "--number-step", "--number-pad", "--number-separator",
+                "--number-position", "--number-system", "--number-case",
             },
             CommandLineParser.Words);
         Assert.Equal(CommandLineParser.Words, CommandLineParser.GlobalWords.Concat(CommandLineParser.ApplyOptionWords));
@@ -336,6 +364,229 @@ public sealed class CommandLineParserTests
         Assert.EndsWith(Strings.HelpPointer, error, StringComparison.Ordinal);
         Assert.DoesNotContain("\n", error, StringComparison.Ordinal);
         Assert.DoesNotContain("\r", error, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AddOptions_FillTheAddModel()
+    {
+        ApplyOptions options = Applied(Args(@"apply|D:\P|--prefix|p_|--suffix|_s|--insert|X|3|--from-end|--word-space"));
+
+        AddPanelModel add = Assert.IsType<AddPanelModel>(options.Panels.Add);
+        Assert.Equal("p_", add.Prefix);
+        Assert.Equal("_s", add.Suffix);
+        Assert.Equal("X", add.Insert);
+        Assert.Equal("3", add.InsertPositionText);
+        Assert.True(add.InsertFromEnd);
+        Assert.True(add.WordSpace);
+        Assert.True(add.Enabled);
+        Assert.Null(options.Panels.Numbering);
+        Assert.Same(add, Assert.Single(options.Panels.Given));
+    }
+
+    [Fact]
+    public void Number_Alone_Defaults()
+    {
+        ApplyOptions options = Applied(Args(@"apply|D:\P|--number"));
+
+        NumberingPanelModel numbering = Assert.IsType<NumberingPanelModel>(options.Panels.Numbering);
+        Assert.True(numbering.IsDefault);
+        Assert.True(numbering.Enabled);
+        Assert.Null(options.Panels.Add);
+        Assert.Same(numbering, Assert.Single(options.Panels.Given));
+        Assert.IsType<NumberingRule>(Assert.Single(options.BuildRules()));
+    }
+
+    [Fact]
+    public void NoPanelOption_LeavesThePanelsNull()
+    {
+        ApplyOptions options = Applied(Args(@"apply|D:\P|--case|lower"));
+
+        Assert.Null(options.Panels.Add);
+        Assert.Null(options.Panels.Numbering);
+        Assert.Empty(options.Panels.Given);
+    }
+
+    [Fact]
+    public void NumberOptions_FillTheModel()
+    {
+        ApplyOptions options = Applied(Args(
+            @"apply|D:\P|--number-mode|insert|--number-start|5|--number-step|3|--number-pad|4|--number-separator|-"
+            + "|--number-position|2|--number-system|hex|--number-case|lower"));
+
+        NumberingPanelModel numbering = Assert.IsType<NumberingPanelModel>(options.Panels.Numbering);
+        Assert.Equal(NumberingMode.Insert, numbering.Mode);
+        Assert.Equal("5", numbering.StartText);
+        Assert.Equal("3", numbering.StepText);
+        Assert.Equal("4", numbering.PadText);
+        Assert.Equal("-", numbering.Separator);
+        Assert.Equal("2", numbering.InsertPositionText);
+        Assert.Equal(NumeralSystem.Hexadecimal, numbering.Numerals);
+        Assert.False(numbering.UpperCase);
+        Assert.True(numbering.Enabled);
+        Assert.False(numbering.RestartPerFolder);
+    }
+
+    [Theory]
+    [InlineData(@"apply|D:\P|--number-case|lower|--number-system|hex", false, 1)]
+    [InlineData(@"apply|D:\P|--number-start|V|--number-system|roman", true, 5)]
+    [InlineData(@"apply|D:\P|--number-system|hex|--number-start|10", true, 16)]
+    [InlineData(@"apply|D:\P|--number-case|lower|--number-system|roman", false, 1)]
+    public void Numerals_SetBeforeCaseAndStart(string joined, bool upperCase, int start)
+    {
+        NumberingPanelModel numbering = Applied(Args(joined)).Panels.Numbering!;
+
+        Assert.Equal(upperCase, numbering.UpperCase);
+        Assert.Equal(start, numbering.Start);
+    }
+
+    [Theory]
+    [InlineData(@"apply|D:\P|--NUMBER-SYSTEM|ROMAN", NumberingMode.Suffix, NumeralSystem.Roman)]
+    [InlineData(@"apply|D:\P|--Number-Mode|Prefix", NumberingMode.Prefix, NumeralSystem.Decimal)]
+    [InlineData(@"apply|D:\P|--NUMBER|--Number-Case|LOWER|--number-system|Letters", NumberingMode.Suffix, NumeralSystem.Letters)]
+    public void Words_IgnoreCase(string joined, NumberingMode mode, NumeralSystem system)
+    {
+        NumberingPanelModel numbering = Applied(Args(joined)).Panels.Numbering!;
+
+        Assert.Equal(mode, numbering.Mode);
+        Assert.Equal(system, numbering.Numerals);
+    }
+
+    [Fact]
+    public void Words_UnderTurkishCulture()
+    {
+        CultureInfo culture = CultureInfo.CurrentCulture;
+        CultureInfo uiCulture = CultureInfo.CurrentUICulture;
+        try
+        {
+            CultureInfo turkish = CultureInfo.GetCultureInfo("tr-TR");
+            CultureInfo.CurrentCulture = turkish;
+            CultureInfo.CurrentUICulture = turkish;
+
+            NumberingPanelModel numbering = Applied(Args(@"apply|D:\P|--number-system|hex|--number-case|lower")).Panels.Numbering!;
+            NumberingPanelModel shout = Applied(Args(@"apply|D:\P|--NUMBER-SYSTEM|HEX|--NUMBER-CASE|LOWER")).Panels.Numbering!;
+
+            Assert.Equal(NumeralSystem.Hexadecimal, numbering.Numerals);
+            Assert.False(numbering.UpperCase);
+            Assert.Equal(NumeralSystem.Hexadecimal, shout.Numerals);
+            Assert.False(shout.UpperCase);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = culture;
+            CultureInfo.CurrentUICulture = uiCulture;
+        }
+    }
+
+    [Fact]
+    public void DashValues_Allowed()
+    {
+        ApplyOptions options = Applied(Args(@"apply|D:\P|--number-separator|-|--prefix|-x"));
+
+        Assert.Equal("-", options.Panels.Numbering!.Separator);
+        Assert.Equal("-x", options.Panels.Add!.Prefix);
+    }
+
+    [Theory]
+    [InlineData("middle", "--number-mode", "NumberModeValues")]
+    [InlineData("octal", "--number-system", "NumberSystemValues")]
+    [InlineData("hexadecimal", "--number-system", "NumberSystemValues")]
+    [InlineData("title", "--number-case", "NumberCaseValues")]
+    [InlineData("", "--number-mode", "NumberModeValues")]
+    public void BadChoice_NamesTheValueTheOptionAndTheList(string value, string option, string listKey)
+    {
+        ParsedCommand command = CommandLineParser.Parse(new[] { "apply", @"D:\P", option, value });
+
+        Assert.Equal(CommandKind.Error, command.Kind);
+        Assert.Equal(Text("BadChoice", value, option, Text(listKey)) + " " + Strings.Usage + " " + Strings.HelpPointer, command.Error);
+    }
+
+    /// <summary>Each row: the options, the option named in the error, how the same model is set by hand, and which of its
+    /// error properties is the text. The expected text is the model's own, read in the same culture.</summary>
+    public static IEnumerable<object[]> ModelErrorCases() => new[]
+    {
+        new object[] { "--number-start|x", "--number-start", (Action<NumberingPanelModel>)(m => m.StartText = "x"), (Func<NumberingPanelModel, string>)(m => m.StartError) },
+        new object[] { "--number-step|x", "--number-step", (Action<NumberingPanelModel>)(m => m.StepText = "x"), (Func<NumberingPanelModel, string>)(m => m.StepError) },
+        new object[] { "--number-pad|256", "--number-pad", (Action<NumberingPanelModel>)(m => m.PadText = "256"), (Func<NumberingPanelModel, string>)(m => m.PadError) },
+        new object[]
+        {
+            "--number-mode|insert|--number-position|0", "--number-position",
+            (Action<NumberingPanelModel>)(m => { m.Mode = NumberingMode.Insert; m.InsertPositionText = "0"; }),
+            (Func<NumberingPanelModel, string>)(m => m.InsertPositionError),
+        },
+        new object[]
+        {
+            "--number-mode|insert", "--number-position",
+            (Action<NumberingPanelModel>)(m => m.Mode = NumberingMode.Insert),
+            (Func<NumberingPanelModel, string>)(m => m.InsertPositionError),
+        },
+        new object[]
+        {
+            "--number-system|roman|--number-start|0", "--number-start",
+            (Action<NumberingPanelModel>)(m => { m.Numerals = NumeralSystem.Roman; m.StartText = "0"; }),
+            (Func<NumberingPanelModel, string>)(m => m.StartError),
+        },
+    };
+
+    [Theory]
+    [MemberData(nameof(ModelErrorCases))]
+    public void ModelErrors_NameTheOption(string options, string option, Action<NumberingPanelModel> setup, Func<NumberingPanelModel, string> error)
+    {
+        var model = new NumberingPanelModel();
+        setup(model);
+        string modelText = error(model);
+        Assert.NotEmpty(modelText);
+
+        ParsedCommand command = CommandLineParser.Parse(Args(@"apply|D:\P|" + options));
+
+        Assert.Equal(CommandKind.Error, command.Kind);
+        Assert.Equal(Text("OptionError", option, modelText) + " " + Strings.Usage + " " + Strings.HelpPointer, command.Error);
+    }
+
+    [Theory]
+    [InlineData(@"apply|D:\P|--number-position|0")]
+    [InlineData(@"apply|D:\P|--number-pad|256|--number-system|roman")]
+    [InlineData(@"apply|D:\P|--number-pad|256|--number-system|letters")]
+    [InlineData(@"apply|D:\P|--number-case|lower")]
+    public void DisabledFields_Ignored(string joined)
+    {
+        NumberingPanelModel numbering = Applied(Args(joined)).Panels.Numbering!;
+
+        Assert.NotNull(numbering.BuildRule());
+    }
+
+    [Theory]
+    [InlineData(@"apply|D:\P|--prefix|p")]
+    [InlineData(@"apply|D:\P|--number")]
+    [InlineData(@"apply|D:\P|--word-space")]
+    [InlineData(@"apply|D:\P|--number-step|2")]
+    public void NewOptionAlone_SatisfiesRuleCheck(string joined)
+    {
+        ParsedCommand command = CommandLineParser.Parse(Args(joined));
+
+        Assert.Equal(CommandKind.Apply, command.Kind);
+    }
+
+    [Fact]
+    public void BuildRules_ReadsThePanels()
+    {
+        ApplyOptions options = Applied(Args(@"apply|D:\P|--replace|x|y|--prefix|p_|--number|--case|upper"));
+
+        IRenameRule[] rules = options.BuildRules().ToArray();
+
+        Assert.Equal(4, rules.Length);
+        Assert.Single(rules, rule => rule is ReplaceRule);
+        Assert.Single(rules, rule => rule is CaseRule);
+        Assert.Single(rules, rule => rule is AddRule);
+        Assert.Single(rules, rule => rule is NumberingRule);
+    }
+
+    [Fact]
+    public void ApplyOptions_NoPanels_IsNone()
+    {
+        var options = new ApplyOptions(@"D:\P", null, null, CaseMode.Lower, false);
+
+        Assert.Same(ApplyPanels.None, options.Panels);
+        Assert.Empty(options.Panels.Given);
     }
 
     [Fact]
