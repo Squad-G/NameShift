@@ -1,6 +1,6 @@
 # NS-45: Safer Revert: detect changed files
 
-Status: Ready
+Status: In Progress
 Depends on: NS-90, NS-15, NS-42
 Area: app
 
@@ -54,3 +54,6 @@ every text in `Strings`. Names are indicative.
 - 2026-10-18: created (po).
 - 2026-10-25: checked against dev 57d695b: the journal keeps no size or date, so the check is split into NS-90 (engine);
   this story is the window and the command line; set Ready (po).
+- 2026-10-25: started (builder). Decisions in the brief, accepted by the po: `undo --dry-run` now checks the files, so
+  `HelpUndo`'s second sentence becomes `Checks the files and the history; changes nothing.`; a `RenameFailed` reason, which
+  a check cannot produce, has the word `could not be renamed` so nothing throws.
