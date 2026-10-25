@@ -19,13 +19,6 @@ internal sealed class FileList : UserControl
     private const int FolderImage = 0;
     private const int FileImage = 1;
 
-    // The column indexes, in the order the columns are added.
-    private const int NameColumn = 0;
-    private const int NewNameColumn = 1;
-    private const int StatusColumn = 2;
-    private const int SizeColumn = 3;
-    private const int ModifiedColumn = 4;
-
     private readonly FileListModel _model;
     private readonly PreviewModel _preview;
     private readonly Action<string> _showStatus;
@@ -36,6 +29,12 @@ internal sealed class FileList : UserControl
     private readonly Panel _strip = new Panel();
     private readonly ImageList _icons = new ImageList { ColorDepth = ColorDepth.Depth32Bit };
     private readonly List<Bitmap> _iconBitmaps = new List<Bitmap>();
+
+    // One header per column, kept while hidden, so a width the user dragged survives a hide and a show (NS-78).
+    private readonly Dictionary<ShownColumn, ColumnHeader> _headers = new Dictionary<ShownColumn, ColumnHeader>();
+
+    // Every column index (the row's cells, the sort click, the sort arrow) comes from this map, never a constant.
+    private FileListColumns _columns = FileListColumns.For(false);
     private IReadOnlyList<RenameItem>? _shownItems;
     private bool _selectionReadPending;
     private int _shownCount = -1;
@@ -68,6 +67,41 @@ internal sealed class FileList : UserControl
         }
     }
 
+    /// <summary>Shows or hides the Folder column right after Name (NS-78: bound to the Sub-folders box, so it shows at
+    /// once, even while the folder loads). The other headers are never touched, so their widths stay. The headers and
+    /// the column map change inside one update, so no row is built with the wrong number of cells.</summary>
+    internal void ShowFolderColumn(bool show)
+    {
+        if (IsDisposed || show == _columns.ShowFolder)
+        {
+            return;
+        }
+
+        FileListColumns next = FileListColumns.For(show);
+        ColumnHeader folder = _headers[ShownColumn.Folder];
+        _list.BeginUpdate();
+        try
+        {
+            if (show)
+            {
+                _list.Columns.Insert(next.IndexOf(ShownColumn.Folder), folder);
+            }
+            else
+            {
+                _list.Columns.Remove(folder);
+            }
+
+            _columns = next;
+        }
+        finally
+        {
+            _list.EndUpdate();
+        }
+
+        _list.Invalidate();
+        UpdateSortArrow();
+    }
+
     /// <summary>Selects only this row, focuses it and scrolls it into view; a row outside the list is ignored.</summary>
     public void SelectRow(int row)
     {
@@ -91,6 +125,15 @@ internal sealed class FileList : UserControl
         {
             _boldFont.Dispose();
             _icons.Dispose();
+
+            // A hidden header is not in the list, so the list does not dispose it.
+            foreach (ColumnHeader header in _headers.Values)
+            {
+                if (header.ListView == null)
+                {
+                    header.Dispose();
+                }
+            }
             foreach (Bitmap bitmap in _iconBitmaps)
             {
                 bitmap.Dispose();
@@ -122,12 +165,16 @@ internal sealed class FileList : UserControl
         _list.VirtualItemsSelectionRangeChanged += (_, _) => ScheduleSelectionRead();
         _list.KeyDown += OnListKeyDown;
 
-        // Added in the order of the column index constants.
-        _list.Columns.Add(Strings.ColumnName, LogicalToDeviceUnits(280));
-        _list.Columns.Add(Strings.ColumnNewName, LogicalToDeviceUnits(280));
-        _list.Columns.Add(Strings.ColumnStatus, LogicalToDeviceUnits(420));
-        _list.Columns.Add(Strings.ColumnSize, LogicalToDeviceUnits(90), HorizontalAlignment.Right);
-        _list.Columns.Add(Strings.ColumnModified, LogicalToDeviceUnits(150));
+        // Every header is created once; only the columns of the current map are added (Folder is not, at first).
+        foreach (ShownColumn column in FileListColumns.For(true).Order)
+        {
+            _headers[column] = CreateHeader(column);
+        }
+
+        foreach (ShownColumn column in _columns.Order)
+        {
+            _list.Columns.Add(_headers[column]);
+        }
 
         _icons.ImageSize = new Size(LogicalToDeviceUnits(16), LogicalToDeviceUnits(16));
         AddStockIcon(StockIcons.Folder);
@@ -164,6 +211,25 @@ internal sealed class FileList : UserControl
         // Fill first, then Bottom: docking runs back to front, so the strip takes its row and the list the rest.
         Controls.Add(_list);
         Controls.Add(_strip);
+    }
+
+    private ColumnHeader CreateHeader(ShownColumn column)
+    {
+        (string text, int width) = column switch
+        {
+            ShownColumn.Name => (Strings.ColumnName, 280),
+            ShownColumn.Folder => (Strings.ColumnFolder, 160),
+            ShownColumn.NewName => (Strings.ColumnNewName, 280),
+            ShownColumn.Status => (Strings.ColumnStatus, 420),
+            ShownColumn.Size => (Strings.ColumnSize, 90),
+            _ => (Strings.ColumnModified, 150),
+        };
+        return new ColumnHeader
+        {
+            Text = text,
+            Width = LogicalToDeviceUnits(width),
+            TextAlign = column == ShownColumn.Size ? HorizontalAlignment.Right : HorizontalAlignment.Left,
+        };
     }
 
     private void AddStockIcon(int stockIconId)
@@ -213,20 +279,12 @@ internal sealed class FileList : UserControl
         UpdateSortArrow();
     }
 
-    /// <summary>A header click sorts by Name, Size or Modified; New Name and Status are not sortable.</summary>
+    /// <summary>A header click sorts by Name, Size or Modified; Folder, New Name and Status are not sortable.</summary>
     private void OnColumnClick(object? sender, ColumnClickEventArgs e)
     {
-        switch (e.Column)
+        if (e.Column >= 0 && e.Column < _columns.Order.Count && _columns.SortColumnAt(e.Column) is FileListColumn column)
         {
-            case NameColumn:
-                _model.SortBy(FileListColumn.Name);
-                break;
-            case SizeColumn:
-                _model.SortBy(FileListColumn.Size);
-                break;
-            case ModifiedColumn:
-                _model.SortBy(FileListColumn.Modified);
-                break;
+            _model.SortBy(column);
         }
     }
 
@@ -304,22 +362,7 @@ internal sealed class FileList : UserControl
             return;
         }
 
-        int sorted = -1;
-        if (_model.IsSortChosen)
-        {
-            switch (_model.Sort.Column)
-            {
-                case FileListColumn.Name:
-                    sorted = NameColumn;
-                    break;
-                case FileListColumn.Size:
-                    sorted = SizeColumn;
-                    break;
-                case FileListColumn.Modified:
-                    sorted = ModifiedColumn;
-                    break;
-            }
-        }
+        int sorted = _model.IsSortChosen ? _columns.SortArrowIndex(_model.Sort.Column) : -1;
 
         for (int column = 0; column < _list.Columns.Count; column++)
         {
@@ -449,34 +492,46 @@ internal sealed class FileList : UserControl
     private ListViewItem BuildRow(int index)
     {
         // WinForms can ask for a row while the size changes: answer with an empty row.
+        FileListColumns columns = _columns;
+        var cells = new string[columns.Order.Count];
         if (index < 0 || index >= _model.Items.Count)
         {
-            return new ListViewItem(new[] { "", "", "", "", "" });
+            for (int i = 0; i < cells.Length; i++)
+            {
+                cells[i] = "";
+            }
+
+            return new ListViewItem(cells);
         }
 
         RenameItem item = _model.Items[index];
         CultureInfo culture = CultureInfo.CurrentCulture;
         PreviewCell cell = _preview.CellForRow(index);
         StatusCell status = _preview.StatusForRow(index);
-        var row = new ListViewItem(
-            new[]
+        for (int i = 0; i < cells.Length; i++)
+        {
+            cells[i] = columns.Order[i] switch
             {
-                item.Name,
-                cell.Text,
-                status.Text,
-                FileListText.Size(item, culture),
-                FileListText.Modified(item, culture),
-            },
-            item.Kind == ItemKind.Folder ? FolderImage : FileImage)
+                ShownColumn.Name => item.Name,
+                ShownColumn.Folder => _model.FolderPath is string root ? FileListText.RelativeFolder(root, item) : "",
+                ShownColumn.NewName => cell.Text,
+                ShownColumn.Status => status.Text,
+                ShownColumn.Size => FileListText.Size(item, culture),
+                _ => FileListText.Modified(item, culture),
+            };
+        }
+
+        var row = new ListViewItem(cells, item.Kind == ItemKind.Folder ? FolderImage : FileImage)
         {
             UseItemStyleForSubItems = false,
         };
-        StyleNewName(row.SubItems[1], cell.Kind);
+        int newName = columns.IndexOf(ShownColumn.NewName);
+        StyleNewName(row.SubItems[newName], cell.Kind);
         if (status.IsConflict)
         {
             Color color = Palette.ConflictText;
-            row.SubItems[1].ForeColor = color;
-            row.SubItems[2].ForeColor = color;
+            row.SubItems[newName].ForeColor = color;
+            row.SubItems[columns.IndexOf(ShownColumn.Status)].ForeColor = color;
         }
 
         return row;

@@ -51,6 +51,10 @@
   <data name="FilterFiles" xml:space="preserve"><value>Fi&amp;les</value></data>
   <data name="FilterFolders" xml:space="preserve"><value>Folder&amp;s</value></data>
   <data name="FilterHidden" xml:space="preserve"><value>&amp;Hidden</value></data>
+  <data name="FilterSubfolders" xml:space="preserve"><value>Su&amp;b-folders</value></data>
+  <data name="ColumnFolder" xml:space="preserve"><value>Folder</value></data>
+  <data name="SkippedFolder" xml:space="preserve"><value>1 folder could not be read</value></data>
+  <data name="SkippedFolders" xml:space="preserve"><value>{0} folders could not be read</value></data>
   <data name="FilterMore" xml:space="preserve"><value>M&amp;ore</value></data>
   <data name="FilterMoreMarked" xml:space="preserve"><value>M&amp;ore *</value></data>
   <data name="FilterMoreActive" xml:space="preserve"><value>Regex or length filter active</value></data>
