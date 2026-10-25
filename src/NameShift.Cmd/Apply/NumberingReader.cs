@@ -62,83 +62,32 @@ internal sealed class NumberingReader : ApplyOptionReader
     protected override OptionRead ReadOwn(IReadOnlyList<string> args, ref int i, string word)
     {
         ParsedCommand? error;
-        string? value;
+        bool ok;
         _anyNumbering = true;
         if (Is(word, NumberOption))
         {
-            if (_number)
-            {
-                return OptionRead.Failed(Fail(Format(Strings.RepeatedOption, NumberOption)));
-            }
-
-            _number = true;
+            ok = TakeSwitch(ref _number, NumberOption, out error);
         }
         else if (Is(word, NumberModeOption))
         {
-            if (!TakeOne(args, ref i, NumberModeOption, out value, out error))
-            {
-                return OptionRead.Failed(error!);
-            }
-
-            if (_mode != null)
-            {
-                return OptionRead.Failed(Fail(Format(Strings.RepeatedOption, NumberModeOption)));
-            }
-
-            if (!TryChoice(value!, ModeValues, out NumberingMode parsedMode))
-            {
-                return OptionRead.Failed(
-                    Fail(Format(Strings.BadChoice, value!, NumberModeOption, Strings.NumberModeValues)));
-            }
-
-            _mode = parsedMode;
+            ok = TakeChoice(args, ref i, NumberModeOption, ModeValues, Strings.NumberModeValues, ref _mode, out error);
         }
         else if (Is(word, NumberSystemOption))
         {
-            if (!TakeOne(args, ref i, NumberSystemOption, out value, out error))
-            {
-                return OptionRead.Failed(error!);
-            }
-
-            if (_system != null)
-            {
-                return OptionRead.Failed(Fail(Format(Strings.RepeatedOption, NumberSystemOption)));
-            }
-
-            if (!TryChoice(value!, SystemValues, out NumeralSystem parsedSystem))
-            {
-                return OptionRead.Failed(
-                    Fail(Format(Strings.BadChoice, value!, NumberSystemOption, Strings.NumberSystemValues)));
-            }
-
-            _system = parsedSystem;
+            ok = TakeChoice(args, ref i, NumberSystemOption, SystemValues, Strings.NumberSystemValues, ref _system,
+                out error);
         }
         else if (Is(word, NumberCaseOption))
         {
-            if (!TakeOne(args, ref i, NumberCaseOption, out value, out error))
-            {
-                return OptionRead.Failed(error!);
-            }
-
-            if (_upper != null)
-            {
-                return OptionRead.Failed(Fail(Format(Strings.RepeatedOption, NumberCaseOption)));
-            }
-
-            if (!TryChoice(value!, LetterCaseValues, out bool parsedUpper))
-            {
-                return OptionRead.Failed(
-                    Fail(Format(Strings.BadChoice, value!, NumberCaseOption, Strings.NumberCaseValues)));
-            }
-
-            _upper = parsedUpper;
+            ok = TakeChoice(args, ref i, NumberCaseOption, LetterCaseValues, Strings.NumberCaseValues, ref _upper,
+                out error);
         }
-        else if (!TakeRawText(args, ref i, word, out error))
+        else
         {
-            return OptionRead.Failed(error!);
+            ok = TakeRawText(args, ref i, word, out error);
         }
 
-        return OptionRead.Taken;
+        return OptionRead.From(ok, error);
     }
 
     /// <summary>The five options whose value the panel model checks later.</summary>

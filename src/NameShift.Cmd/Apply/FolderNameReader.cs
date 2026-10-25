@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using NameShift.Core;
 using NameShift.Ui.Rules;
 using static NameShift.Cmd.OptionArgs;
+using UiStrings = NameShift.Ui.Strings;
 
 namespace NameShift.Cmd;
 
@@ -36,7 +37,7 @@ internal sealed class FolderNameReader : ApplyOptionReader
         bool ok;
         if (Is(word, FolderNameOption))
         {
-            ok = ReadSwitch(out error);
+            ok = TakeSwitch(ref _switch, FolderNameOption, out error);
         }
         else if (Is(word, LevelsOption))
         {
@@ -52,14 +53,7 @@ internal sealed class FolderNameReader : ApplyOptionReader
         }
 
         _any = true;
-        return ok ? OptionRead.Taken : OptionRead.Failed(error!);
-    }
-
-    private bool ReadSwitch(out ParsedCommand? error)
-    {
-        error = _switch ? Fail(Format(Strings.RepeatedOption, FolderNameOption)) : null;
-        _switch = true;
-        return error == null;
+        return OptionRead.From(ok, error);
     }
 
     private bool ReadLevels(IReadOnlyList<string> args, ref int i, out ParsedCommand? error)
@@ -72,7 +66,7 @@ internal sealed class FolderNameReader : ApplyOptionReader
         if (TextPosition.Parse(_levels!) == null)
         {
             error = Fail(Format(Strings.OptionError, LevelsOption,
-                WithoutSkipSentence(NameShift.Ui.Strings.FolderNameLevelsInvalid)));
+                WithoutSkipSentence(UiStrings.FolderNameLevelsInvalid)));
             return false;
         }
 

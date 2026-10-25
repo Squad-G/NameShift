@@ -12,6 +12,7 @@ using NameShift.Ui.Files;
 using NameShift.Ui.Presets;
 using NameShift.Ui.Preview;
 using NameShift.Ui.Rules;
+using UiStrings = NameShift.Ui.Strings;
 
 namespace NameShift.Cmd;
 
@@ -96,7 +97,7 @@ public sealed class CommandRunner
             try
             {
                 _error.WriteLine(renamerCalled
-                    ? NameShift.Ui.Strings.ActionUnexpected
+                    ? UiStrings.ActionUnexpected
                     : (_undoing ? Strings.UnexpectedBeforeUndo : Strings.UnexpectedBeforeRename));
             }
             catch (Exception)
@@ -242,7 +243,7 @@ public sealed class CommandRunner
         {
             case LastBatchState.None:
             case LastBatchState.Reverted:
-                _output.WriteLine(NameShift.Ui.Strings.NothingToRevert);
+                _output.WriteLine(UiStrings.NothingToRevert);
                 return (int)ExitCode.Success;
             case LastBatchState.Interrupted:
             case LastBatchState.Unreadable:
