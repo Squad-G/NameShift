@@ -150,6 +150,12 @@ internal sealed class FakeBatchRenamer : IBatchRenamer
 
     public int RevertCalls { get; private set; }
 
+    /// <summary>What CheckRevert returns.</summary>
+    public RevertCheck CheckResult { get; set; } = RevertCheck.Empty;
+
+    /// <summary>The includeModified of the last Revert call, or null before any.</summary>
+    public bool? LastIncludeModified { get; private set; }
+
     public LastBatch LoadLastBatch()
     {
         LoadCalls++;
@@ -169,9 +175,12 @@ internal sealed class FakeBatchRenamer : IBatchRenamer
         return Result;
     }
 
-    public RevertResult Revert()
+    public RevertCheck CheckRevert() => CheckResult;
+
+    public RevertResult Revert(bool includeModified = false)
     {
         RevertCalls++;
+        LastIncludeModified = includeModified;
         if (RevertThrows != null)
         {
             throw RevertThrows;

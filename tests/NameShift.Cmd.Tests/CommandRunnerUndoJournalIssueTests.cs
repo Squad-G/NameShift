@@ -123,10 +123,12 @@ public sealed class CommandRunnerUndoJournalIssueTests : IDisposable
 
         public RenameRunResult Rename(IReadOnlyList<RenameResult> results, ConflictReport conflicts) => _inner.Rename(results, conflicts);
 
-        public RevertResult Revert()
+        public RevertCheck CheckRevert() => _inner.CheckRevert();
+
+        public RevertResult Revert(bool includeModified = false)
         {
             RevertCalls++;
-            return _inner.Revert();
+            return _inner.Revert(includeModified);
         }
     }
 }

@@ -14,6 +14,11 @@ public interface IBatchRenamer
     /// <summary>Runs the checked plan and records it for Revert.</summary>
     RenameRunResult Rename(IReadOnlyList<RenameResult> results, ConflictReport conflicts);
 
-    /// <summary>Reverts the journal's last batch.</summary>
-    RevertResult Revert();
+    /// <summary>What a default Revert would skip now (changed files included), read from the journal and the disk.
+    /// Never writes and never throws; empty when the journal is not revertable.</summary>
+    RevertCheck CheckRevert();
+
+    /// <summary>Reverts the journal's last batch. A file changed after the batch is skipped unless
+    /// <paramref name="includeModified"/>.</summary>
+    RevertResult Revert(bool includeModified = false);
 }

@@ -24,9 +24,24 @@ internal sealed class HookedFileSystem : IFileSystem
     /// <summary>Makes Exists and ExistsAny return false for a path.</summary>
     public Func<string, bool>? HideFromExists { get; set; }
 
+    /// <summary>Makes TryGetFingerprint return null for a path (as for a file that cannot be read).</summary>
+    public Func<string, bool>? HideFingerprint { get; set; }
+
+    /// <summary>Returns an exception for Exists to throw (an unexpected disk error), or null to check.</summary>
+    public Func<string, Exception?>? FailExists { get; set; }
+
+    /// <summary>Every TryGetFingerprint call's path, in call order.</summary>
+    public List<string> FingerprintReads { get; } = [];
+
     public bool Exists(string path, ItemKind kind)
     {
         Reads++;
+        var failure = FailExists?.Invoke(path);
+        if (failure != null)
+        {
+            throw failure;
+        }
+
         return HideFromExists?.Invoke(path) != true && inner.Exists(path, kind);
     }
 
@@ -34,6 +49,12 @@ internal sealed class HookedFileSystem : IFileSystem
     {
         Reads++;
         return HideFromExists?.Invoke(path) != true && inner.ExistsAny(path);
+    }
+
+    public FileFingerprint? TryGetFingerprint(string path)
+    {
+        FingerprintReads.Add(path);
+        return HideFingerprint?.Invoke(path) == true ? null : inner.TryGetFingerprint(path);
     }
 
     public void Move(string sourcePath, string targetPath, ItemKind kind)

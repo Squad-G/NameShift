@@ -12,7 +12,9 @@ using NameShift.Core;
 namespace NameShift.Disk;
 
 /// <summary>The journal's JSON format, version 1, through the in-box DataContractJsonSerializer: UTF-8 without BOM,
-/// indented. Times are "o" strings in UTC; kinds are "file" / "folder".
+/// indented. Times are "o" strings in UTC; kinds are "file" / "folder". A file entry of last-batch.json may hold its
+/// fingerprint as "size" (bytes) and "modified" (the last write time, an "o" string in UTC, 7 fractional digits so the
+/// ticks round-trip): both or neither, written only when set, never on a folder (optional members, still version 1).
 /// Versioning: adding an optional member later (IsRequired = false) keeps version 1, since readers ignore unknown
 /// members; any breaking change bumps the version, and a reader treats any version but 1 as unreadable.</summary>
 internal static class JournalJson
@@ -46,7 +48,9 @@ internal static class JournalJson
                 .Select(entry => Path.GetDirectoryName(entry.OldPath)!)
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToArray(),
-            Renames = entries.Select(entry => Entry(entry.Kind, entry.OldPath, entry.NewPath)).ToArray(),
+            Renames = entries
+                .Select(entry => Entry(entry.Kind, entry.OldPath, entry.NewPath, entry.Fingerprint))
+                .ToArray(),
         });
     }
 
@@ -106,11 +110,38 @@ internal static class JournalJson
         Require(entry!.Kind == KindFile || entry.Kind == KindFolder, "Unknown kind.");
         Require(entry.Old != null && entry.New != null, "A null path.");
         Require(Path.IsPathRooted(entry.Old) && Path.IsPathRooted(entry.New), "A relative path.");
-        return new CompletedRename(entry.Old!, entry.New!, entry.Kind == KindFile ? ItemKind.File : ItemKind.Folder);
+        var kind = entry.Kind == KindFile ? ItemKind.File : ItemKind.Folder;
+        return new CompletedRename(entry.Old!, entry.New!, kind, ToFingerprint(entry, kind));
     }
 
-    private static EntryDto Entry(ItemKind kind, string oldPath, string newPath) =>
-        new() { Kind = kind == ItemKind.File ? KindFile : KindFolder, Old = oldPath, New = newPath };
+    /// <summary>No members: no fingerprint (a journal written before them, a folder, or a file that could not be read).
+    /// Only one of the two, an invalid value or a fingerprint on a folder throws, as every other invalid entry.</summary>
+    private static FileFingerprint? ToFingerprint(EntryDto entry, ItemKind kind)
+    {
+        if (entry.Size == null && entry.Modified == null)
+        {
+            return null;
+        }
+
+        Require(entry.Size != null && entry.Modified != null, "Half a fingerprint.");
+        Require(kind == ItemKind.File, "A fingerprint on a folder.");
+        Require(entry.Size >= 0, "A negative size.");
+        Require(
+            DateTime.TryParseExact(entry.Modified, "o", CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var modified)
+                && modified.Kind == DateTimeKind.Utc,
+            "A bad modified time.");
+        return new FileFingerprint(entry.Size!.Value, modified);
+    }
+
+    private static EntryDto Entry(ItemKind kind, string oldPath, string newPath, FileFingerprint? fingerprint = null) =>
+        new()
+        {
+            Kind = kind == ItemKind.File ? KindFile : KindFolder,
+            Old = oldPath,
+            New = newPath,
+            Size = fingerprint?.Size,
+            Modified = fingerprint?.ModifiedUtc.ToString("o", CultureInfo.InvariantCulture),
+        };
 
     private static string FormatTime(DateTimeOffset time) =>
         time.ToUniversalTime().ToString("o", CultureInfo.InvariantCulture);
@@ -208,5 +239,13 @@ internal static class JournalJson
 
         [DataMember(Name = "new", IsRequired = true, Order = 3)]
         public string? New { get; set; }
+
+        /// <summary>The file's size in bytes after the batch; omitted when there is no fingerprint.</summary>
+        [DataMember(Name = "size", EmitDefaultValue = false, Order = 4)]
+        public long? Size { get; set; }
+
+        /// <summary>The file's last write time after the batch, "o" in UTC; omitted when there is no fingerprint.</summary>
+        [DataMember(Name = "modified", EmitDefaultValue = false, Order = 5)]
+        public string? Modified { get; set; }
     }
 }

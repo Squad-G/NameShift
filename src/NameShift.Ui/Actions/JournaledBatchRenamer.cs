@@ -20,5 +20,7 @@ public sealed class JournaledBatchRenamer : IBatchRenamer
 
     public RenameRunResult Rename(IReadOnlyList<RenameResult> results, ConflictReport conflicts) => _renamer.Rename(results, conflicts);
 
-    public RevertResult Revert() => _renamer.Revert();
+    public RevertCheck CheckRevert() => _renamer.CheckRevert();
+
+    public RevertResult Revert(bool includeModified = false) => _renamer.Revert(includeModified);
 }

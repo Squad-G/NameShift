@@ -134,4 +134,64 @@ public sealed class RevertPlannerTests
         // One read per source (f1..f10000) and one for the only target not held by an entry (f0).
         Assert.Equal(Count + 1, disk.Reads);
     }
+
+    // NS-90: step 2b, the fingerprint check.
+
+    private static readonly FileFingerprint Then = new(5, new System.DateTime(2026, 10, 25, 8, 0, 0, System.DateTimeKind.Utc));
+
+    private static CompletedRename F(string oldName, string newName) => new(P(oldName), P(newName), ItemKind.File, Then);
+
+    [Fact]
+    public void Plan_SameFingerprint_IsIncluded()
+    {
+        var disk = new FakeFileSystem().With(P("b")).WithFingerprint(P("b"), new FileFingerprint(5, Then.ModifiedUtc));
+
+        var plan = RevertPlanner.Plan([F("a", "b")], disk);
+
+        Assert.Single(plan.Included);
+        Assert.Equal(1, disk.FingerprintReads);
+    }
+
+    [Fact]
+    public void Plan_OtherSizeOrUnreadable_IsModified()
+    {
+        var disk = new FakeFileSystem().With(P("b")).With(P("d")).WithFingerprint(P("b"), new FileFingerprint(6, Then.ModifiedUtc));
+
+        var plan = RevertPlanner.Plan([F("a", "b"), F("c", "d")], disk);
+
+        Assert.Equal([(P("a"), RevertSkipReason.Modified, null), (P("c"), RevertSkipReason.Modified, null)], Skips(plan));
+    }
+
+    [Fact]
+    public void Plan_IncludeModified_ReadsNoFingerprint()
+    {
+        var disk = new FakeFileSystem().With(P("b"));
+
+        var plan = RevertPlanner.Plan([F("a", "b")], disk, includeModified: true);
+
+        Assert.Single(plan.Included);
+        Assert.Equal(0, disk.FingerprintReads);
+    }
+
+    [Fact]
+    public void Plan_NoFingerprintOrFolder_NotRead()
+    {
+        var disk = new FakeFileSystem().With(P("b")).With(P("d"), ItemKind.Folder);
+
+        var plan = RevertPlanner.Plan([E("a", "b"), E("c", "d", ItemKind.Folder)], disk);
+
+        Assert.Equal(2, plan.Included.Count);
+        Assert.Equal(0, disk.FingerprintReads);
+    }
+
+    [Fact]
+    public void Plan_SkippedEarlier_NotRead()
+    {
+        var disk = new FakeFileSystem().With(P("d")).With(P("c"));
+
+        var plan = RevertPlanner.Plan([F("a", "b"), F("c", "d")], disk);
+
+        Assert.Equal([(P("a"), RevertSkipReason.ItemMissing, null), (P("c"), RevertSkipReason.NameTaken, P("c"))], Skips(plan));
+        Assert.Equal(0, disk.FingerprintReads);
+    }
 }

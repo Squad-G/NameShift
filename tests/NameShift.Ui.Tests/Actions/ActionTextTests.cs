@@ -284,6 +284,43 @@ public sealed class ActionTextTests
     }
 
     [Fact]
+    public void ForRevert_ModifiedSkip()
+    {
+        CompletedRename[] entries = Renames(2);
+        RevertResult result = Revert(
+            RevertOutcome.PartlyReverted, entries.Take(1).ToArray(), new[] { Skip(entries[1], RevertSkipReason.Modified) });
+
+        ActionReport report = ActionText.ForRevert(result, En);
+
+        Assert.Equal("1 of 2 names restored. The others could not be restored; Revert stays available for them.", report.Status);
+        Assert.Equal(
+            "Not restored:" + NL + @"C:\A\x_f1.txt was changed after the rename and was not reverted.",
+            report.Details);
+    }
+
+    [Fact]
+    public void EverySkipReason_HasText()
+    {
+        CompletedRename entry = Renames(1)[0];
+        foreach (RevertSkipReason reason in Enum.GetValues(typeof(RevertSkipReason)))
+        {
+            bool blocked = reason == RevertSkipReason.NameTaken || reason == RevertSkipReason.WaitsForSkippedItem;
+            SkippedRevert skip = Skip(
+                entry,
+                reason,
+                blocked ? @"C:\A\f0.txt" : null,
+                reason == RevertSkipReason.RenameFailed ? "Access is denied." : null);
+
+            ActionReport report = ActionText.ForRevert(Revert(RevertOutcome.NothingReverted, notReverted: new[] { skip }), En);
+
+            string[] lines = report.Details!.Split(new[] { NL }, StringSplitOptions.None);
+            Assert.Equal(2, lines.Length);
+            Assert.StartsWith(@"C:\A\x_f0.txt", lines[1]);
+            Assert.True(lines[1].Length > @"C:\A\x_f0.txt".Length, reason.ToString());
+        }
+    }
+
+    [Fact]
     public void NothingReverted()
     {
         RevertResult result = Revert(RevertOutcome.NothingReverted, notReverted: new[] { Skip(Renames(1)[0], RevertSkipReason.ItemMissing) });
