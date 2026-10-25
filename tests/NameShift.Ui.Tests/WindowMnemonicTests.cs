@@ -8,7 +8,8 @@ namespace NameShift.Ui.Tests;
 /// <summary>NS-72 AC 14 and NS-70 AC 10: the Alt keys of the window's top level texts. The rule panel titles, the menu
 /// title and the first line of the filter row (Mask, Files, Folders, Hidden, More) must all have different letters, and
 /// so must the items of one menu. The filter row's second line has no Alt key (More opens it and focuses its first box),
-/// and the row never uses B, which NS-78's Sub-folders box takes. (Letters of labels inside a panel may repeat a title
+/// and the rest of the row never uses B, which NS-78's Sub-folders box takes (it is checked with the titles too).
+/// (Letters of labels inside a panel may repeat a title
 /// letter of another panel: <see cref="MnemonicCheck"/>.)</summary>
 public sealed class WindowMnemonicTests
 {
@@ -32,11 +33,15 @@ public sealed class WindowMnemonicTests
     [Fact]
     public void TitleLetters_Distinct()
     {
-        var texts = new List<string>(PanelTitles) { Strings.PresetsMenu };
+        var texts = new List<string>(PanelTitles) { Strings.PresetsMenu, Strings.FilterSubfolders };
         texts.AddRange(FilterRowFirstLine);
 
         AssertDistinctLetters(texts);
     }
+
+    [Fact]
+    public void Subfolders_UsesB() =>
+        Assert.Equal('B', char.ToUpperInvariant(MnemonicCheck.LetterOf(Strings.FilterSubfolders)));
 
     [Fact]
     public void FilterMoreMarked_SameLetterAsMore() =>

@@ -9,7 +9,8 @@ using NameShift.Ui.Rules;
 namespace NameShift.App.Controls;
 
 /// <summary>
-/// The filter row above the file list (NS-70): the mask, Files, Folders and Hidden, and a More toggle that shows a
+/// The filter row above the file list (NS-70): the mask, Files, Folders, Hidden and Sub-folders (NS-78: lists every
+/// sub-folder too; the binding reloads the list), and a More toggle that shows a
 /// second line with the regex, Ignore case and the lengths; the model's error under them. It renders the
 /// <see cref="FilterPanelModel"/> and forwards input: typed text goes through <see cref="FilterTyping"/> (250 ms after
 /// the last key), a check box sets the model at once after a flush. The second line has no Alt keys: Alt+O opens it
@@ -26,6 +27,7 @@ internal sealed class FilterRow : UserControl
     private readonly CheckBox _files = new CheckBox();
     private readonly CheckBox _folders = new CheckBox();
     private readonly CheckBox _hidden = new CheckBox();
+    private readonly CheckBox _subfolders = new CheckBox();
     private readonly CheckBox _more = new CheckBox();
     private readonly TextBox _regex = new TextBox();
     private readonly CheckBox _ignoreCase = new CheckBox();
@@ -55,6 +57,7 @@ internal sealed class FilterRow : UserControl
         WireCheck(_files, v => _filters.IncludeFiles = v);
         WireCheck(_folders, v => _filters.IncludeFolders = v);
         WireCheck(_hidden, v => _filters.IncludeHidden = v);
+        WireCheck(_subfolders, v => _filters.IncludeSubfolders = v);
         WireCheck(_ignoreCase, v => _filters.IgnoreCase = v);
         _more.CheckedChanged += (_, _) => OnMoreToggled();
         _filters.Changed += OnFiltersChanged;
@@ -85,7 +88,7 @@ internal sealed class FilterRow : UserControl
 
     private void BuildLayout()
     {
-        // The first line: the fields in a flow (NS-78 adds the Sub-folders box there), a spacer, More at the right.
+        // The first line: the fields in a flow (Sub-folders last, NS-78), a spacer, More at the right.
         var fields = new FlowLayoutPanel
         {
             AutoSize = true,
@@ -98,6 +101,7 @@ internal sealed class FilterRow : UserControl
         AddCheck(fields, _files, Strings.FilterFiles, true);
         AddCheck(fields, _folders, Strings.FilterFolders, true);
         AddCheck(fields, _hidden, Strings.FilterHidden, true);
+        AddCheck(fields, _subfolders, Strings.FilterSubfolders, true);
 
         _more.Appearance = Appearance.Button;
         _more.AutoSize = true;
@@ -268,6 +272,7 @@ internal sealed class FilterRow : UserControl
             RulePanelLayout.SetCheckedIfDifferent(_files, _filters.IncludeFiles);
             RulePanelLayout.SetCheckedIfDifferent(_folders, _filters.IncludeFolders);
             RulePanelLayout.SetCheckedIfDifferent(_hidden, _filters.IncludeHidden);
+            RulePanelLayout.SetCheckedIfDifferent(_subfolders, _filters.IncludeSubfolders);
             RulePanelLayout.SetCheckedIfDifferent(_ignoreCase, _filters.IgnoreCase);
         }
         finally

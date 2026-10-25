@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -42,6 +43,7 @@ internal sealed class MainForm : Form
     private readonly string _currentDirectory;
     private readonly OpenSequence _opens = new OpenSequence();
     private readonly FilterBinding _filterBinding;
+    private readonly SkippedFoldersNotice _skippedFolders;
     private (string Folder, string FileName)? _pendingSelection;
     private bool _shownBusy;
 
@@ -64,7 +66,13 @@ internal sealed class MainForm : Form
         Preview = new PreviewModel(RuleHost, FileListModel);
         _fileList = new FileList(FileListModel, Preview, ShowStatus) { Dock = DockStyle.Fill };
         Filters = new FilterPanelModel();
+
+        // The Folder column follows the Sub-folders box, not the listing: it shows at once, even while loading (NS-78).
+        Filters.Changed += (_, _) => _fileList.ShowFolderColumn(Filters.IncludeSubfolders);
         _filterBinding = new FilterBinding(Filters, FileListModel);
+        _skippedFolders = new SkippedFoldersNotice(FileListModel, CultureInfo.CurrentCulture);
+        _skippedFolders.Notice += (_, text) => ShowStatus(text);
+        _skippedFolders.Withdrawn += (_, text) => ClearStatusIf(text);
         FilterHost.Controls.Add(new FilterRow(Filters) { Dock = DockStyle.Fill });
         Actions = new MainActions(Preview, FileListModel, RuleHost, Filters, renamer);
         ButtonsHost.Controls.Add(new ActionButtons(Actions, ShowReport, ShowStatus, AskYesNo));
@@ -137,6 +145,15 @@ internal sealed class MainForm : Form
         _statusText.ToolTipText = text; // the full text, when the bar cuts it
     }
 
+    /// <summary>Clears the status bar only while it still shows this text (a newer message stays).</summary>
+    private void ClearStatusIf(string text)
+    {
+        if (_statusText.Text == text)
+        {
+            ShowStatus("");
+        }
+    }
+
     /// <summary>A Yes/No question; Escape is No. The default button is Yes only when asked to.</summary>
     internal bool AskYesNo(string question, bool yesIsDefault) => YesNoDialog.Ask(this, question, yesIsDefault);
 
@@ -157,6 +174,7 @@ internal sealed class MainForm : Form
             // Before the controls go: a filter run or a load still in flight never raises an event on a dead window.
             // The filter row disposes its own typing delay when the base disposes the controls.
             _filterBinding.Dispose();
+            _skippedFolders.Dispose();
             FileListModel.Dispose();
         }
 

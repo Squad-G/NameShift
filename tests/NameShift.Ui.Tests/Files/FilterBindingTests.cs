@@ -10,7 +10,9 @@ using static NameShift.Ui.Tests.FakeFileListSource;
 
 namespace NameShift.Ui.Tests.Files;
 
-/// <summary>NS-70 AC 5: the filter row's model drives the file list, with a fake source (no disk).</summary>
+/// <summary>NS-70 AC 5 and NS-78 AC 2: the filter row's model drives the file list (its filter, and the Sub-folders
+/// reload), with a fake source (no disk). The fake returns the listing set for a path whatever the Sub-folders flag, so
+/// a test sets the listing it wants before each load.</summary>
 public sealed class FilterBindingTests
 {
     private const string FolderA = @"C:\A";
@@ -32,6 +34,141 @@ public sealed class FilterBindingTests
     }
 
     private static string[] Names(IEnumerable<RenameItem> items) => items.Select(i => i.Name).ToArray();
+
+    /// <summary>The listing of A with its sub-folder, as a walk with Sub-folders on gives it.</summary>
+    private void SetTreeListing() =>
+        _source.SetEntries(FolderA, File("a.jpg"), File("b.txt"), File("c.jpg"), File("s.txt", folder: @"C:\A\Sub"));
+
+    private void SetFolderOnlyListing() =>
+        _source.SetEntries(FolderA, File("a.jpg"), File("b.txt"), File("c.jpg"));
+
+    [Fact]
+    public void Tick_ReloadsWithSubfolders() => UiThread.Run(async () =>
+    {
+        await _files.LoadAsync(FolderA);
+        int calls = _source.Calls;
+        SetTreeListing();
+
+        // On the UI thread, as in the window. A fresh window's two default filters are equal but not the same
+        // instance, so this first Changed asks for a filter run too; the reload supersedes it and nothing applies.
+        _filters.IncludeSubfolders = true;
+
+        Assert.True(await TestWait.Within(_binding.LastReload));
+        Assert.False(await TestWait.Within(_binding.LastRun));
+        Assert.Equal(calls + 1, _source.Calls);
+        Assert.True(_source.LastIncludeSubfolders);
+        Assert.True(_source.LastToken.CanBeCanceled);
+        Assert.True(_files.IncludeSubfolders);
+        Assert.Equal(new[] { "a.jpg", "b.txt", "c.jpg", "s.txt" }, Names(_files.Items));
+    });
+
+    [Fact]
+    public void TickAfterAFilter_NoFilterRun() => UiThread.Run(async () =>
+    {
+        await _files.LoadAsync(FolderA);
+        _filters.Mask = "*";
+        Assert.True(await TestWait.Within(_binding.LastRun));
+        int orderChanges = Volatile.Read(ref _orderChanges);
+
+        // The filter is the same instance now: the tick's Changed gives one reload and no filter run.
+        _filters.IncludeSubfolders = true;
+
+        Assert.True(_binding.LastRun.IsCompleted);
+        Assert.False(await TestWait.Within(_binding.LastRun));
+        Assert.True(await TestWait.Within(_binding.LastReload));
+        Assert.Equal(orderChanges, Volatile.Read(ref _orderChanges));
+    });
+
+    [Fact]
+    public async Task Untick_ReloadsWithout()
+    {
+        await _files.LoadAsync(FolderA);
+        SetTreeListing();
+        _filters.IncludeSubfolders = true;
+        Assert.True(await TestWait.Within(_binding.LastReload));
+        int calls = _source.Calls;
+        SetFolderOnlyListing();
+
+        _filters.IncludeSubfolders = false;
+
+        Assert.True(await TestWait.Within(_binding.LastReload));
+        Assert.Equal(calls + 1, _source.Calls);
+        Assert.False(_source.LastIncludeSubfolders);
+        Assert.False(_files.IncludeSubfolders);
+        Assert.Equal(new[] { "a.jpg", "b.txt", "c.jpg" }, Names(_files.Items));
+    }
+
+    [Fact]
+    public async Task Reload_ClearsTheSelection()
+    {
+        await _files.LoadAsync(FolderA);
+        _files.SetSelection(new[] { 1 });
+        Assert.Equal(new[] { 1 }, _files.SelectedRows);
+
+        _filters.IncludeSubfolders = true;
+
+        Assert.True(await TestWait.Within(_binding.LastReload));
+        Assert.Empty(_files.SelectedRows);
+    }
+
+    [Fact]
+    public void Reset_WithBoxAndMask_ConsistentEnd() => UiThread.Run(async () =>
+    {
+        await _files.LoadAsync(FolderA);
+        SetTreeListing();
+        _filters.Mask = "*.txt";
+        _filters.IncludeSubfolders = true;
+        await TestWait.Within(_binding.LastRun);
+        Assert.True(await TestWait.Within(_binding.LastReload));
+        await TestWait.Within(_files.PendingFilter);
+        Assert.Equal(new[] { "b.txt", "s.txt" }, Names(_files.Items));
+        int calls = _source.Calls;
+        int orderChanges = Volatile.Read(ref _orderChanges);
+        SetFolderOnlyListing();
+
+        _filters.Reset();
+
+        await TestWait.Within(_binding.LastRun);
+        await TestWait.Within(_binding.LastReload);
+        await TestWait.Within(_files.PendingFilter);
+
+        // On the UI thread the filter run cannot land before the reload starts. The filter was asked for first, so
+        // the reload lands with it: one list, no filter run after the load.
+        Assert.Equal(orderChanges, Volatile.Read(ref _orderChanges));
+        Assert.False(_files.IncludeSubfolders);
+        Assert.False(_source.LastIncludeSubfolders);
+        Assert.Equal(calls + 1, _source.Calls);
+        Assert.Equal(new[] { "a.jpg", "b.txt", "c.jpg" }, Names(_files.Items));
+        Assert.Same(_filters.Filter, _files.Filter);
+    });
+
+    [Fact]
+    public async Task TickBeforeAnyFolder_FirstLoadUsesIt()
+    {
+        _filters.IncludeSubfolders = true;
+
+        Assert.False(await TestWait.Within(_binding.LastReload));
+        Assert.Equal(0, _source.Calls);
+        Assert.True(_files.IncludeSubfolders);
+
+        Assert.True(await TestWait.Within(_files.LoadAsync(FolderA)));
+        Assert.Equal(1, _source.Calls);
+        Assert.True(_source.LastIncludeSubfolders);
+    }
+
+    [Fact]
+    public async Task Disposed_NoReload()
+    {
+        await _files.LoadAsync(FolderA);
+        int calls = _source.Calls;
+
+        _binding.Dispose();
+        _filters.IncludeSubfolders = true;
+        await TestWait.Within(_binding.LastReload);
+
+        Assert.Equal(calls, _source.Calls);
+        Assert.False(_files.IncludeSubfolders);
+    }
 
     [Fact]
     public async Task MaskChange_FiltersItems()

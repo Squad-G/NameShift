@@ -124,6 +124,18 @@ public static class Strings
     /// <summary>"&amp;Hidden", a check box of the filter row.</summary>
     public static string FilterHidden => Get(nameof(FilterHidden));
 
+    /// <summary>"Su&amp;b-folders", the filter row's check box that lists every sub-folder too (NS-78).</summary>
+    public static string FilterSubfolders => Get(nameof(FilterSubfolders));
+
+    /// <summary>"Folder", the file list's column of each item's folder, relative to the shown one (NS-78).</summary>
+    public static string ColumnFolder => Get(nameof(ColumnFolder));
+
+    /// <summary>"1 folder could not be read", the status line after a load that skipped one folder (NS-78).</summary>
+    public static string SkippedFolder => Get(nameof(SkippedFolder));
+
+    /// <summary>"{0} folders could not be read", the same for several folders (NS-78).</summary>
+    public static string SkippedFolders => Get(nameof(SkippedFolders));
+
     /// <summary>"M&amp;ore", the toggle of the filter row's second line.</summary>
     public static string FilterMore => Get(nameof(FilterMore));
 
