@@ -75,7 +75,7 @@ IDs), not the rank: the rank is the row order.
 | 81 | [NS-81 Pin the exit code of a refused undo that leaves the history unusable](NS-81-undoexit.md) | Ready | NS-42 |
 | 69 | [NS-69 Command line: use a saved preset](NS-69-clipreset.md) | Done | NS-38, NS-36, NS-43, NS-72, NS-42, NS-39, NS-40 |
 | 78 | [NS-78 Sub-folders box and Folder column](NS-78-subfolderbox.md) | Ready | NS-70, NS-74 |
-| 79 | [NS-79 Command line: split the apply parser by panel](NS-79-parseapplysplit.md) | Ready | NS-40, NS-69 |
+| 79 | [NS-79 Command line: split the apply parser by panel](NS-79-parseapplysplit.md) | Done | NS-40, NS-69 |
 | 75 | [NS-75 Command line: Name, Extension and Remove options](NS-75-clirules2.md) | Ready | NS-40, NS-69, NS-79, NS-55, NS-30 |
 | 76 | [NS-76 Command line: RegEx, Move/Copy, Auto date and Folder name options](NS-76-clirules3.md) | Ready | NS-75, NS-31, NS-59 |
 | 34 | [NS-34 Copy or move to another folder (engine and executor)](NS-34-copymove.md) | Cancelled | NS-8, NS-9 |
