@@ -1,7 +1,7 @@
 # NS-37: Remember last settings
 
 Status: Ready
-Depends on: NS-36, NS-72
+Depends on: NS-36, NS-72, NS-83
 Area: app
 
 ## Why
@@ -15,10 +15,11 @@ apply it. No new package: the in-box `DataContractJsonSerializer`, the atomic wr
 file access (`IPresetFiles`), `FolderNavigator`, `OpenTarget`, `OpenSequence`.
 
 Files (`AppSettingsStore(folder)`, default `%LOCALAPPDATA%\NameShift`, only computed, created on the first save):
-1. `settings.json`: `{ "version": 1, "window": { "left", "top", "width", "height", "maximized" }, "mainSplit", "rightSplit",
+1. `settings.json`: `{ "version": 1, "window": { "left", "top", "width", "height", "maximized" }, "mainSplit",
    "lastFolder" }`, UTF-8 without BOM, indented. Sizes and splitter values are in 96-DPI logical pixels, the position in
-   screen (device) pixels. `mainSplit` is the `SplitterDistance` of the folder tree (default 260); `rightSplit` is the
-   height of the bottom panel (default 240), not a `SplitterDistance` (the right split has `FixedPanel.Panel2`). `last-rules.json`: the rules in the preset format (NS-36:4) under the fixed name `(last used)`, written
+   screen (device) pixels. `mainSplit` is the `SplitterDistance` of the folder tree (default 260). There is no
+   `rightSplit`: from NS-83 the bottom area's height follows the open rule panels' content and is not dragged (NS-84 adds
+   the `panels` member for the collapse state). `last-rules.json`: the rules in the preset format (NS-36:4) under the fixed name `(last used)`, written
    with `Preset.FromPanels` and `PresetJson`, so a new panel setting is remembered the moment it is in a preset. Writes
    are atomic (temporary file, then move: a failing write leaves the old file and no temporary file; a test with the file
    seam that fails), never throw, and a failure is silent (closing the window is not a place for a message). No test
@@ -52,9 +53,10 @@ Window:
    that is now 100 %. Tests: on screen, partly off screen but grabbable, fully
    off screen, a second screen that is gone, a size too small, a size larger than the screen, two screens with negative
    coordinates (a screen left of the primary), maximised.
-6. Given saved splitter values, then `MainForm.OnLoad` applies them in place of the defaults (260 and the bottom height of
-   240 logical pixels), clamped to the panels' minimum sizes; a value that is missing, negative or larger than the container
-   is ignored (the default is used). A Ui test of the clamp rule (`SplitterRule.Clamp`), the rest by hand.
+6. Given a saved `mainSplit`, then `MainForm.OnLoad` applies it in place of the default (260 logical pixels), clamped to
+   the panels' minimum sizes; a value that is missing, negative or larger than the container is ignored (the default is
+   used). A Ui test of the clamp rule (`SplitterRule.Clamp`), the rest by hand. The bottom area's height is not saved
+   (NS-83 computes it).
 7. Sizes are saved in logical pixels (device size divided by the window's scale) and applied with the scale of the screen the
    window lands on, so a layout saved at 150 % opens right at 100 % and the reverse (by hand, written in the PR).
 
@@ -105,3 +107,5 @@ Privacy:
 - 2026-10-24: David chose to build presets first, then this; it reuses the panel `SaveSettings`/`LoadSettings` of NS-36. Stays Draft: its criteria are written when NS-36 and the menu (NS-72) are merged (po).
 - 2026-10-24: NS-36 merged and NS-72 Ready: criteria written in full (files, placement rule, splitters, start folder, what
   is not remembered, Reset without a menu item); set Ready, to be built after NS-72 (po).
+- 2026-10-24: `rightSplit` dropped (NS-83 makes the bottom height follow the open panels); to be built after NS-83. Panel
+  collapse state is added by NS-84 (po).

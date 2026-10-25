@@ -1,6 +1,6 @@
 # NS-78: Sub-folders box and Folder column
 
-Status: In Review
+Status: Done
 Depends on: NS-70, NS-74
 Area: app
 Build after NS-70 is merged (it extends NS-70's `FilterRow`, `FilterBinding`, `FilterTyping` use and `WindowMnemonicTests`). NS-74 is merged.
@@ -88,3 +88,13 @@ Tick one box to list and rename the files of all sub-folders, and see which fold
   case and the disposal added; set Ready, to start after NS-70 is merged (po).
 - 2026-10-24: In Progress (builder).
 - 2026-10-24: In Review (builder), PR #81.
+- 2026-10-24: Done (tech-lead), PR #81 approved on re-review and squash-merged. Hand checks for David (PR #81 checklist):
+  AC 1 and 8 (the box after Hidden, unticked at start, Alt+B, Tab Hidden > Sub-folders > More, disabled while busy,
+  Reset unticks it); AC 3 (the Folder column with the box, also while loading; widths kept across a hide; a click on
+  Folder does nothing; the sort arrow on the right header); AC 4 (the skipped-folders line once per landed load, none
+  repeated, unticking clears that line but not a newer message); AC 5 (a large tree stays responsive, cancelling and
+  closing during a walk); AC 7 (Restart in each folder per sub-folder; a Rename across two folders refreshes both
+  nodes); AC 9 (off at every start, presets never change it); 150 % and 200 % at the minimum width, More reachable.
+  Follow-up nits: mutation 5 is guarded indirectly (say which test catches it); the notice tests record into
+  unlocked lists; in a fresh window the first change runs a filter that the reload then cancels (from NS-70).
+  One unnamed net48 Ui failure in the first merge check run, not reproduced in 40 re-runs; tracked by NS-77.
