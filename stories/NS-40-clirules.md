@@ -108,3 +108,4 @@ Same as the window, and the rest:
 - 2026-10-24: NS-43 merged. Re-checked against its code (word lists, guard, 79-column help tests, usage shape): error
   strings chosen, `ApplyOptions` shape constraint, `NoRule` and help text made generic, depends on NS-42 and NS-39 for the
   build order; set Ready, third of NS-42, NS-39, NS-40, NS-69 (po).
+- 2026-10-24: In Progress (builder).
