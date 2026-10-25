@@ -69,6 +69,16 @@ internal static class TestWait
 {
     public static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
 
+    /// <summary>Blocks a fake's call on a test gate, but throws after <see cref="Timeout"/> instead of holding a pool
+    /// thread forever: a gate never released fails the test with this message instead of hanging the host (NS-77).</summary>
+    public static void Block(ManualResetEventSlim gate)
+    {
+        if (!gate.Wait(Timeout))
+        {
+            throw new TimeoutException("The test gate was not released in time.");
+        }
+    }
+
     public static async Task<T> Within<T>(Task<T> task)
     {
         if (await Task.WhenAny(task, Task.Delay(Timeout)) != task)

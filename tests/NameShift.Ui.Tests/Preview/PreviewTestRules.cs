@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using NameShift.Core;
+using NameShift.Ui.Tests.Files;
 
 namespace NameShift.Ui.Tests.Preview;
 
@@ -96,7 +97,7 @@ internal sealed class GateRule : IRenameRule
     {
         if (_onlyItemName == null || _onlyItemName == context.Item.Name)
         {
-            _gate.Wait();
+            TestWait.Block(_gate);
         }
 
         return name;
@@ -180,7 +181,7 @@ internal sealed class RenameToRule : IRenameRule
         if (_gate != null && (_gateItemName == null || _gateItemName == context.Item.Name))
         {
             Waiting.Set();
-            _gate.Wait();
+            TestWait.Block(_gate);
         }
 
         return NameParts.Split(_fullName, context.Item.Kind);

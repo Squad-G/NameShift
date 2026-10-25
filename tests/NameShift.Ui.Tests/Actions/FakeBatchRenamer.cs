@@ -4,6 +4,7 @@ using System.Threading;
 using NameShift.Core;
 using NameShift.Disk;
 using NameShift.Ui.Actions;
+using NameShift.Ui.Tests.Files;
 
 namespace NameShift.Ui.Tests.Actions;
 
@@ -68,7 +69,10 @@ internal sealed class FakeBatchRenamer : IBatchRenamer
 
     private void Act()
     {
-        Gate?.Wait();
+        if (Gate != null)
+        {
+            TestWait.Block(Gate);
+        }
         During?.Invoke();
         if (Throws)
         {
