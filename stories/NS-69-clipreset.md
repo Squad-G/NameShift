@@ -1,6 +1,6 @@
 # NS-69: Command line: use a saved preset
 
-Status: In Progress
+Status: In Review
 Depends on: NS-38, NS-36, NS-43, NS-72, NS-42, NS-39, NS-40
 Area: app
 
@@ -125,3 +125,4 @@ Help and tests of the words:
   depends on NS-42, NS-39 and NS-40 for the order and on NS-72 for the trimmed names; set Ready, last of NS-42, NS-39,
   NS-40, NS-69, to be started only after NS-72 and NS-40 are merged (po).
 - 2026-10-24: In Progress (builder).
+- 2026-10-24: In Review (builder), PR #76.
