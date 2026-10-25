@@ -41,13 +41,14 @@ internal sealed class MainForm : Form
     private readonly ToolStripProgressBar _progress = new ToolStripProgressBar { Style = ProgressBarStyle.Marquee, Visible = false };
     private readonly IFolderSource _source;
     private readonly string? _startArgument;
+    private readonly IReadOnlyList<string> _startArguments;
     private readonly string _currentDirectory;
     private readonly OpenSequence _opens = new OpenSequence();
     private readonly FilterBinding _filterBinding;
     private readonly SkippedFoldersNotice _skippedFolders;
     private readonly RulePanelStack _stack;
     private bool _fitting;
-    private (string Folder, string FileName)? _pendingSelection;
+    private (string Folder, IReadOnlyList<string> Names, int Rejected, bool Report)? _pendingSelection;
     private bool _shownBusy;
     private readonly AppSettingsStore _settingsStore;
     private readonly AppSettings _saved;
@@ -74,6 +75,7 @@ internal sealed class MainForm : Form
         _settingsStore = settingsStore;
         _saved = saved;
         _startArgument = OpenTarget.FirstPathArgument(args);
+        _startArguments = OpenTarget.PathArguments(args);
         _currentDirectory = currentDirectory;
         _navigator = new FolderNavigator(source);
         _folderModel = new FolderTreeModel(source);
@@ -275,7 +277,7 @@ internal sealed class MainForm : Form
         {
             case StartFolderSource.Argument:
                 // One navigation once the path is resolved: Documents is never shown first for nothing.
-                _ = OpenAsync(_startArgument!);
+                _ = _startArguments.Count >= 2 ? OpenManyAsync(_startArguments) : OpenAsync(_startArgument!);
                 break;
             case StartFolderSource.Remembered:
                 _ = OpenRememberedAsync(_saved.LastFolder!);
@@ -652,7 +654,7 @@ internal sealed class MainForm : Form
                 return;
             }
 
-            _pendingSelection = request.FileName is null ? null : (request.Folder, request.FileName);
+            _pendingSelection = request.FileName is null ? null : (request.Folder, new[] { request.FileName }, 0, false);
             string? current = _navigator.CurrentFolder;
             _navigator.SelectFromTree(request.Folder);
             if (current != null && PathInput.SameFolder(current, request.Folder))
@@ -668,7 +670,59 @@ internal sealed class MainForm : Form
         }
     }
 
-    /// <summary>Selects the file asked for once its folder is listed; drops the request when the user moved on.</summary>
+    /// <summary>Opens several paths from the command line: the folder of the first that exists, with those items selected
+    /// (NS-88). Resolves off the UI thread; never throws.</summary>
+    private async Task OpenManyAsync(IReadOnlyList<string> texts)
+    {
+        try
+        {
+            int ticket = _opens.Begin();
+            string currentDirectory = _currentDirectory;
+            IFolderSource source = _source;
+            MultiOpenRequest many = await Task.Run(() =>
+                OpenTarget.ResolveMany(texts.Select(t => new PathArgument(t, currentDirectory)).ToList(), source));
+            if (IsDisposed)
+            {
+                return;
+            }
+
+            OpenRequest request = many.Request;
+            OpenAction action = _opens.Complete(ticket, request, Actions.IsBusy, _navigator.CurrentFolder != null);
+            if (action == OpenAction.Discard)
+            {
+                return;
+            }
+
+            if (action != OpenAction.Open || many.Folder is null)
+            {
+                if (action == OpenAction.OpenStartFolder)
+                {
+                    _navigator.Start();
+                }
+
+                if (many.Message != null)
+                {
+                    ShowStatus(many.Message);
+                }
+
+                return;
+            }
+
+            _pendingSelection = (many.Folder, many.Names, many.Rejected, true);
+            string? current = _navigator.CurrentFolder;
+            _navigator.SelectFromTree(many.Folder);
+            if (current != null && PathInput.SameFolder(current, many.Folder))
+            {
+                TryApplyPendingSelection();
+            }
+        }
+        catch (Exception)
+        {
+            ShowStatus(Strings.SomethingWentWrong);
+        }
+    }
+
+    /// <summary>Selects the items asked for once their folder is listed; drops the request when the user moved on.</summary>
     private void TryApplyPendingSelection()
     {
         if (_pendingSelection is not { } pending || FileListModel.State == FileListState.Loading)
@@ -683,11 +737,17 @@ internal sealed class MainForm : Form
             return;
         }
 
-        // A file the list does not show (hidden, or removed) leaves nothing selected.
-        int row = FileListModel.FindRow(pending.FileName);
-        if (row >= 0)
+        // A name the list does not show (hidden, filtered out, or removed) is not selected; none found leaves the
+        // selection as it is. One file from the command line or a drop is silent, as in NS-47.
+        IReadOnlyList<int> rows = FileListModel.SelectNames(pending.Names);
+        _fileList.SelectRows(rows);
+        int notSelected = pending.Rejected + (pending.Names.Count - rows.Count);
+        if (pending.Report && notSelected > 0)
         {
-            _fileList.SelectRow(row);
+            ShowStatus(
+                notSelected == 1
+                    ? string.Format(CultureInfo.CurrentCulture, Strings.NotSelectedOne, pending.Folder)
+                    : string.Format(CultureInfo.CurrentCulture, Strings.NotSelectedMany, notSelected, pending.Folder));
         }
     }
 

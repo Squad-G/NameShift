@@ -125,6 +125,41 @@ internal sealed class FileList : UserControl
         ScheduleSelectionRead();
     }
 
+    /// <summary>Selects only these rows (one message per row), focuses and scrolls to the first; a row outside the list is
+    /// ignored.</summary>
+    public void SelectRows(IReadOnlyList<int> rows)
+    {
+        if (IsDisposed || !_list.IsHandleCreated || rows.Count == 0)
+        {
+            return;
+        }
+
+        SetAllRowsSelected(false);
+        int first = -1;
+        foreach (int row in rows)
+        {
+            if (row < 0 || row >= _list.VirtualListSize)
+            {
+                continue;
+            }
+
+            SetRowSelected(row);
+            if (first < 0)
+            {
+                first = row;
+            }
+        }
+
+        if (first >= 0)
+        {
+            _list.FocusedItem = _list.Items[first];
+            _list.EnsureVisible(first);
+        }
+
+        // The list's selection events schedule this too; one read updates the model and the "N of M" count.
+        ScheduleSelectionRead();
+    }
+
     protected override void Dispose(bool disposing)
     {
         if (disposing)

@@ -36,6 +36,12 @@ public static class Strings
     /// <summary>"Folder not found: {0}".</summary>
     public static string PathNotFound => Get(nameof(PathNotFound));
 
+    /// <summary>"1 item was not selected: not found or not in {0}." (the singular of <see cref="NotSelectedMany"/>).</summary>
+    public static string NotSelectedOne => Get(nameof(NotSelectedOne));
+
+    /// <summary>"{0} items were not selected: not found or not in {1}.".</summary>
+    public static string NotSelectedMany => Get(nameof(NotSelectedMany));
+
     /// <summary>"That is a file, not a folder: {0}".</summary>
     public static string PathNotAFolder => Get(nameof(PathNotAFolder));
 

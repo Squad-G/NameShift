@@ -17,6 +17,8 @@
   <data name="PathBarLabel" xml:space="preserve"><value>Folder</value></data>
   <data name="PathInvalid" xml:space="preserve"><value>That is not a valid folder path.</value></data>
   <data name="PathNotFound" xml:space="preserve"><value>Folder not found: {0}</value></data>
+  <data name="NotSelectedOne" xml:space="preserve"><value>1 item was not selected: not found or not in {0}.</value></data>
+  <data name="NotSelectedMany" xml:space="preserve"><value>{0} items were not selected: not found or not in {1}.</value></data>
   <data name="PathNotAFolder" xml:space="preserve"><value>That is a file, not a folder: {0}</value></data>
   <data name="PathBarHint" xml:space="preserve"><value>Type a folder path and press Enter</value></data>
   <data name="SomethingWentWrong" xml:space="preserve"><value>Something went wrong. Try again.</value></data>

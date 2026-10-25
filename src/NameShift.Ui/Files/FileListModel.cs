@@ -171,6 +171,54 @@ public sealed class FileListModel : IDisposable
         return -1;
     }
 
+    /// <summary>Selects the rows of the shown folder (<see cref="FolderPath"/>, never a sub-folder) named like one of
+    /// <paramref name="names"/> (ordinal, ignoring case), replacing the selection, and returns the rows selected in the
+    /// order of the names, without duplicates. A name the list does not show (hidden, filtered out, removed) selects
+    /// nothing. When no row is found the selection stays as it is. Linear: one name-to-row map, never a scan per name.
+    /// Does not scroll.</summary>
+    /// <exception cref="ArgumentNullException">When names is null.</exception>
+    public IReadOnlyList<int> SelectNames(IEnumerable<string> names)
+    {
+        if (names == null)
+        {
+            throw new ArgumentNullException(nameof(names));
+        }
+
+        if (State != FileListState.Loaded)
+        {
+            return Array.Empty<int>();
+        }
+
+        IReadOnlyList<RenameItem> listItems = Items;
+        string folder = FolderPath!;
+        var rowsByName = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        for (int row = 0; row < listItems.Count; row++)
+        {
+            RenameItem item = listItems[row];
+            if (!rowsByName.ContainsKey(item.Name) && PathInput.SameFolder(item.FolderPath, folder))
+            {
+                rowsByName.Add(item.Name, row);
+            }
+        }
+
+        var found = new List<int>();
+        var added = new HashSet<int>();
+        foreach (string name in names)
+        {
+            if (!string.IsNullOrEmpty(name) && rowsByName.TryGetValue(name, out int row) && added.Add(row))
+            {
+                found.Add(row);
+            }
+        }
+
+        if (found.Count > 0)
+        {
+            SetSelection(found);
+        }
+
+        return found;
+    }
+
     /// <summary>Selects the rows (any order, duplicates allowed). No rows, or every row, is the whole list.
     /// Raises <see cref="SelectionChanged"/> only when the batch changes.</summary>
     /// <exception cref="ArgumentNullException">When rows is null.</exception>
