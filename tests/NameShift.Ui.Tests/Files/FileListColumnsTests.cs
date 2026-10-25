@@ -55,6 +55,11 @@ public sealed class FileListColumnsTests
         Assert.Equal(FileListColumn.Modified, columns.SortColumnAt(columns.IndexOf(ShownColumn.Modified)));
         Assert.Null(columns.SortColumnAt(columns.IndexOf(ShownColumn.NewName)));
         Assert.Null(columns.SortColumnAt(columns.IndexOf(ShownColumn.Status)));
+        if (showFolder)
+        {
+            Assert.Null(columns.SortColumnAt(columns.IndexOf(ShownColumn.Folder)));
+        }
+
         Assert.Throws<ArgumentOutOfRangeException>(() => columns.SortColumnAt(-1));
         Assert.Throws<ArgumentOutOfRangeException>(() => columns.SortColumnAt(columns.Order.Count));
         Assert.Throws<ArgumentOutOfRangeException>(() => columns.ColumnAt(columns.Order.Count));

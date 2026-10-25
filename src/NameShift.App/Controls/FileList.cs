@@ -88,7 +88,10 @@ internal sealed class FileList : UserControl
             }
             else
             {
+                // A removed header reads its width from the column that takes its index: keep the user's own.
+                int width = folder.Width;
                 _list.Columns.Remove(folder);
+                folder.Width = width;
             }
 
             _columns = next;

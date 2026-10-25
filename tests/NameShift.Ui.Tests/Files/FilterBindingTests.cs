@@ -46,6 +46,10 @@ public sealed class FilterBindingTests
     public async Task Tick_ReloadsWithSubfolders()
     {
         await _files.LoadAsync(FolderA);
+
+        // Both models start at an equal default filter, but not the same instance: make it the same, so the tick's
+        // Changed asks for the filter the list already has (no filter run), as after any earlier filter change.
+        await TestWait.Within(_files.SetFilterAsync(_filters.Filter));
         int calls = _source.Calls;
         SetTreeListing();
 
@@ -104,6 +108,7 @@ public sealed class FilterBindingTests
         await TestWait.Within(_files.PendingFilter);
         Assert.Equal(new[] { "b.txt", "s.txt" }, Names(_files.Items));
         int calls = _source.Calls;
+        int orderChanges = Volatile.Read(ref _orderChanges);
         SetFolderOnlyListing();
 
         _filters.Reset();
@@ -111,6 +116,9 @@ public sealed class FilterBindingTests
         await TestWait.Within(_binding.LastRun);
         await TestWait.Within(_binding.LastReload);
         await TestWait.Within(_files.PendingFilter);
+
+        // The filter was asked for first, so the reload lands with it: one list, no filter run after the load.
+        Assert.Equal(orderChanges, Volatile.Read(ref _orderChanges));
         Assert.False(_files.IncludeSubfolders);
         Assert.False(_source.LastIncludeSubfolders);
         Assert.Equal(calls + 1, _source.Calls);
