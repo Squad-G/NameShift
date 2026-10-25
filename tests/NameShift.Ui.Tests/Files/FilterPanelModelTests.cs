@@ -374,4 +374,79 @@ public sealed class FilterPanelModelTests
         Assert.Equal("No item matches the filters.", Strings.NoItemMatchesFilter);
         Assert.Equal("Enter a whole number for the length.", Strings.FilterLengthInvalid);
     }
+
+    // NS-74 AC 4: the Sub-folders box
+
+    [Fact]
+    public void IncludeSubfolders_DefaultFalse_PartOfIsDefault()
+    {
+        Assert.False(_model.IncludeSubfolders);
+        Assert.True(_model.IsDefault);
+
+        _model.IncludeSubfolders = true;
+
+        Assert.True(_model.IncludeSubfolders);
+        Assert.False(_model.IsDefault);
+        _model.IncludeSubfolders = false;
+        Assert.True(_model.IsDefault);
+    }
+
+    [Fact]
+    public void IncludeSubfolders_OneChangedPerRealChange()
+    {
+        _model.IncludeSubfolders = false;
+        Assert.Equal(0, _changes);
+
+        _model.IncludeSubfolders = true;
+        _model.IncludeSubfolders = true;
+        Assert.Equal(1, _changes);
+
+        _model.IncludeSubfolders = false;
+        Assert.Equal(2, _changes);
+    }
+
+    [Fact]
+    public void IncludeSubfolders_FilterSameInstance()
+    {
+        _model.Mask = "*.txt";
+        ItemFilter before = _model.Filter;
+
+        _model.IncludeSubfolders = true;
+
+        Assert.Same(before, _model.Filter);
+        _model.IncludeSubfolders = false;
+        Assert.Same(before, _model.Filter);
+    }
+
+    [Fact]
+    public void Reset_BoxOnly_SameFilter_OneChanged()
+    {
+        _model.IncludeSubfolders = true;
+        ItemFilter before = _model.Filter;
+        _changes = 0;
+
+        _model.Reset();
+
+        Assert.Equal(1, _changes);
+        Assert.False(_model.IncludeSubfolders);
+        Assert.True(_model.IsDefault);
+        Assert.Same(before, _model.Filter);
+    }
+
+    [Fact]
+    public void Reset_BoxAndMask_NewFilter()
+    {
+        _model.IncludeSubfolders = true;
+        _model.Mask = "*.txt";
+        ItemFilter before = _model.Filter;
+        _changes = 0;
+
+        _model.Reset();
+
+        Assert.Equal(1, _changes);
+        Assert.False(_model.IncludeSubfolders);
+        Assert.True(_model.IsDefault);
+        Assert.NotSame(before, _model.Filter);
+        Assert.Equal("", _model.Filter.Mask);
+    }
 }

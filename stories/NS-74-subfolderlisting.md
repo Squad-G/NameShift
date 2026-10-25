@@ -1,6 +1,6 @@
 # NS-74: Sub-folders: recursive, cancellable listing
 
-Status: Ready
+Status: Done
 Depends on: NS-33, NS-66, NS-73
 Area: app
 
@@ -137,3 +137,10 @@ Relative folder and rename:
   `ExistingNamesByFolder`, `FilterPanelModel` and `FileListOrder`; order moved to the source, the model gets
   `IncludeSubfolders`/`SetIncludeSubfoldersAsync`, the tree refresh lists every folder; the controls moved to NS-78; set
   Ready (po).
+- 2026-10-24: In Progress (builder).
+- 2026-10-24: In Review (builder), PR #72.
+- 2026-10-24: Possible follow-up from the PR #72 review: a sub-folder whose name ends in a dot or a space (created
+  through `\\?\`) is read as another folder (`x.` reads `x`) after `Path.Combine` and the `DirectoryInfo` normalisation,
+  so its entries can be listed under the wrong `FolderPath` (the Rename then fails and rolls back, no data lost); the walk
+  could skip and count such names (builder).
+- 2026-10-25: Done, PR #72 squash-merged into `dev` after the reviewer's APPROVE on its re-review. Hand checks pending for David: a real OneDrive folder with sub-folders; the window parts come in NS-78 (tech-lead).

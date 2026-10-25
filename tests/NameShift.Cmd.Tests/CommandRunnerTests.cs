@@ -3,6 +3,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using NameShift.Core;
 using NameShift.Ui.Files;
 using NameShift.Ui.Folders;
@@ -193,6 +194,18 @@ public sealed class CommandRunnerTests : IDisposable
     }
 
     [Fact]
+    public void Listing_TopFolderOnly_NeverSubfolders()
+    {
+        // NS-74 AC 2: the command line lists the folder alone (recursion is NS-41).
+        var files = new FakeFileListSource(FileListing.Ok(new[] { new RenameItem("VISIBLE.txt", _temp.Files) }));
+
+        var run = Cmd.Run(new FakeBatchRenamer(), _temp.Files, new[] { "apply", _temp.Files, "--case", "lower", "--dry-run" }, files);
+
+        Assert.Equal(0, run.Code);
+        Assert.Equal(new[] { false }, files.IncludeSubfolders);
+    }
+
+    [Fact]
     public void ListingThrows_Exit3_NothingRenamed()
     {
         var renamer = new FakeBatchRenamer();
@@ -279,7 +292,7 @@ public sealed class CommandRunnerTests : IDisposable
 
     private sealed class ThrowingFileListSource : IFileListSource
     {
-        public FileListing ListEntries(string folderPath) => throw new InvalidOperationException("A bug in the listing.");
+        public FileListing ListEntries(string folderPath, bool includeSubfolders, CancellationToken cancellationToken) => throw new InvalidOperationException("A bug in the listing.");
     }
 
     private sealed class ThrowingWriter : TextWriter

@@ -923,6 +923,38 @@ public sealed class MainActionsTests
         Assert.Empty(events);
     }
 
+    // NS-74 AC 16: a Rename across sub-folders lists every folder of the batch.
+
+    [Fact]
+    public async Task Rename_SeveralFolders_FolderContentsChangedListsEach()
+    {
+        _source.SetEntries(
+            @"C:\Root",
+            File("a.txt", folder: @"C:\Root"),
+            File("b.txt", folder: @"C:\Root\x"),
+            File("c.txt", folder: @"c:\root\X"),
+            File("d.txt", folder: @"c:\root"));
+        MainActions actions = await BuildLoadedIn(@"C:\Root", Prefix());
+        var events = RecordEvents(actions);
+
+        await Rename();
+
+        var e = Assert.Single(events);
+        Assert.Equal(new[] { @"C:\Root", @"C:\Root\x" }, e.Folders);
+        Assert.Equal(e.Folders.Count, e.Folders.Distinct(StringComparer.OrdinalIgnoreCase).Count());
+    }
+
+    [Fact]
+    public async Task Rename_OneFolder_ListsThatFolder()
+    {
+        MainActions actions = await BuildLoaded(Prefix());
+        var events = RecordEvents(actions);
+
+        await Rename();
+
+        Assert.Equal(new[] { FolderA }, Assert.Single(events).Folders);
+    }
+
     [Fact]
     public async Task Revert_BatchInAWhileBShown_RaisesAAndB()
     {

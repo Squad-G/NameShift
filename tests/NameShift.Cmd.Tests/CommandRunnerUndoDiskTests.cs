@@ -70,7 +70,7 @@ public sealed class CommandRunnerUndoDiskTests : IDisposable
     {
         _temp.File("IMG_001.JPG");
         _temp.File("IMG_002.JPG");
-        FileListing listing = new DiskFileListSource().ListEntries(_temp.Files);
+        FileListing listing = new DiskFileListSource().ListEntries(_temp.Files, false, CancellationToken.None);
         RenameItem[] items = FileListOrder.Sort(listing.Items).Where(new ItemFilter(includeFolders: false).Includes).ToArray();
         RenamePlan plan = RenamePlanner.Plan(
             new IRenameRule[] { new CaseRule(CaseMode.Lower) }, items, listing.ExistingNamesByFolder, CancellationToken.None);

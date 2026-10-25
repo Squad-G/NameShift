@@ -1513,4 +1513,254 @@ public sealed class FileListModelTests
             watch.Elapsed < TimeSpan.FromSeconds(1),
             string.Format(CultureInfo.InvariantCulture, "Re-filter took {0:N0} ms; budget 1,000 ms.", watch.Elapsed.TotalMilliseconds));
     }
+
+    // NS-74: sub-folders and the walk's token
+
+    private void WaitForCalls(int calls)
+    {
+        Assert.True(SpinWait.SpinUntil(() => _source.Calls >= calls, TestWait.Timeout), "The source was not called in time.");
+    }
+
+    [Fact]
+    public async Task Load_PassesTheLoadToken()
+    {
+        _source.SetEntries(@"C:\A", File("a.txt"));
+
+        Assert.True(await Within(_model.LoadAsync(@"C:\A")));
+
+        Assert.True(_source.LastToken.CanBeCanceled);
+        Assert.False(_source.LastToken.IsCancellationRequested);
+        Assert.False(_source.LastIncludeSubfolders);
+    }
+
+    [Fact]
+    public async Task Load_SupersededByNewLoad_TokenCancelled()
+    {
+        _source.BlockUntilCancelled(@"C:\A");
+        _source.SetEntries(@"C:\B", File("b.txt", folder: @"C:\B"));
+        Task<bool> first = _model.LoadAsync(@"C:\A");
+        WaitForCalls(1);
+        CancellationToken firstToken = _source.LastToken;
+
+        Task<bool> second = _model.LoadAsync(@"C:\B");
+
+        Assert.True(firstToken.IsCancellationRequested);
+        Assert.False(await Within(first));
+        Assert.True(await Within(second));
+        Assert.False(_source.LastToken.IsCancellationRequested);
+    }
+
+    [Fact]
+    public async Task Load_SourceThrowsCanceledWithoutCancel_IsFailed()
+    {
+        _source.SetThrows(@"C:\A", new OperationCanceledException());
+
+        Assert.True(await Within(_model.LoadAsync(@"C:\A")));
+
+        Assert.Equal(FileListState.Failed, _model.State);
+        Assert.Equal(FolderProblem.Unavailable, _model.Problem);
+        Assert.Equal(Strings.FolderUnavailable, _model.Message);
+    }
+
+    [Fact]
+    public async Task SkippedFolders_FromTheListing()
+    {
+        Assert.Equal(0, _model.SkippedFolders);
+        _source.SetListing(@"C:\A", FileListing.Ok(new[] { File("a.txt") }, 3));
+        _source.SetListing(@"C:\B", FileListing.Ok(new[] { File("b.txt", folder: @"C:\B") }, 2));
+        _source.SetListing(@"C:\C", FileListing.Failed(FolderProblem.AccessDenied));
+        Assert.True(await Within(_model.LoadAsync(@"C:\A")));
+        Assert.Equal(3, _model.SkippedFolders);
+        ManualResetEventSlim gate = _source.Gate(@"C:\B");
+        try
+        {
+            Task<bool> loading = _model.LoadAsync(@"C:\B");
+            Assert.Equal(0, _model.SkippedFolders);
+            gate.Set();
+            Assert.True(await Within(loading));
+            Assert.Equal(2, _model.SkippedFolders);
+        }
+        finally
+        {
+            gate.Set();
+        }
+
+        Assert.True(await Within(_model.LoadAsync(@"C:\C")));
+        Assert.Equal(0, _model.SkippedFolders);
+    }
+
+    [Fact]
+    public void Listing_SkippedFolders_DefaultZero_NegativeThrows()
+    {
+        Assert.Equal(0, FileListing.Ok(Array.Empty<RenameItem>()).SkippedFolders);
+        Assert.Equal(0, FileListing.Failed(FolderProblem.NotFound).SkippedFolders);
+        Assert.Equal(4, FileListing.Ok(Array.Empty<RenameItem>(), 4).SkippedFolders);
+        Assert.Throws<ArgumentOutOfRangeException>(() => FileListing.Ok(Array.Empty<RenameItem>(), -1));
+    }
+
+    [Fact]
+    public async Task SetIncludeSubfolders_ReloadsSameFolder()
+    {
+        await LoadSized();
+        _model.SortBy(FileListColumn.Size);
+        _model.SetSelection(new[] { 1 });
+        var states = new List<FileListState>();
+        _model.Changed += (_, _) => states.Add(_model.State);
+
+        bool applied = await Within(_model.SetIncludeSubfoldersAsync(true));
+
+        Assert.True(applied);
+        Assert.True(_model.IncludeSubfolders);
+        Assert.Equal(new[] { FileListState.Loading, FileListState.Loaded }, states);
+        Assert.Equal(2, _source.Calls);
+        Assert.True(_source.LastIncludeSubfolders);
+        Assert.Equal(@"C:\A", _model.FolderPath);
+        Assert.Equal(new FileListSort(FileListColumn.Size, false), _model.Sort);
+        Assert.True(_model.IsSortChosen);
+        Assert.Empty(_model.SelectedRows);
+    }
+
+    [Fact]
+    public async Task SetIncludeSubfolders_SameValue_False_NoLoad()
+    {
+        await LoadSized();
+
+        Assert.False(await Within(_model.SetIncludeSubfoldersAsync(false)));
+        Assert.Equal(1, _source.Calls);
+        Assert.True(await Within(_model.SetIncludeSubfoldersAsync(true)));
+        Assert.False(await Within(_model.SetIncludeSubfoldersAsync(true)));
+        Assert.Equal(2, _source.Calls);
+    }
+
+    [Fact]
+    public async Task SetIncludeSubfolders_NoFolder_OnlyStored()
+    {
+        Assert.False(await Within(_model.SetIncludeSubfoldersAsync(true)));
+        Assert.True(_model.IncludeSubfolders);
+        Assert.Equal(0, _source.Calls);
+        Assert.Equal(0, _changes);
+
+        Assert.True(await Within(_model.LoadAsync(@"C:\A")));
+
+        Assert.True(_source.LastIncludeSubfolders);
+    }
+
+    [Fact]
+    public async Task SetIncludeSubfolders_AfterDispose_False_NotStored()
+    {
+        await LoadSized();
+        _model.Dispose();
+
+        Assert.False(await Within(_model.SetIncludeSubfoldersAsync(true)));
+
+        Assert.False(_model.IncludeSubfolders);
+        Assert.Equal(1, _source.Calls);
+    }
+
+    [Fact]
+    public async Task Reload_KeepsIncludeSubfolders()
+    {
+        await LoadSized();
+        Assert.True(await Within(_model.SetIncludeSubfoldersAsync(true)));
+
+        Assert.True(await Within(_model.LoadAsync(@"C:\B")));
+        Assert.True(_source.LastIncludeSubfolders);
+        Assert.True(await Within(_model.LoadAsync(@"C:\B")));
+        Assert.True(_source.LastIncludeSubfolders);
+        Assert.Equal(4, _source.Calls);
+    }
+
+    [Fact]
+    public async Task FindRow_OnlyTheShownFolder()
+    {
+        // The shown folder's item is spelled in another case: the folder match ignores case.
+        _source.SetEntries(@"C:\A", File("a.txt", folder: @"C:\A\x"), File("a.txt", folder: @"c:\a"), File("b.txt", folder: @"C:\A\x"));
+        await _model.LoadAsync(@"C:\A");
+        Assert.Equal(@"C:\A\x", _model.Items[0].FolderPath);
+
+        int row = _model.FindRow("A.TXT");
+
+        Assert.Equal(@"c:\a", _model.Items[row].FolderPath);
+        Assert.Equal("a.txt", _model.Items[row].Name);
+        Assert.Equal(-1, _model.FindRow("b.txt"));
+    }
+
+    [Fact]
+    public async Task Dispose_CancelsTheWalk()
+    {
+        _source.BlockUntilCancelled(@"C:\A");
+        Task<bool> load = _model.LoadAsync(@"C:\A");
+        WaitForCalls(1);
+        CancellationToken token = _source.LastToken;
+        int changes = _changes;
+
+        _model.Dispose();
+
+        Assert.True(token.IsCancellationRequested);
+        Assert.False(await Within(load));
+        Assert.Equal(changes, _changes);
+        Assert.Equal(FileListState.Loading, _model.State);
+        Assert.Empty(_model.AllItems);
+    }
+
+    [Fact]
+    public async Task SetIncludeSubfolders_CancelsTheWalk()
+    {
+        _source.SetEntries(@"C:\A", File("a.txt"));
+        _source.BlockUntilCancelled(@"C:\A");
+        Task<bool> first = _model.LoadAsync(@"C:\A");
+        WaitForCalls(1);
+        CancellationToken token = _source.LastToken;
+        Assert.False(_source.LastIncludeSubfolders);
+
+        Task<bool> reload = _model.SetIncludeSubfoldersAsync(true);
+
+        Assert.True(token.IsCancellationRequested);
+        Assert.False(await Within(first));
+        Assert.True(await Within(reload));
+        Assert.True(_source.LastIncludeSubfolders);
+        Assert.Equal(new[] { "a.txt" }, NamesOf(_model.Items));
+    }
+
+    [Fact]
+    public async Task BlockedUntilCancelled_EndsSuperseded()
+    {
+        var states = new List<FileListState>();
+        _model.Changed += (_, _) => states.Add(_model.State);
+        _source.BlockUntilCancelled(@"C:\A");
+        _source.SetEntries(@"C:\B", File("b.txt", folder: @"C:\B"));
+        Task<bool> first = _model.LoadAsync(@"C:\A");
+        WaitForCalls(1);
+
+        Task<bool> second = _model.LoadAsync(@"C:\B");
+
+        Assert.False(await Within(first));
+        Assert.True(await Within(second));
+        Assert.DoesNotContain(FileListState.Failed, states);
+        Assert.Equal(FileListState.Loaded, _model.State);
+        Assert.Null(_model.Problem);
+        Assert.Equal(@"C:\B", _model.FolderPath);
+        Assert.Equal(new[] { "b.txt" }, NamesOf(_model.Items));
+    }
+
+    [Fact]
+    public async Task SortThenFilter_KeepsGroupOrder()
+    {
+        _source.SetEntries(
+            @"C:\A",
+            File("a.txt", 1),
+            File("c.txt", 9, @"C:\A\x"),
+            File("b.txt", 5),
+            File("e.jpg", 7),
+            File("d.txt", 3, @"C:\A\x"));
+        await _model.LoadAsync(@"C:\A");
+        _model.SortBy(FileListColumn.Size);
+        _model.SortBy(FileListColumn.Size);
+        Assert.Equal(new[] { "e.jpg", "b.txt", "a.txt", "c.txt", "d.txt" }, NamesOf(_model.Items));
+
+        Assert.True(await Within(_model.SetFilterAsync(new ItemFilter(mask: "*.txt"))));
+
+        Assert.Equal(new[] { "b.txt", "a.txt", "c.txt", "d.txt" }, NamesOf(_model.Items));
+        Assert.Equal(new[] { @"C:\A", @"C:\A", @"C:\A\x", @"C:\A\x" }, _model.Items.Select(i => i.FolderPath));
+    }
 }

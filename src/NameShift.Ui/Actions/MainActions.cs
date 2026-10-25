@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using NameShift.Core;
 using NameShift.Disk;
 using NameShift.Ui.Files;
 using NameShift.Ui.Preview;
@@ -171,7 +172,7 @@ public sealed class MainActions
         return RunAsync(
             ActionText.Busy(count, CultureInfo.CurrentCulture),
             folder,
-            new[] { folder },
+            RenameFolders(folder, snapshot.Items),
             () => _renamer.Rename(snapshot.Results, snapshot.Conflicts),
             ActionText.ForRename,
             r => r.Execution != null && (r.Execution.Renamed.Count > 0 || r.Execution.NeedsAttention.Count > 0),
@@ -255,6 +256,11 @@ public sealed class MainActions
             RaiseChanged();
         }
     }
+
+    /// <summary>The shown folder, then every other folder of the batch's items (sub-folders listed) in order of first
+    /// appearance; no duplicates (case-insensitive). One folder gives just the shown one.</summary>
+    private static IReadOnlyList<string> RenameFolders(string shown, IReadOnlyList<RenameItem> items) =>
+        new[] { shown }.Concat(items.Select(item => item.FolderPath)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
 
     /// <summary>The batch's folders (a revertable batch always has them), then the shown folder; no duplicates (case-insensitive).</summary>
     private static IReadOnlyList<string> RevertFolders(LastBatch batch, string? shown)

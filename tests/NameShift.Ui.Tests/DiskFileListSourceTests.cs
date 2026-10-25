@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using NameShift.Core;
 using NameShift.Ui.Files;
 using NameShift.Ui.Folders;
@@ -64,7 +65,7 @@ public sealed class DiskFileListSourceTests : IDisposable
         File.SetAttributes(file, FileAttributes.ReadOnly);
         MakeFolder("v1.2");
 
-        FileListing listing = _source.ListEntries(_temp);
+        FileListing listing = _source.ListEntries(_temp, false, CancellationToken.None);
 
         Assert.Null(listing.Problem);
         Assert.Equal(2, listing.Items.Count);
@@ -97,7 +98,7 @@ public sealed class DiskFileListSourceTests : IDisposable
     {
         MakeSixEntries();
 
-        FileListing listing = _source.ListEntries(_temp);
+        FileListing listing = _source.ListEntries(_temp, false, CancellationToken.None);
 
         Assert.Null(listing.Problem);
         Assert.Equal(6, listing.Items.Count);
@@ -118,7 +119,7 @@ public sealed class DiskFileListSourceTests : IDisposable
     {
         MakeSixEntries();
 
-        FileListing listing = _source.ListEntries(_temp);
+        FileListing listing = _source.ListEntries(_temp, false, CancellationToken.None);
 
         Assert.Equal(new[] { _temp }, listing.ExistingNamesByFolder.Keys);
         Assert.Equal(
@@ -129,7 +130,7 @@ public sealed class DiskFileListSourceTests : IDisposable
     [Fact]
     public void ListEntries_MissingFolder_IsNotFound()
     {
-        FileListing listing = _source.ListEntries(Path.Combine(_temp, "missing"));
+        FileListing listing = _source.ListEntries(Path.Combine(_temp, "missing"), false, CancellationToken.None);
 
         Assert.Equal(FolderProblem.NotFound, listing.Problem);
         Assert.Empty(listing.Items);
@@ -138,7 +139,7 @@ public sealed class DiskFileListSourceTests : IDisposable
     [Fact]
     public void ListEntries_OnAFile_IsAProblem_NotACrash()
     {
-        FileListing listing = _source.ListEntries(MakeFile("plain.txt"));
+        FileListing listing = _source.ListEntries(MakeFile("plain.txt"), false, CancellationToken.None);
 
         Assert.NotNull(listing.Problem);
         Assert.Empty(listing.Items);
@@ -174,5 +175,15 @@ public sealed class DiskFileListSourceTests : IDisposable
                 times[2].TotalMilliseconds, GenerousBudget.TotalMilliseconds));
     }
 
-    private IReadOnlyList<RenameItem> ListAndSort() => FileListOrder.Sort(_source.ListEntries(_temp).Items);
+    [Fact]
+    public void AlreadyCancelledToken_ThrowsAtOnce()
+    {
+        MakeFile("a.txt");
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        Assert.ThrowsAny<OperationCanceledException>(() => _source.ListEntries(_temp, true, cts.Token));
+    }
+
+    private IReadOnlyList<RenameItem> ListAndSort() => FileListOrder.Sort(_source.ListEntries(_temp, false, CancellationToken.None).Items);
 }

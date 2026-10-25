@@ -143,7 +143,7 @@ public sealed class CommandRunner
             return Fail(folderError, ExitCode.InputError);
         }
 
-        FileListing listing = _files.ListEntries(folder);
+        FileListing listing = _files.ListEntries(folder, false, CancellationToken.None);
         if (listing.Problem != null)
         {
             return Fail(Format(Strings.CannotList, folder, FolderProblemText.For(listing.Problem.Value)), ExitCode.InputError);

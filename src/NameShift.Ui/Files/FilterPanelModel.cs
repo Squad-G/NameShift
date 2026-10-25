@@ -9,7 +9,8 @@ namespace NameShift.Ui.Files;
 /// The filter settings as typed, and the one <see cref="ItemFilter"/> built from them. Plain properties: each change
 /// rebuilds <see cref="Filter"/> and <see cref="Error"/>, then raises <see cref="Changed"/> synchronously on the
 /// calling thread. It never touches the file list: the window passes <see cref="Filter"/> to
-/// <see cref="FileListModel.SetFilterAsync"/>.
+/// <see cref="FileListModel.SetFilterAsync"/>, and <see cref="IncludeSubfolders"/> (a listing parameter, not an item
+/// filter, so it never rebuilds <see cref="Filter"/>) to <see cref="FileListModel.SetIncludeSubfoldersAsync"/>.
 /// </summary>
 public sealed class FilterPanelModel
 {
@@ -21,6 +22,7 @@ public sealed class FilterPanelModel
     private bool _includeHidden;
     private string _minLengthText = "";
     private string _maxLengthText = "";
+    private bool _includeSubfolders;
 
     /// <summary>A model with every setting at its default: its filter behaves as <c>new ItemFilter()</c>.</summary>
     public FilterPanelModel()
@@ -90,6 +92,24 @@ public sealed class FilterPanelModel
         set => SetField(ref _maxLengthText, value ?? "");
     }
 
+    /// <summary>What the Sub-folders box shows: true lists every sub-folder too. False by default. Not part of
+    /// <see cref="Filter"/>: a change raises <see cref="Changed"/> once and keeps the same <see cref="Filter"/>
+    /// instance, so no filter run starts for it.</summary>
+    public bool IncludeSubfolders
+    {
+        get => _includeSubfolders;
+        set
+        {
+            if (_includeSubfolders == value)
+            {
+                return;
+            }
+
+            _includeSubfolders = value;
+            Changed?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
     /// <summary>The filter of the current settings, built once per change (its pattern is compiled once, never per
     /// item), before <see cref="Changed"/> is raised.</summary>
     public ItemFilter Filter { get; private set; }
@@ -99,18 +119,11 @@ public sealed class FilterPanelModel
     public string? Error { get; private set; }
 
     /// <summary>True when every setting is at its default (the texts compared as stored: " " is not default).</summary>
-    public bool IsDefault =>
-        _mask.Length == 0
-        && _pattern.Length == 0
-        && !_ignoreCase
-        && _includeFiles
-        && _includeFolders
-        && !_includeHidden
-        && _minLengthText.Length == 0
-        && _maxLengthText.Length == 0;
+    public bool IsDefault => IsFilterDefault && !_includeSubfolders;
 
     /// <summary>Puts every setting back to its default and raises <see cref="Changed"/> once; does nothing when
-    /// already default.</summary>
+    /// already default. <see cref="Filter"/> is rebuilt only when a filter setting changed, never for
+    /// <see cref="IncludeSubfolders"/> alone.</summary>
     public void Reset()
     {
         if (IsDefault)
@@ -118,6 +131,8 @@ public sealed class FilterPanelModel
             return;
         }
 
+        bool filterChanged = !IsFilterDefault;
+        _includeSubfolders = false;
         _mask = "";
         _pattern = "";
         _ignoreCase = false;
@@ -126,9 +141,25 @@ public sealed class FilterPanelModel
         _includeHidden = false;
         _minLengthText = "";
         _maxLengthText = "";
-        Rebuild();
+        if (filterChanged)
+        {
+            Rebuild();
+        }
+
         Changed?.Invoke(this, EventArgs.Empty);
     }
+
+    /// <summary>True when every filter setting (everything but <see cref="IncludeSubfolders"/>) is at its
+    /// default.</summary>
+    private bool IsFilterDefault =>
+        _mask.Length == 0
+        && _pattern.Length == 0
+        && !_ignoreCase
+        && _includeFiles
+        && _includeFolders
+        && !_includeHidden
+        && _minLengthText.Length == 0
+        && _maxLengthText.Length == 0;
 
     private void SetField<T>(ref T field, T value)
     {
