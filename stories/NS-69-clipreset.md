@@ -1,6 +1,6 @@
 # NS-69: Command line: use a saved preset
 
-Status: Ready
+Status: In Progress
 Depends on: NS-38, NS-36, NS-43, NS-72, NS-42, NS-39, NS-40
 Area: app
 
@@ -124,3 +124,4 @@ Help and tests of the words:
   `Enabled`, `ForDisk` gets a `presetsFolder`, usage errors versus runner errors told apart, `--quiet` and the saved line;
   depends on NS-42, NS-39 and NS-40 for the order and on NS-72 for the trimmed names; set Ready, last of NS-42, NS-39,
   NS-40, NS-69, to be started only after NS-72 and NS-40 are merged (po).
+- 2026-10-24: In Progress (builder).
