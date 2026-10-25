@@ -281,6 +281,8 @@ public sealed class FilterParserTests
     [InlineData("D:~*~x", "D:~*~x", null)]
     [InlineData("D:~Pics~", "D:~Pics~", null)]
     [InlineData("D:*.jpg", "D:*.jpg", null)]
+    [InlineData("~*.jpg", "~*.jpg", null)]
+    [InlineData("/*.jpg", "/*.jpg", null)]
     [InlineData("D:~Pics", "D:~Pics", null)]
     [InlineData("D:~Pics~*.jpg^", "D:~Pics~*.jpg^", null)]
     [InlineData("^D:~Pics~*.jpg", "^D:~Pics~*.jpg", null)]

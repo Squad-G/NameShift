@@ -30,7 +30,6 @@ public sealed class CommandRunnerFilterTests : IDisposable
         var source = new FakeFileListSource(FileListing.Ok(items));
         var args = new[] { "apply", _temp.Files, "--prefix", "x", "--dry-run" }.Concat(options).ToArray();
         var run = Cmd.Run(renamer, _temp.Files, args, source);
-        Assert.True(run.Code == 0 || options.Contains("(") , run.Error + run.Output);
         return (run.Code, Cmd.Lines(run.Output), run.Error, renamer, source);
     }
 
@@ -65,6 +64,7 @@ public sealed class CommandRunnerFilterTests : IDisposable
         var run = Plan(new[] { File("IMG_1.jpg"), File("IMG_1x.jpg"), File("img_1.jpg") },
             "--filter-regex", "^IMG_[0-9]+$");
 
+        Assert.Equal(0, run.Code);
         Assert.Equal(Lines("IMG_1.jpg"), run.Lines);
     }
 
@@ -74,6 +74,7 @@ public sealed class CommandRunnerFilterTests : IDisposable
         var run = Plan(new[] { File("IMG_1.jpg"), File("IMG_1x.jpg"), File("img_2.jpg") },
             "--filter-regex", "^IMG_[0-9]+$", "--filter-ignore-case");
 
+        Assert.Equal(0, run.Code);
         Assert.Equal(Lines("IMG_1.jpg", "img_2.jpg"), run.Lines);
     }
 
@@ -97,6 +98,7 @@ public sealed class CommandRunnerFilterTests : IDisposable
             new[] { File("ab.txt"), File("abc.jpeg"), File("abcde.x"), File("abcdef.txt") },
             "--min-length", "3", "--max-length", "5");
 
+        Assert.Equal(0, run.Code);
         Assert.Equal(Lines("abc.jpeg", "abcde.x"), run.Lines);
     }
 
@@ -105,8 +107,13 @@ public sealed class CommandRunnerFilterTests : IDisposable
     {
         RenameItem[] items = { File("h.txt", ItemAttributes.Hidden), File("s.txt", ItemAttributes.System), File("p.txt") };
 
-        Assert.Equal(Lines("p.txt"), Plan(items).Lines);
-        Assert.Equal(Lines("h.txt", "p.txt", "s.txt"), Plan(items, "--include-hidden").Lines);
+        var visible = Plan(items);
+        var all = Plan(items, "--include-hidden");
+
+        Assert.Equal(0, visible.Code);
+        Assert.Equal(0, all.Code);
+        Assert.Equal(Lines("p.txt"), visible.Lines);
+        Assert.Equal(Lines("h.txt", "p.txt", "s.txt"), all.Lines);
     }
 
     [Fact]

@@ -1,6 +1,6 @@
 # NS-41: Command line: filters
 
-Status: In Review
+Status: Done
 Depends on: NS-38, NS-32, NS-33, NS-70, NS-79, NS-76, NS-93 (build NS-93 first: the new reader uses its helpers)
 Area: app
 
@@ -71,3 +71,4 @@ builds `new ItemFilter(includeFolders: false)` today. Options (any order, each o
 - 2026-10-25: re-checked against dev 57d695b (the readers, `FilterPanelModel`, `RunSwitchesReader`): option names fixed (the
   `--regex` clash), recursion split off to NS-87, criteria made testable; set Ready (po).
 - 2026-10-25: built on feature/NS-41-clifilters: FilterReader, FolderMask, runner uses the filter; In Review (builder).
+- 2026-10-25: Done (tech-lead), PR #101 approved and squash-merged. Review nits folded: a root-relative mask (a backslash or a slash, then *.jpg) is not split, so it stays the invalid-folder error instead of "give a folder" (two FolderMask_Split rows); the shared exit-code assert left the dry-run helper, each test asserts its own code; a clearer FolderMask summary. Follow-up: WindowParityFilterTests only counts its rows; nothing checks that each row keeps at least one item, so a row that keeps nothing would pass trivially (assert the window's list is not empty in SameKeptItems, or rename the count test). Optional hand check for David: a mask in the folder with --dry-run lists only those files.
