@@ -269,12 +269,13 @@ internal sealed class MainForm : Form
                 return; // too small to place the splitter
             }
 
+            // Heights of the bottom area (the split's lower panel). The stack sits inside PanelHost's cell margin, so its
+            // height is the area's minus that margin. This is the only place the minimum and the cap are applied.
             int hostMargin = PanelHost.Margin.Vertical;
             int minimum = ButtonsHost.PreferredSize.Height + ButtonsHost.Margin.Vertical;
             int cap = Math.Max(minimum, _rightSplit.Height - lowest - splitter);
-            int stackMinimum = Math.Max(0, minimum - hostMargin);
-            int stackCap = Math.Max(stackMinimum, cap - hostMargin);
-            int height = Math.Min(cap, Math.Max(minimum, _stack.PreferredAreaHeight(stackMinimum, stackCap) + hostMargin));
+            int panels = _stack.PreferredAreaHeight(Math.Max(0, cap - hostMargin)) + hostMargin;
+            int height = Math.Min(cap, Math.Max(minimum, panels));
             int distance = Math.Min(highest, Math.Max(lowest, _rightSplit.Height - height - splitter));
             if (distance != _rightSplit.SplitterDistance)
             {

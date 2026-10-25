@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using NameShift.Ui;
@@ -12,11 +13,21 @@ namespace NameShift.App.Controls;
 /// title line (NS-83); the window sizes the area from <see cref="PreferredAreaHeight"/> when <see cref="LayoutNeeded"/>
 /// is raised.
 /// </summary>
+/// <remarks>
+/// The wrap comes from <see cref="PanelFlow"/> only. A scrolling <c>FlowLayoutPanel</c> does not always wrap again when
+/// its own vertical bar appears or goes (it can keep the old rows and add a horizontal bar), so the flow here never
+/// scrolls: the stack sets its width (<see cref="PanelFlowResult.UsableWidth"/>: the area's width, or the width beside
+/// the vertical bar when <see cref="PanelFlow.Settle"/> took its second pass) and its height (the rows' total), and a
+/// plain outer panel does the scrolling. The flow is sized in <see cref="OnLayout"/>, before the outer panel is resized,
+/// so the outer panel works out its bars from the flow's final size (sized after, it could keep a stale bar).
+/// </remarks>
 internal sealed class RulePanelStack : UserControl
 {
+    private readonly Panel _scroller;
     private readonly FlowLayoutPanel _flow;
     private readonly List<RulePanelFrame> _frames = new List<RulePanelFrame>();
     private bool _layoutPending;
+    private bool _arranging;
 
     public RulePanelStack(RulePanelHostModel host, IReadOnlyList<RulePanelEntry> entries, PanelCollapseModel collapse)
     {
@@ -25,12 +36,13 @@ internal sealed class RulePanelStack : UserControl
             throw new ArgumentException("An entry's model is not in the host.", nameof(entries));
         }
 
+        _scroller = new Panel { Dock = DockStyle.Fill, AutoScroll = true };
         _flow = new FlowLayoutPanel
         {
-            Dock = DockStyle.Fill,
             FlowDirection = FlowDirection.LeftToRight,
             WrapContents = true,
-            AutoScroll = true,
+            AutoScroll = false,
+            Margin = Padding.Empty,
             AccessibleName = Strings.RulePanelsName,
         };
 
@@ -48,7 +60,8 @@ internal sealed class RulePanelStack : UserControl
             _flow.Controls.Add(frame);
         }
 
-        Controls.Add(_flow);
+        _scroller.Controls.Add(_flow);
+        Controls.Add(_scroller);
     }
 
     /// <summary>Raised once per batch of frame changes (a preset that opens five panels gives one), after the
@@ -63,42 +76,109 @@ internal sealed class RulePanelStack : UserControl
         {
             frame.StartCollapse();
         }
+
+        ArrangeFlow();
     }
 
-    /// <summary>The height the stack needs so the wrapped panels show without clipping, from <see cref="PanelFlow"/>:
-    /// never below <paramref name="minimum"/>, never above <paramref name="cap"/> (it scrolls there). A horizontal
-    /// scroll bar, shown when a panel is wider than the area, counts within the cap.</summary>
-    internal int PreferredAreaHeight(int minimum, int cap)
+    /// <summary>Sizes the flow for the new size before the outer panel is resized and works out its scroll bars, so
+    /// they are computed from the flow's final size.</summary>
+    protected override void OnLayout(LayoutEventArgs e)
+    {
+        ArrangeFlow();
+        base.OnLayout(e);
+    }
+
+    /// <summary>The stack's height, in device pixels, for the wrapped panels to show without clipping, at most
+    /// <paramref name="cap"/> (above it the panels scroll). A horizontal bar, shown when one panel is wider than the
+    /// area, counts within the cap. The caller applies its own minimum.</summary>
+    internal int PreferredAreaHeight(int cap)
+    {
+        // The stack's own padding is outside the scrolling area: take it off the cap, then add it back.
+        int padding = Padding.Vertical;
+        Arrangement a = Arrange(DisplayRectangle.Width, Math.Max(0, cap - padding));
+        return Math.Min(cap, a.Flow.ContentHeight + a.HorizontalBar + padding);
+    }
+
+    /// <summary>How the panels wrap in a scrolling area of this outer size (scroll bars included), from
+    /// <see cref="PanelFlow.Settle"/>: the rows, the flow's width, and the horizontal bar's height when one panel is wider
+    /// than the area (0 otherwise).</summary>
+    private Arrangement Arrange(int outerWidth, int outerHeight)
     {
         var boxes = _frames.Select(f => f.Box).ToList();
         int margin = _frames.Count > 0 ? _frames[0].Margin.Left : 0; // every frame has the same margin
-        int scrollBar = SystemInformation.VerticalScrollBarWidth;
-        int clientWidth = _flow.ClientSize.Width + (_flow.VerticalScroll.Visible ? scrollBar : 0);
-        int extra = Padding.Vertical + _flow.Padding.Vertical;
-        int innerMinimum = Math.Max(0, minimum - extra);
-        int innerCap = Math.Max(innerMinimum, cap - extra);
-        PanelFlowResult result = PanelFlow.Settle(boxes, margin, clientWidth, scrollBar, innerMinimum, innerCap);
-        int usableWidth = result.NeedsScroll ? clientWidth - scrollBar : clientWidth;
-        bool horizontal = boxes.Any(b => b.Width + 2 * margin > usableWidth);
-        int height = result.Height + extra + (horizontal ? SystemInformation.HorizontalScrollBarHeight : 0);
-        return Math.Min(cap, Math.Max(minimum, height));
+        int widest = boxes.Count > 0 ? boxes.Max(b => b.Width + 2 * margin) : 0;
+        int verticalBar = SystemInformation.VerticalScrollBarWidth;
+        int horizontalBar = widest > outerWidth ? SystemInformation.HorizontalScrollBarHeight : 0;
+        int cap = Math.Max(0, outerHeight - horizontalBar);
+        PanelFlowResult flow = PanelFlow.Settle(boxes, margin, Math.Max(0, outerWidth), verticalBar, 0, cap);
+        int usable = flow.UsableWidth;
+        if (widest > usable)
+        {
+            horizontalBar = SystemInformation.HorizontalScrollBarHeight;
+        }
+
+        return new Arrangement(flow, Math.Max(usable, widest), horizontalBar);
+    }
+
+    /// <summary>Gives the flow the width and height of <see cref="Arrange"/> at the area's current size, so it wraps as
+    /// <see cref="PanelFlow"/> says. Only its size is set: the outer panel moves it when scrolled.</summary>
+    private void ArrangeFlow()
+    {
+        if (_arranging)
+        {
+            return;
+        }
+
+        _arranging = true;
+        try
+        {
+            Rectangle area = DisplayRectangle; // where the outer panel fills, scroll bars included
+            Arrangement a = Arrange(area.Width, area.Height);
+            var size = new Size(a.FlowWidth, a.Flow.ContentHeight);
+            if (_flow.Size != size)
+            {
+                _flow.Size = size;
+            }
+        }
+        finally
+        {
+            _arranging = false;
+        }
     }
 
     private void OnBoxChanged(object? sender, EventArgs e)
     {
         if (_layoutPending || !IsHandleCreated || IsDisposed)
         {
-            return; // before the handle the window fits the area at its Load
+            return; // before the handle, StartCollapse arranges and the window fits the area at its Load
         }
 
+        // After the frames' own layout has run: the flow is arranged again, then the window refits the area.
         _layoutPending = true;
         BeginInvoke(new Action(() =>
         {
             _layoutPending = false;
             if (!IsDisposed)
             {
+                ArrangeFlow();
                 LayoutNeeded?.Invoke(this, EventArgs.Empty);
             }
         }));
+    }
+
+    private readonly struct Arrangement
+    {
+        public Arrangement(PanelFlowResult flow, int flowWidth, int horizontalBar)
+        {
+            Flow = flow;
+            FlowWidth = flowWidth;
+            HorizontalBar = horizontalBar;
+        }
+
+        public PanelFlowResult Flow { get; }
+
+        public int FlowWidth { get; }
+
+        public int HorizontalBar { get; }
     }
 }

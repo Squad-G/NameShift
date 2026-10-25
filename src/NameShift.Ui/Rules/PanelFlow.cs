@@ -61,13 +61,15 @@ public static class PanelFlow
             content += rowHeight;
         }
 
-        return new PanelFlowResult(rows, content, Math.Min(cap, Math.Max(minimum, content)), content > cap);
+        return new PanelFlowResult(rows, content, Math.Min(cap, Math.Max(minimum, content)), content > cap, availableWidth);
     }
 
     /// <summary>
     /// Settles the scroll bar and wrap loop: wraps at the full client width; when that scrolls, wraps again at the
-    /// width left beside the vertical scroll bar, and that answer is final (a narrower width only adds rows, so the
-    /// content stays above the cap and the bar stays).
+    /// width left beside the vertical scroll bar, and that answer is final: the flow keeps that narrower width
+    /// (<see cref="PanelFlowResult.UsableWidth"/>). A narrower width usually adds rows, but it can also regroup the tall
+    /// panels into fewer rows and end under the cap: then nothing scrolls, and the space for the bar stays empty rather
+    /// than wrapping back at the full width, which would go above the cap again.
     /// </summary>
     /// <param name="clientWidth">The area's client width with no vertical scroll bar.</param>
     /// <param name="scrollBarWidth">The vertical scroll bar's width.</param>

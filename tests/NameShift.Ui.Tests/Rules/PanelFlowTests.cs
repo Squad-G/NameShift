@@ -192,6 +192,7 @@ public sealed class PanelFlowTests
         Assert.Single(r.Rows);
         Assert.Equal(308, r.Height);
         Assert.False(r.NeedsScroll);
+        Assert.Equal(744, r.UsableWidth);
     }
 
     [Fact]
@@ -226,6 +227,31 @@ public sealed class PanelFlowTests
         Assert.Equal(384, r.ContentHeight);
         Assert.Equal(300, r.Height);
         Assert.True(r.NeedsScroll);
+        Assert.Equal(975, r.UsableWidth);
+    }
+
+    [Fact]
+    public void Settle_SecondPassRegroupsUnderCap_KeepsNarrowWidth()
+    {
+        // Eight collapsed panels, then three open. At 1240 (5 per row): [0-4] (38), [5-9] (308), [10] (308) = 654,
+        // above the cap. Beside the bar (1223, 4 per row): [0-3] (38), [4-7] (38), [8-10] (308) = 384, under the cap:
+        // no scroll, but the rows stay wrapped at 1223 (wrapping back at 1240 would be 654 again).
+        var panels = Enumerable.Range(0, 8).Select(_ => Collapsed()).ToList();
+        panels.AddRange(new[] { Open(300), Open(300), Open(300) });
+
+        PanelFlowResult r = PanelFlow.Settle(panels, Margin, 1240, 17, NoMinimum, 500);
+
+        Assert.Equal(new[] { new[] { 0, 1, 2, 3 }, new[] { 4, 5, 6, 7 }, new[] { 8, 9, 10 } }, Rows(r));
+        Assert.Equal(384, r.ContentHeight);
+        Assert.Equal(384, r.Height);
+        Assert.False(r.NeedsScroll);
+        Assert.Equal(1223, r.UsableWidth);
+    }
+
+    [Fact]
+    public void Measure_UsableWidth_IsTheWidthGiven()
+    {
+        Assert.Equal(777, PanelFlow.Measure(new[] { Collapsed() }, Margin, 777, NoMinimum, NoCap).UsableWidth);
     }
 
     [Fact]
@@ -242,6 +268,8 @@ public sealed class PanelFlowTests
         Assert.Equal(new[] { new[] { 0, 1 }, new[] { 2 } }, Rows(scrolls));
         Assert.Equal(616, scrolls.ContentHeight);
         Assert.True(scrolls.NeedsScroll);
+        Assert.Equal(744, fits.UsableWidth);
+        Assert.Equal(727, scrolls.UsableWidth);
     }
 
     [Fact]

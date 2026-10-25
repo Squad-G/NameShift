@@ -28,7 +28,8 @@ internal sealed class RulePanelFrame : UserControl
     private Color _accent;
     private bool _started;
     private bool _shownCollapsed;
-    private int _openLogicalWidth;
+    private int _openWidth;
+    private int _openDpi;
 
     public RulePanelFrame(IRulePanelModel model, Control content, PanelCollapseModel collapse)
     {
@@ -63,13 +64,7 @@ internal sealed class RulePanelFrame : UserControl
         get
         {
             int width = Math.Max(MinimumSize.Width, GetPreferredSize(Size.Empty).Width);
-            int title = 0;
-            foreach (Control control in new Control[] { _check, _reset, _arrow })
-            {
-                title = Math.Max(title, control.PreferredSize.Height + control.Margin.Vertical);
-            }
-
-            int collapsedHeight = Padding.Vertical + title;
+            int collapsedHeight = Padding.Vertical + TitleRowHeight();
             int contentWidth = Math.Max(0, width - Padding.Horizontal - _content.Margin.Horizontal);
             int openHeight = collapsedHeight
                 + _content.GetPreferredSize(new Size(contentWidth, 0)).Height
@@ -102,6 +97,8 @@ internal sealed class RulePanelFrame : UserControl
     protected override void OnSizeChanged(EventArgs e)
     {
         base.OnSizeChanged(e);
+        // An open panel whose content grows or shrinks changes its height; it may fire often during a layout, which is
+        // harmless: the stack coalesces BoxChanged into one refit.
         BoxChanged?.Invoke(this, EventArgs.Empty);
     }
 
@@ -143,12 +140,13 @@ internal sealed class RulePanelFrame : UserControl
         base.Dispose(disposing);
     }
 
-    /// <summary>Sizes from logical pixels. While collapsed the frame keeps the width it had open (stored in logical
-    /// pixels); while open the minimum goes back to the logical one, so the open width is measured again.</summary>
+    /// <summary>Sizes from logical pixels. While collapsed the frame keeps the width it had open (scaled once from the
+    /// DPI it was measured at, so it is exact while the DPI stays); while open the minimum goes back to the logical one,
+    /// so the open width is measured again.</summary>
     private void ApplyLogicalMetrics()
     {
         MinimumSize = _shownCollapsed
-            ? new Size(LogicalToDeviceUnits(_openLogicalWidth), 0)
+            ? new Size(DeviceDpi == _openDpi ? _openWidth : (int)Math.Round(_openWidth * (double)DeviceDpi / _openDpi), 0)
             : LogicalToDeviceUnits(MinimumLogicalSize);
         Margin = new Padding(LogicalToDeviceUnits(Spacing.Small));
         Padding = new Padding(LogicalToDeviceUnits(Spacing.Small));
@@ -230,10 +228,10 @@ internal sealed class RulePanelFrame : UserControl
                 _arrow.Focus();
             }
 
-            int openWidth = Math.Max(LogicalToDeviceUnits(MinimumLogicalSize.Width), GetPreferredSize(Size.Empty).Width);
-            _openLogicalWidth = (int)Math.Round(openWidth * 96.0 / DeviceDpi);
+            _openWidth = Math.Max(LogicalToDeviceUnits(MinimumLogicalSize.Width), GetPreferredSize(Size.Empty).Width);
+            _openDpi = DeviceDpi;
             _shownCollapsed = true;
-            MinimumSize = new Size(openWidth, 0);
+            MinimumSize = new Size(_openWidth, 0);
             _content.Visible = false;
         }
         else
@@ -243,6 +241,18 @@ internal sealed class RulePanelFrame : UserControl
         }
 
         BoxChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>The title line's height: its tallest control (check box, Reset, arrow) with its margins.</summary>
+    private int TitleRowHeight()
+    {
+        int height = 0;
+        foreach (Control control in new Control[] { _check, _reset, _arrow })
+        {
+            height = Math.Max(height, control.PreferredSize.Height + control.Margin.Vertical);
+        }
+
+        return height;
     }
 
     private void ShowArrow(bool collapsed)
