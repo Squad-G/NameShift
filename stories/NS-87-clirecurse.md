@@ -64,18 +64,24 @@ Logic in `NameShift.Cmd`, tests on net10.0 and net48. `--recurse` is a switch re
 7. Given a filter (NS-41), then it applies to the items of every folder (mask, regex, lengths, hidden), and a mask in the
    folder argument (`D:\Pics\*.jpg`) works the same. A hidden or system file in a visible folder follows the filter as
    without `--recurse`. `No files match.` is written when nothing in the whole tree matches.
-7a. Given `--recurse` without `--include-hidden`, then an item whose folder is, or is under, a hidden or system folder
-   of the walk (at any depth) is left out, whatever its own attributes (`repo\.git\config` is never planned). The
-   folder items of the listing carry the attributes, so this is computed from the listing. Given `--include-hidden`,
-   then those items are in. Given no `--recurse`, nothing changes. Tests: a fake source with a hidden folder
-   `h` holding a plain file and a plain folder holding a plain file (the first is left out, the second kept), a system
-   folder, a hidden folder two levels up, the same with `--include-hidden`, and `No files match.` when only such
-   items are left. A real temp tree with a hidden folder confirms it.
+7a. Given `--recurse` without `--include-hidden`, then an item whose folder is, or is under, a hidden or system folder of
+   the walk (at any depth) is left out, whatever its own attributes (`repo\.git\config` is never planned). The folder
+   items of the listing carry the attributes, so this is computed from the listing. Given `--include-hidden`, then those
+   items are in. Given no `--recurse`, nothing changes. Tests: a fake source with a hidden folder `h` holding a plain
+   file and a plain folder holding a plain file (the first is left out, the second kept), a system folder, a hidden
+   folder two levels up, the same with `--include-hidden`, and, when only such items are left, `No files match.` if a
+   filter option or a folder mask was also given and `Nothing to rename.` otherwise (the `Filtered` rule of NS-41 is not
+   changed: `--recurse` alone does not set it). Only the folders found below the chosen folder are tested, never the
+   chosen folder itself: a hidden folder named on purpose still works (`apply C:\Users\me\AppData --recurse ...`,
+   `apply D:\repo\.git --recurse ...`); a test gives a hidden chosen folder with a plain file and a plain sub-folder, and
+   both files are planned. A real temp tree with a hidden folder confirms it.
 8. Given Ctrl+C during the listing, then nothing has been renamed (the listing and the plan come before the first rename);
    checked by hand on a large tree, written in the PR.
 9. Given the apply help, then it names `--recurse` in the options list (help test lists it), with a line of at most 79
-   columns such as `--recurse                  Also the sub-folders (not hidden ones).`; if it does not fit, say
-   hidden folders are left out in a second line under it.
+   columns such as `--recurse                  Also the sub-folders (not hidden ones).`; if it does not fit, say hidden
+   folders are left out in a second line under it. The `--include-hidden` line becomes
+   `--include-hidden           Also hidden and system items and folders.` (70 columns), since with `--recurse` it also
+   enters hidden folders.
 10. Given a tree of 10,000 files in 100 folders, then a dry run through the CLI completes; the PR writes down the time (not
     asserted).
 
@@ -122,3 +128,5 @@ Logic in `NameShift.Cmd`, tests on net10.0 and net48. `--recurse` is a switch re
   help line decided; nothing needs David. Ready (po).
 - 2026-10-25: review of PR #102: hidden folders left out with `--recurse` unless `--include-hidden` (criterion 7a), nits
   folded in (out of scope, fake-source tests, absolute junction target) (po).
+- 2026-10-25: PR #102 re-review nits folded in by the tech lead: 7a names the message when only hidden-folder items are
+  left, the chosen folder itself is never tested (with a test), and the `--include-hidden` help line (tech-lead).
