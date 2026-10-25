@@ -220,6 +220,7 @@ public sealed class CommandLineParserTests
         new object?[] { @"apply|D:\P|--case|lower|--verbose|--quiet", "QuietWithVerbose", null, null },
         new object?[] { @"apply|D:\P|--case|lower|--quiet|--dry-run", "QuietWithDryRun", null, null },
         new object?[] { @"apply|D:\P|--case|lower|--dry-run|-q", "QuietWithDryRun", null, null },
+        new object?[] { @"apply|--quiet|--dry-run", "QuietWithDryRun", null, null },
         new object?[] { @"apply|D:\P|--case|lower|-q|-v|--dry-run", "QuietWithVerbose", null, null },
         new object?[] { @"apply|-q|-v", "QuietWithVerbose", null, null },
         new object?[] { @"apply|D:\P|--replace|IMG|-v", "ReplaceNeedsValues", null, null },

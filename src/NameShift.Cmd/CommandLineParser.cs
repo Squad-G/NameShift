@@ -7,9 +7,9 @@ namespace NameShift.Cmd;
 
 /// <summary>Reads a command line and dispatches on its first word: <c>help</c> (also <c>--help</c>, <c>-h</c>,
 /// <c>/?</c>), <c>--version</c>, <c>apply &lt;folder&gt; [--replace &lt;find&gt; &lt;with&gt;] [--case
-/// lower|upper|title|sentence] [--dry-run] [--quiet|-q] [--verbose|-v]</c>, or <c>undo [--dry-run]</c>. Options of <c>apply</c> come in any order;
-/// the folder is the one argument that is neither an option nor an option's value. <c>undo</c> takes no folder. Words
-/// are compared ordinally, ignoring case.</summary>
+/// lower|upper|title|sentence] [--dry-run] [--quiet|-q] [--verbose|-v]</c>, or <c>undo [--dry-run]</c>. Options of
+/// <c>apply</c> come in any order; the folder is the one argument that is neither an option nor an option's value.
+/// <c>undo</c> takes no folder. Words are compared ordinally, ignoring case.</summary>
 internal static class CommandLineParser
 {
     // Verbs.

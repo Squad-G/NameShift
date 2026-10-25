@@ -180,6 +180,21 @@ public sealed class CommandRunnerOutputTests : IDisposable
     }
 
     [Fact]
+    public void Verbose_Rename_LinesComeFromThePlan()
+    {
+        ThreeImages();
+        var renamer = new FakeBatchRenamer();
+
+        var run = Cmd.Run(renamer, _temp.Files, new[] { "apply", _temp.Files, "--case", "lower", "-v" });
+
+        Assert.Equal(0, run.Code);
+        Assert.StartsWith(
+            Cmd.Written("IMG_001.JPG -> img_001.JPG", "IMG_002.JPG -> img_002.JPG", "img_003.JPG: unchanged"),
+            run.Output);
+        Assert.Equal("", run.Error);
+    }
+
+    [Fact]
     public void Verbose_ListOrder_IsNatural()
     {
         _temp.File("file10.txt");

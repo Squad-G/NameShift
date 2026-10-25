@@ -1,6 +1,6 @@
 # NS-39: Command line: quiet and verbose output
 
-Status: In Review
+Status: Done
 Depends on: NS-38, NS-43, NS-42
 Area: app
 
@@ -77,3 +77,4 @@ generic since NS-42 and are not touched here. Output today (NS-38): a real run p
   depends on NS-42 for the build order only; set Ready, second of NS-42, NS-39, NS-40, NS-69 (po).
 - 2026-10-24: In Progress (builder).
 - 2026-10-24: In Review (builder), PR #73.
+- 2026-10-25: Done, PR #73 squash-merged into `dev` after the reviewer's APPROVE; review nits folded in (doc comment re-wrapped, a `--quiet --dry-run` usage row without a folder, a verbose test pinning that the lines come from the plan) (tech-lead).
