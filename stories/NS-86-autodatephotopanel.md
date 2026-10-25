@@ -1,12 +1,13 @@
 # NS-86: Auto date panel: the Photo date choice
 
-Status: Draft
-Depends on: NS-62, NS-85, NS-59, NS-76
+Status: Ready
+Depends on: NS-62, NS-85, NS-87, NS-59, NS-76
 Area: app
 
 ## Why
 Pick "Photo date" in the Auto date panel and see photos named by the day they were taken, with a clear sign on the files
-that have no photo date. Second wave: set to Ready when NS-85 is merged (NS-62 is merged; NS-59 and NS-76 are Done).
+that have no photo date. NS-62 and NS-85 are merged; NS-59 and NS-76 are Done. Start only after NS-87 is merged (both
+edit `CommandRunner.RunApply`); re-read that method then.
 
 ## Facts checked against dev (2026-10-25)
 - Already there from NS-62: `DateSource.Taken`, `AutoDateRule` using `RenameItem.Taken` (null or `default(DateTime)` falls
@@ -23,7 +24,14 @@ that have no photo date. Second wave: set to Ready when NS-85 is merged (NS-62 i
 - The command line (`CommandRunner.RunApply`) lists with `ListEntries(folder, false, ...)`, sorts with
   `FileListOrder.Sort`, filters with `options.Filter` (NS-41, merged), returns early on `No files match.`, then calls
   `RenamePlanner.Plan`; warnings and errors go to `_error`. NS-87 (`--recurse`) edits the same method: build it first
-  (order: NS-85 and NS-87 together, then NS-86).
+  (order: NS-87, then NS-86). In `RunApply` today: `items` is `FileListOrder.Sort(listing.Items).Where(filter.Includes)
+  .ToArray()`, then `RenamePlanner.Plan(BuildRules?.Invoke(options) ?? host.Rules, items, ...)`; the Auto date panel is in
+  `host.Panels` (an `AutoDatePanelModel`, `Enabled` and `Source` tell whether photo dates are needed).
+- Re-checked after NS-85 (226ff59): `PhotoDates` is public with a public parameterless constructor (real disk, 50,000
+  entries) and `Fill(IReadOnlyList<RenameItem>, CancellationToken)` returning a new list of the same length and order;
+  `DiskPhotoFile` and `IPhotoFile` are the internal seam. `PreviewModel.Compute` is still static and takes no
+  `PhotoDates`: the model gets one instance in its constructor (the window passes one for the process; the existing
+  constructors keep working for tests with a default instance or a fake). Everything above still holds.
 
 ## Acceptance criteria
 Logic in `NameShift.Ui` and `NameShift.Cmd` with tests on net10.0 and net48; the window code stays thin.
@@ -47,7 +55,8 @@ Logic in `NameShift.Ui` and `NameShift.Cmd` with tests on net10.0 and net48; the
 5. Given `apply --date-source taken` on the command line, then it is accepted (`DateSourceValues` becomes `modified, created
    or taken`, in the style of the other values texts, and the apply help line reads `--date-source modified|created|taken`),
    the photo dates are filled before planning with the same class (after the filter, so only the files that will be
-   planned are read), and a name uses the photo date. A file without one uses its modified date and, once (counting only
+   planned are read; only when the Auto date panel is enabled with source Taken, so no other run opens a file), and a name
+   uses the photo date. A file without one uses its modified date and, once (counting only
    the files planned, not every file listed) before the
    rename or the dry run, one line goes to the error stream: `N files have no photo date; their modified date was used.`
    (one: `1 file has no photo date; its modified date was used.`). The exit code is not changed by the line and `--quiet`
@@ -57,6 +66,13 @@ Logic in `NameShift.Ui` and `NameShift.Cmd` with tests on net10.0 and net48; the
    with no Exif date).
 8. By hand, written in the PR: a folder of 2,000 photos with Photo date chosen stays responsive (the list does not freeze
    while typing in the format box), and the row note shows on the file without a date.
+9. By hand, written in the PR (limits of NS-85, not fixable without a handle-level check; the PR notes what was seen):
+   a. A OneDrive (or similar) online-only `.jpg` shows the note and is not downloaded. b. Known gap: a file that turns
+   into a placeholder between the attribute check and the open is recalled; a file symlink to a placeholder shows only
+   ReparsePoint and is opened. Neither is tested or fixed here.
+10. Items given to `PhotoDates.Fill` come from a folder listing (the file list's items, or `ListEntries` on the command
+   line), never built by hand: an item with invalid path characters can throw `ArgumentException` on net48. No new code
+   path builds an item for it.
 
 ## Out of scope
 - Other date tags (DateTimeDigitized, DateTime), time zones, other file types.
@@ -69,10 +85,17 @@ Logic in `NameShift.Ui` and `NameShift.Cmd` with tests on net10.0 and net48; the
   a script keeps working and a person sees it (po, 2026-10-25).
 - Read the unselected rows? **Decision:** no, only the batch the preview plans (po, 2026-10-25).
 
+- Accept the two placeholder gaps? **Decision:** yes, as hand-check notes only: they need a handle-level check, and a
+  rare recall of one file is not worth the code (po, 2026-10-25).
+- Who owns the `PhotoDates` instance? **Decision:** one per process in the window (so the cache lives), one per run on the
+  command line (po, 2026-10-25).
+
 ## Log
 - 2026-10-25: created from the second half of NS-62 (po).
 - 2026-10-25: re-checked against dev after NS-62 (306e581): stale facts fixed (what NS-62 already did, the snapshot batch
   rule, the CLI help and values texts, the note colour); stays Draft until NS-85 is merged (po).
 - 2026-10-25: NS-41 merged (3dca426): the command-line fact refreshed; build after NS-87 (same method of
   `CommandRunner`); still Draft until NS-85 is merged (po).
+- 2026-10-25: NS-85 merged (226ff59): every criterion re-checked against the merged code, facts refreshed, placeholder
+  gaps and the listing rule folded into criteria 9 and 10; depends on NS-87 (same `RunApply`); set Ready (po).
 - 2026-10-25: from the PR #103 review (NS-85), for the hand checks: a file that becomes an online-only placeholder between the attribute check and the open is recalled, and a file symlink whose target is a placeholder is opened (it shows only ReparsePoint); items given to PhotoDates.Fill must come from a listing (tech-lead).
