@@ -1,6 +1,6 @@
 # NS-88: Start on several files: one folder, those items selected
 
-Status: Ready
+Status: In Progress
 Depends on: NS-47, NS-14
 Area: app
 
