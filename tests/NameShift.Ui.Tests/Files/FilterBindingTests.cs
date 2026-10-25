@@ -23,17 +23,44 @@ public sealed class FilterBindingTests
     private readonly FileListModel _files;
     private readonly FilterBinding _binding;
     private int _orderChanges;
+    private TestGate? _hold;
 
     public FilterBindingTests()
     {
         _source.SetEntries(FolderA, File("a.jpg"), File("b.txt"), File("c.jpg"));
         _source.SetEntries(FolderB, File("x.jpg", folder: FolderB), File("y.txt", folder: FolderB));
-        _files = new FileListModel(_source);
+        _files = new FileListModel(_source, Includes);
         _files.OrderChanged += (_, _) => Interlocked.Increment(ref _orderChanges);
         _binding = new FilterBinding(_filters, _files);
     }
 
     private static string[] Names(IEnumerable<RenameItem> items) => items.Select(i => i.Name).ToArray();
+
+    /// <summary>The model's filter: ItemFilter.Includes, held at <see cref="_hold"/> while a test sets one. A filter
+    /// run whose pool work ends before its await is reached carries on synchronously, inside the Changed handler, and
+    /// lands before the reload starts (about 1 run in 100 with a busy pool: NS-77). Holding the filter until the
+    /// handler has returned makes the order the tests check certain.</summary>
+    private bool Includes(ItemFilter filter, RenameItem item)
+    {
+        Volatile.Read(ref _hold)?.Block();
+        return filter.Includes(item);
+    }
+
+    /// <summary>Raises Changed with every filter held, then releases them: the handler has returned (the reload
+    /// started) before any filter work can end.</summary>
+    private void ChangeHeld(Action change)
+    {
+        using var hold = new TestGate();
+        Volatile.Write(ref _hold, hold);
+        try
+        {
+            change();
+        }
+        finally
+        {
+            Volatile.Write(ref _hold, null);
+        }
+    }
 
     /// <summary>The listing of A with its sub-folder, as a walk with Sub-folders on gives it.</summary>
     private void SetTreeListing() =>
@@ -51,7 +78,7 @@ public sealed class FilterBindingTests
 
         // On the UI thread, as in the window. A fresh window's two default filters are equal but not the same
         // instance, so this first Changed asks for a filter run too; the reload supersedes it and nothing applies.
-        _filters.IncludeSubfolders = true;
+        ChangeHeld(() => _filters.IncludeSubfolders = true);
 
         Assert.True(await TestWait.Within(_binding.LastReload));
         Assert.False(await TestWait.Within(_binding.LastRun));
@@ -126,14 +153,14 @@ public sealed class FilterBindingTests
         int orderChanges = Volatile.Read(ref _orderChanges);
         SetFolderOnlyListing();
 
-        _filters.Reset();
+        ChangeHeld(_filters.Reset);
 
         await TestWait.Within(_binding.LastRun);
         await TestWait.Within(_binding.LastReload);
         await TestWait.Within(_files.PendingFilter);
 
-        // On the UI thread the filter run cannot land before the reload starts. The filter was asked for first, so
-        // the reload lands with it: one list, no filter run after the load.
+        // The filter run, held until the handler returned, lands after the reload started (see Includes). The filter
+        // was asked for first, so the reload lands with it: one list, no filter run after the load.
         Assert.Equal(orderChanges, Volatile.Read(ref _orderChanges));
         Assert.False(_files.IncludeSubfolders);
         Assert.False(_source.LastIncludeSubfolders);

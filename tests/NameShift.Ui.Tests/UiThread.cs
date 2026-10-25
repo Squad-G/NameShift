@@ -8,11 +8,12 @@ namespace NameShift.Ui.Tests;
 
 /// <summary>
 /// Runs a test body on the calling thread under a single-threaded, pumped <see cref="SynchronizationContext"/>, as the
-/// window's UI thread does: every await continuation is posted back and runs one at a time, so a continuation never
-/// runs in the middle of a synchronous event handler (NS-78: the filter run cannot land before the binding's reload
-/// has started). FolderTreeModel's tests run here too (NS-77): its state is the UI thread's, and on pool threads two
-/// continuations wrote its dictionaries at once. A body with no post and no end for <see cref="TestWait.Timeout"/>
-/// fails with a TimeoutException instead of hanging the test host.
+/// window's UI thread does: every posted continuation runs one at a time, never in the middle of a synchronous event
+/// handler. An await whose task has already ended posts nothing and carries on synchronously, so a test that needs one
+/// run to land after another holds the first one's work (NS-77, FilterBindingTests). FolderTreeModel's tests run here
+/// too (NS-77): its state belongs to the UI thread, and on pool threads two continuations wrote its dictionaries at
+/// once. A body with no post and no end for <see cref="TestWait.Timeout"/> fails with a TimeoutException instead of
+/// hanging the test host.
 /// </summary>
 internal static class UiThread
 {
