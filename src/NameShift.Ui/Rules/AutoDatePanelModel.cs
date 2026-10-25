@@ -17,7 +17,7 @@ public sealed class AutoDatePanelModel : RulePanelModel
     /// <summary>The fixed date the example is shown for (Kind unspecified: the rule refuses time-zone letters, so the example never depends on the time zone of the PC).</summary>
     public static readonly DateTime SampleDate = new DateTime(2024, 3, 9, 14, 5, 7);
 
-    private static readonly DateSource[] SourceList = { DateSource.Modified, DateSource.Created };
+    private static readonly DateSource[] SourceList = { DateSource.Modified, DateSource.Created, DateSource.Taken };
 
     private static readonly DatePlacement[] PlacementList = { DatePlacement.Prefix, DatePlacement.Suffix };
 
@@ -36,7 +36,7 @@ public sealed class AutoDatePanelModel : RulePanelModel
     {
     }
 
-    /// <summary>The list order: Modified, Created.</summary>
+    /// <summary>The list order: Modified, Created, Taken (Photo date).</summary>
     public static IReadOnlyList<DateSource> Sources => SourceList;
 
     /// <summary>The list order: Prefix, Suffix.</summary>

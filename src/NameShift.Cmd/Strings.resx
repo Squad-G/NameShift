@@ -53,10 +53,12 @@
   <data name="FilterKindOptions" xml:space="preserve"><value>--files-only, --folders-only or --include-folders</value></data>
   <data name="MaskTwice" xml:space="preserve"><value>Give the mask once: in the folder or with --mask.</value></data>
   <data name="NoFilesMatch" xml:space="preserve"><value>No files match.</value></data>
+  <data name="PhotoDateMissingOne" xml:space="preserve"><value>1 file has no photo date; its modified date was used.</value></data>
+  <data name="PhotoDateMissingMany" xml:space="preserve"><value>{0} files have no photo date; their modified date was used.</value></data>
   <data name="MoveModeOptions" xml:space="preserve"><value>--move or --copy</value></data>
   <data name="MoveFromValues" xml:space="preserve"><value>start or end</value></data>
   <data name="MoveToValues" xml:space="preserve"><value>start, end or position</value></data>
-  <data name="DateSourceValues" xml:space="preserve"><value>modified or created</value></data>
+  <data name="DateSourceValues" xml:space="preserve"><value>modified, created or taken</value></data>
   <data name="PlacementValues" xml:space="preserve"><value>prefix or suffix</value></data>
   <data name="QuoteInFolder" xml:space="preserve"><value>The folder {0} contains a quote: remove the backslash before the closing quote, as in "D:\Pics" instead of "D:\Pics\".</value></data>
   <data name="InvalidFolder" xml:space="preserve"><value>"{0}" is not a valid folder path.</value></data>
@@ -159,7 +161,7 @@ Examples:
   --move-position &lt;n&gt;        With --move or --copy: the character for position.
   --move-separator &lt;text&gt;    With --move or --copy: text between the parts.
   --date                     Add the file date: modified, yyyy-MM-dd, prefix.
-  --date-source modified|created
+  --date-source modified|created|taken
                              Which date of the file to use.
   --date-format &lt;format&gt;     The date as a .NET format, such as yyyyMMdd.
   --date-placement prefix|suffix

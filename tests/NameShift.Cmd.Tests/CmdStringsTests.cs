@@ -79,8 +79,15 @@ public sealed class CmdStringsTests
         Assert.Equal("--move or --copy", Strings.MoveModeOptions);
         Assert.Equal("start or end", Strings.MoveFromValues);
         Assert.Equal("start, end or position", Strings.MoveToValues);
-        Assert.Equal("modified or created", Strings.DateSourceValues);
+        Assert.Equal("modified, created or taken", Strings.DateSourceValues);
         Assert.Equal("prefix or suffix", Strings.PlacementValues);
+    }
+
+    [Fact]
+    public void PhotoDateTexts()
+    {
+        Assert.Equal("1 file has no photo date; its modified date was used.", Strings.PhotoDateMissingOne);
+        Assert.Equal("{0} files have no photo date; their modified date was used.", Strings.PhotoDateMissingMany);
     }
 
     [Fact]

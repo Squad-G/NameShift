@@ -147,10 +147,6 @@ public sealed class RegexMoveDateFolderParserTests
         };
         yield return new object[]
         {
-            "--date-source|taken", Text("BadChoice", "taken", "--date-source", Strings.DateSourceValues),
-        };
-        yield return new object[]
-        {
             "--date-placement|middle", Text("BadChoice", "middle", "--date-placement", Strings.PlacementValues),
         };
         yield return new object[]
@@ -278,12 +274,21 @@ public sealed class RegexMoveDateFolderParserTests
     }
 
     [Fact]
+    public void AutoDate_SourceTaken_Parses_PhotoIsRefused()
+    {
+        Assert.Equal(DateSource.Taken, Only<AutoDatePanelModel>("--date-source|taken").Source);
+        Assert.Equal(DateSource.Taken, Only<AutoDatePanelModel>("--date-source|TAKEN").Source);
+        Assert.Equal("modified, created or taken", Strings.DateSourceValues);
+    }
+
+    [Fact]
     public void AutoDate_AnyWordTurnsItOn()
     {
         var rows = new (string Options, Func<AutoDatePanelModel, object> Read, object Expected)[]
         {
             ("--date", m => m.Source, DateSource.Modified),
             ("--date-source|created", m => m.Source, DateSource.Created),
+            ("--date-source|taken", m => m.Source, DateSource.Taken),
             ("--date-format|yyyyMMdd", m => m.Format, "yyyyMMdd"),
             ("--date-placement|suffix", m => m.Placement, DatePlacement.Suffix),
             ("--date-separator|", m => m.Separator, ""),

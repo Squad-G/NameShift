@@ -151,6 +151,12 @@ public static class Strings
     /// <summary>The filters left no file: a line, exit code 0.</summary>
     public static string NoFilesMatch => Get(nameof(NoFilesMatch));
 
+    /// <summary>One file planned with the Photo date source has no photo date (error stream).</summary>
+    public static string PhotoDateMissingOne => Get(nameof(PhotoDateMissingOne));
+
+    /// <summary>Several files have no photo date; {0} is the count (error stream).</summary>
+    public static string PhotoDateMissingMany => Get(nameof(PhotoDateMissingMany));
+
     /// <summary>The flags of the Move or copy panel's modes.</summary>
     public static string MoveModeOptions => Get(nameof(MoveModeOptions));
 

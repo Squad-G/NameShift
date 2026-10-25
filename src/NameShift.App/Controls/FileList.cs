@@ -609,6 +609,10 @@ internal sealed class FileList : UserControl
             row.SubItems[newName].ForeColor = color;
             row.SubItems[columns.IndexOf(ShownColumn.Status)].ForeColor = color;
         }
+        else if (status.Text.Length > 0)
+        {
+            row.SubItems[columns.IndexOf(ShownColumn.Status)].ForeColor = SystemColors.GrayText;
+        }
 
         return row;
     }

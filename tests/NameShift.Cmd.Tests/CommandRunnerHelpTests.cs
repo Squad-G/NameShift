@@ -144,6 +144,16 @@ public sealed class CommandRunnerHelpTests : IDisposable
     }
 
     [Fact]
+    public void ApplyHelp_DateSourceLine()
+    {
+        string[] lines = HelpText.Apply().ToArray();
+
+        Assert.Single(lines, line => line == "  --date-source modified|created|taken");
+        Assert.DoesNotContain(lines, line => line == "  --date-source modified|created");
+        Assert.All(lines, line => Assert.True(line.Length <= 79, line));
+    }
+
+    [Fact]
     public void ApplyHelp_HasItsUsageOptionsAndOneExample()
     {
         string[] lines = HelpText.Apply().ToArray();

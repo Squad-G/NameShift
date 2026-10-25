@@ -13,7 +13,8 @@ namespace NameShift.Ui.Preview;
 /// Computes the New Name column: runs RenamePipeline over the file list's batch (the selected rows, or every row with no
 /// selection) off the UI thread, 150 ms after the last rule or selection change and at once when a folder finishes
 /// loading or the list is sorted or filtered. All state is touched on the calling (UI) thread; only the pipeline runs on the pool.
-/// A newer request cancels and supersedes an older one.
+/// A newer request cancels and supersedes an older one. A run whose rules hold a Photo date rule first reads the photo
+/// dates of the batch (<see cref="PhotoDates"/>, on the pool) and plans on the items that carry them.
 /// Its lifetime is the window's: it has no Dispose and never unsubscribes (the window's controls guard with IsDisposed).
 /// </summary>
 public sealed class PreviewModel
@@ -23,18 +24,32 @@ public sealed class PreviewModel
 
     private readonly RulePanelHostModel _rules;
     private readonly FileListModel _files;
+    private readonly PhotoDates _photoDates;
     private readonly Func<TimeSpan, CancellationToken, Task> _delay;
     private CancellationTokenSource? _current;
     private int _version;
     private int _appliedVersion;
 
     public PreviewModel(RulePanelHostModel rules, FileListModel files)
-        : this(rules, files, (delay, token) => Task.Delay(delay, token))
+        : this(rules, files, new PhotoDates())
+    {
+    }
+
+    /// <param name="photoDates">Reads and remembers the photo dates; the window gives one for its whole life.</param>
+    public PreviewModel(RulePanelHostModel rules, FileListModel files, PhotoDates photoDates)
+        : this(rules, files, photoDates, (delay, token) => Task.Delay(delay, token))
     {
     }
 
     internal PreviewModel(RulePanelHostModel rules, FileListModel files, Func<TimeSpan, CancellationToken, Task> delay)
+        : this(rules, files, new PhotoDates(), delay)
     {
+    }
+
+    internal PreviewModel(RulePanelHostModel rules, FileListModel files, PhotoDates photoDates,
+        Func<TimeSpan, CancellationToken, Task> delay)
+    {
+        _photoDates = photoDates ?? throw new ArgumentNullException(nameof(photoDates));
         _rules = rules ?? throw new ArgumentNullException(nameof(rules));
         _files = files ?? throw new ArgumentNullException(nameof(files));
         _delay = delay ?? throw new ArgumentNullException(nameof(delay));
@@ -70,7 +85,9 @@ public sealed class PreviewModel
         return TryGetRow(row, out int index) ? PreviewText.For(Snapshot.Results[index]) : PreviewCell.None;
     }
 
-    /// <summary>The Status cell of a list row: the conflicts' text; StatusCell.None when the row is not in the current snapshot or has no conflict.</summary>
+    /// <summary>The Status cell of a list row: the conflicts' text; else, when the snapshot read photo dates and the row
+    /// has none, the note that its modified date is used; else StatusCell.None (also when the row is not in the current
+    /// snapshot).</summary>
     public StatusCell StatusForRow(int row)
     {
         if (!TryGetRow(row, out int index))
@@ -79,7 +96,18 @@ public sealed class PreviewModel
         }
 
         IReadOnlyList<Conflict> conflicts = Snapshot.Conflicts.ForItem(index);
-        return conflicts.Count == 0 ? StatusCell.None : new StatusCell(ConflictText.For(conflicts), true);
+        if (conflicts.Count > 0)
+        {
+            return new StatusCell(ConflictText.For(conflicts), true);
+        }
+
+        // The note follows the snapshot's flag, never the live panel: it must match the names beside it.
+        if (Snapshot.PhotoDatesRead && !PhotoDateNeed.HasDate(Snapshot.Results[index].Item))
+        {
+            return new StatusCell(Strings.PhotoDateMissing, false);
+        }
+
+        return StatusCell.None;
     }
 
     /// <summary>"N conflicts" for the line under the list; "" when there are none.</summary>
@@ -144,9 +172,13 @@ public sealed class PreviewModel
         IReadOnlyList<IRenameRule> rules,
         FileBatch batch,
         IReadOnlyDictionary<string, IReadOnlyCollection<string>> existing,
+        PhotoDates photoDates,
         CancellationToken token)
     {
-        return new PreviewSnapshot(batch, RenamePlanner.Plan(rules, batch.Items, existing, token));
+        // The planner gets the filled copies; the snapshot keeps the original batch (the row mapping compares it).
+        bool photo = PhotoDateNeed.In(rules);
+        IReadOnlyList<RenameItem> items = photo ? photoDates.Fill(batch.Items, token) : batch.Items;
+        return new PreviewSnapshot(batch, RenamePlanner.Plan(rules, items, existing, token), photo);
     }
 
     /// <summary>Runs the pipeline and the conflict checks; true when the result was applied. Never throws.</summary>
@@ -169,7 +201,7 @@ public sealed class PreviewModel
             IReadOnlyList<IRenameRule> rules = _rules.Rules; // read after the delay: the latest settings
             FileBatch batch = _files.Batch;
             IReadOnlyDictionary<string, IReadOnlyCollection<string>> existing = _files.ExistingNamesByFolder;
-            snapshot = await Task.Run(() => Compute(rules, batch, existing, cts.Token), cts.Token);
+            snapshot = await Task.Run(() => Compute(rules, batch, existing, _photoDates, cts.Token), cts.Token);
         }
         catch (OperationCanceledException) when (cts.IsCancellationRequested)
         {

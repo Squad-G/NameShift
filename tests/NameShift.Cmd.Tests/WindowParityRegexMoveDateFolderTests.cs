@@ -92,6 +92,7 @@ public sealed class WindowParityRegexMoveDateFolderTests
         yield return DateRow("--date", m => { });
         yield return DateRow("--date-source|modified", m => m.Source = DateSource.Modified);
         yield return DateRow("--date-source|created", m => m.Source = DateSource.Created);
+        yield return DateRow("--date-source|taken", m => m.Source = DateSource.Taken);
         yield return DateRow("--date-format|yyyyMMdd", m => m.Format = "yyyyMMdd");
         yield return DateRow("--date-format|yyyy-MM-dd HH.mm", m => m.Format = "yyyy-MM-dd HH.mm");
         yield return DateRow("--date-placement|suffix", m => m.Placement = DatePlacement.Suffix);
@@ -219,7 +220,13 @@ public sealed class WindowParityRegexMoveDateFolderTests
         }
 
         Assert.Equal(0, run.Code);
-        Assert.Equal("", run.Error);
+
+        // Photo date: none of these temp files holds an Exif date, so the CLI says so once, on the error stream.
+        int count = fileNames.Split('\n').Length;
+        string expectedError = !options.Contains("taken") ? "" : Cmd.Written(count == 1
+            ? Strings.PhotoDateMissingOne
+            : string.Format(Cmd.EnUs, Strings.PhotoDateMissingMany, count.ToString("N0", Cmd.EnUs)));
+        Assert.Equal(expectedError, run.Error);
         Assert.Equal(
             windowLines.Count == 0 ? new[] { Strings.NothingToRename } : windowLines.ToArray(), Cmd.Lines(run.Output));
     }

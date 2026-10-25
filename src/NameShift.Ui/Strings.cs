@@ -142,6 +142,10 @@ public static class Strings
     /// <summary>"{0} folders could not be read", the same for several folders (NS-78).</summary>
     public static string SkippedFolders => Get(nameof(SkippedFolders));
 
+    /// <summary>"No photo date: modified date used", the Status cell of a row with no photo date when the Photo date
+    /// source is used (NS-86).</summary>
+    public static string PhotoDateMissing => Get(nameof(PhotoDateMissing));
+
     /// <summary>"M&amp;ore", the toggle of the filter row's second line.</summary>
     public static string FilterMore => Get(nameof(FilterMore));
 

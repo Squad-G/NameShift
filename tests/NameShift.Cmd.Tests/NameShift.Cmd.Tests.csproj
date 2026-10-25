@@ -14,6 +14,10 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\NameShift.Cmd\NameShift.Cmd.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\NameShift.Core.Tests\JpegBuilder.cs" Link="Support\JpegBuilder.cs" />
+    <Compile Include="..\NameShift.Ui.Tests\Files\FakePhotoFile.cs" Link="Support\FakePhotoFile.cs" />
+  </ItemGroup>
   <!-- The console exe is net48 only: the net48 test build copies NameShiftCmd.exe next to the tests. -->
   <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
     <ProjectReference Include="..\..\src\NameShift.Cmd.Exe\NameShift.Cmd.Exe.csproj" />

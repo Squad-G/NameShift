@@ -80,7 +80,7 @@ public sealed class AutoDatePanelModelTests
     [Fact]
     public void Lists_InEnumOrder_WithTexts()
     {
-        Assert.Equal(new[] { DateSource.Modified, DateSource.Created }, AutoDatePanelModel.Sources.ToArray());
+        Assert.Equal(new[] { DateSource.Modified, DateSource.Created, DateSource.Taken }, AutoDatePanelModel.Sources.ToArray());
         Assert.Equal(new[] { DatePlacement.Prefix, DatePlacement.Suffix }, AutoDatePanelModel.Placements.ToArray());
         for (int i = 0; i < AutoDatePanelModel.Sources.Count; i++)
         {
@@ -347,30 +347,67 @@ public sealed class AutoDatePanelModelTests
     }
 
     [Fact]
-    public void Sources_StayModifiedAndCreated()
+    public void Sources_ModifiedCreatedTaken()
     {
-        Assert.Equal(new[] { DateSource.Modified, DateSource.Created }, AutoDatePanelModel.Sources.ToArray());
-        Assert.Equal(-1, AutoDatePanelModel.IndexOf(DateSource.Taken));
+        Assert.Equal(
+            new[] { DateSource.Modified, DateSource.Created, DateSource.Taken }, AutoDatePanelModel.Sources.ToArray());
+        Assert.Equal(2, AutoDatePanelModel.IndexOf(DateSource.Taken));
+        Assert.Equal(
+            new[] { "Modified date", "Created date", "Photo date" },
+            AutoDatePanelModel.Sources.Select(DateSourceText.For).ToArray());
     }
 
     [Fact]
-    public void Source_Taken_Throws()
+    public void Source_Taken_Accepted()
     {
         var model = new AutoDatePanelModel();
-
-        Assert.Throws<ArgumentOutOfRangeException>(() => model.Source = DateSource.Taken);
         Assert.Equal(DateSource.Modified, model.Source);
+        Assert.True(model.IsDefault);
+
+        model.Source = DateSource.Taken;
+
+        Assert.Equal(DateSource.Taken, model.Source);
+        Assert.False(model.IsDefault);
+        model.Reset();
+        Assert.Equal(DateSource.Modified, model.Source);
+        Assert.True(model.IsDefault);
     }
 
     [Theory]
-    [InlineData("Taken")]
-    [InlineData("2")]
-    public void LoadSettings_Taken_KeepsModified(string saved)
+    [InlineData("Taken", DateSource.Taken)]
+    [InlineData("Created", DateSource.Created)]
+    [InlineData("Modified", DateSource.Modified)]
+    [InlineData("2", DateSource.Modified)]
+    [InlineData("Photo", DateSource.Modified)]
+    public void LoadSettings_Source(string saved, DateSource expected)
     {
-        var model = new AutoDatePanelModel();
+        var model = new AutoDatePanelModel { Source = DateSource.Created };
 
         model.LoadSettings(new System.Collections.Generic.Dictionary<string, string> { ["Source"] = saved });
 
-        Assert.Equal(DateSource.Modified, model.Source);
+        Assert.Equal(expected, model.Source);
+    }
+
+    [Fact]
+    public void SaveSettings_Taken_RoundTrips()
+    {
+        var model = new AutoDatePanelModel { Source = DateSource.Taken };
+
+        System.Collections.Generic.IReadOnlyDictionary<string, string> saved = model.SaveSettings();
+
+        Assert.Equal("Taken", saved["Source"]);
+        var other = new AutoDatePanelModel();
+        other.LoadSettings(saved);
+        Assert.Equal(DateSource.Taken, other.Source);
+    }
+
+    [Fact]
+    public void BuildRule_Taken_GivesATakenRule()
+    {
+        var model = new AutoDatePanelModel { Source = DateSource.Taken, Enabled = true };
+
+        var rule = Assert.IsType<AutoDateRule>(model.BuildRule());
+
+        Assert.Equal(DateSource.Taken, rule.Source);
     }
 }

@@ -24,6 +24,7 @@ internal sealed class AutoDateReader : ApplyOptionReader
     {
         new KeyValuePair<string, DateSource>("modified", DateSource.Modified),
         new KeyValuePair<string, DateSource>("created", DateSource.Created),
+        new KeyValuePair<string, DateSource>("taken", DateSource.Taken),
     };
 
     private static readonly KeyValuePair<string, DatePlacement>[] PlacementChoices =

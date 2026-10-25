@@ -57,6 +57,7 @@
   <data name="ColumnFolder" xml:space="preserve"><value>Folder</value></data>
   <data name="SkippedFolder" xml:space="preserve"><value>1 folder could not be read</value></data>
   <data name="SkippedFolders" xml:space="preserve"><value>{0} folders could not be read</value></data>
+  <data name="PhotoDateMissing" xml:space="preserve"><value>No photo date: modified date used</value></data>
   <data name="FilterMore" xml:space="preserve"><value>M&amp;ore</value></data>
   <data name="FilterMoreMarked" xml:space="preserve"><value>M&amp;ore *</value></data>
   <data name="FilterMoreActive" xml:space="preserve"><value>Regex or length filter active</value></data>
