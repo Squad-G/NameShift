@@ -1,6 +1,6 @@
 # NS-94: Close gaps in the tests: PathInput prefixes, both orders of the list model, broken path literals
 
-Status: In Review
+Status: Done
 Depends on: NS-10, NS-70, NS-78, NS-80
 Area: app
 Chore: tests only; no change to `src`.
@@ -56,3 +56,6 @@ written up in the PR and a story is made, not fixed here).
   guard added (po).
 - 2026-10-25: created from the NS-10, NS-70 and NS-78 review follow-ups; set Ready (po).
 - 2026-10-25: built: TryExact prefix rows, ListOrderTests (both orders), BrokenLiteralScanner guard; tests only (builder).
+- 2026-10-25: Done (tech-lead), PR #95 approved and squash-merged. Follow-ups (review nits): the broken-literal scanner
+  reads line by line, so a second break on a line that is already broken can be missed (nit 1); C# 11 raw string
+  literals (`"""`) are not modelled, and the repository has none today (nit 2).
