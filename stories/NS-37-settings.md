@@ -1,6 +1,6 @@
 # NS-37: Remember last settings
 
-Status: In Progress
+Status: In Review
 Depends on: NS-36, NS-72, NS-83
 Area: app
 
@@ -110,3 +110,4 @@ Privacy:
 - 2026-10-24: `rightSplit` dropped (NS-83 makes the bottom height follow the open panels); to be built after NS-83. Panel
   collapse state is added by NS-84 (po).
 - 2026-10-25: In Progress (builder).
+- 2026-10-25: In Review (builder), PR #87.
