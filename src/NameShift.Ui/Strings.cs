@@ -507,6 +507,51 @@ public static class Strings
 
     public static string Reverting => Get(nameof(Reverting));
 
+    /// <summary>"Checking the files..."</summary>
+    public static string RevertChecking => Get(nameof(RevertChecking));
+
+    /// <summary>"{0}: {1}"</summary>
+    public static string RevertCheckLine => Get(nameof(RevertCheckLine));
+
+    /// <summary>"and 1 more"</summary>
+    public static string RevertCheckMoreOne => Get(nameof(RevertCheckMoreOne));
+
+    /// <summary>"and {0} more"</summary>
+    public static string RevertCheckMoreMany => Get(nameof(RevertCheckMoreMany));
+
+    /// <summary>"changed since the rename"</summary>
+    public static string RevertReasonModified => Get(nameof(RevertReasonModified));
+
+    /// <summary>"no longer there"</summary>
+    public static string RevertReasonMissing => Get(nameof(RevertReasonMissing));
+
+    /// <summary>"its old name is now used by another file"</summary>
+    public static string RevertReasonNameTaken => Get(nameof(RevertReasonNameTaken));
+
+    /// <summary>"waits for another file"</summary>
+    public static string RevertReasonWaits => Get(nameof(RevertReasonWaits));
+
+    /// <summary>"could not be renamed"</summary>
+    public static string RevertReasonFailed => Get(nameof(RevertReasonFailed));
+
+    /// <summary>"Revert cancelled."</summary>
+    public static string RevertCancelled => Get(nameof(RevertCancelled));
+
+    /// <summary>"Some files cannot be reverted as they are:"</summary>
+    public static string RevertCheckTitle => Get(nameof(RevertCheckTitle));
+
+    /// <summary>"Revert the rest"</summary>
+    public static string RevertCheckRest => Get(nameof(RevertCheckRest));
+
+    /// <summary>"Revert changed files too"</summary>
+    public static string RevertCheckIncludeModified => Get(nameof(RevertCheckIncludeModified));
+
+    /// <summary>"Cancel"</summary>
+    public static string RevertCheckCancel => Get(nameof(RevertCheckCancel));
+
+    /// <summary>"Close"</summary>
+    public static string RevertCheckClose => Get(nameof(RevertCheckClose));
+
     public static string WaitForAction => Get(nameof(WaitForAction));
 
     public static string PreviewChanged => Get(nameof(PreviewChanged));

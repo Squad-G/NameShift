@@ -186,6 +186,9 @@ public static class Strings
     /// <summary>"{0} -&gt; {1}": the old and the new file name of a dry run.</summary>
     public static string DryRunLine => Get(nameof(DryRunLine));
 
+    /// <summary>"{0}: skipped ({1})": a name undo would skip in a dry run, and why.</summary>
+    public static string DryRunSkippedLine => Get(nameof(DryRunSkippedLine));
+
     /// <summary>"{0}: {1}": a file name, then its conflicts or its rule error.</summary>
     public static string ItemLine => Get(nameof(ItemLine));
 

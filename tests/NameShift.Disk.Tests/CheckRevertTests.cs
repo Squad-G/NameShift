@@ -457,4 +457,28 @@ public sealed class CheckRevertTests : JournalTestBase
             .Single(match => match.Value.Contains("\"new\": \"" + escaped + "\""))
             .Value;
     }
+
+    [Fact]
+    public void ZeroByteFile_BatchLoadCheckRevert_RoundTrips()
+    {
+        Temp.File("a", "");
+        Temp.File("c", "");
+        RenameFiles(("a", "x"), ("c", "z"));
+
+        // A restart of the app: the journal is read from disk, then checked.
+        var restarted = NewRenamer();
+        Assert.Equal(LastBatchState.Revertable, restarted.LoadLastBatch().State);
+        var check = restarted.CheckRevert();
+
+        Assert.Empty(check.Skipped);
+        Assert.True(check.AnyRevertable);
+        Assert.False(check.AnyModified);
+
+        var result = restarted.Revert();
+
+        Assert.Equal(RevertOutcome.Reverted, result.Outcome);
+        Assert.Equal(2, result.Reverted.Count);
+        Assert.Equal(new[] { "a", "c" }, Directory.GetFiles(Temp.Path).Select(Path.GetFileName).OrderBy(n => n, StringComparer.Ordinal).ToArray());
+        Assert.All(Directory.GetFiles(Temp.Path), path => Assert.Equal(0, new FileInfo(path).Length));
+    }
 }

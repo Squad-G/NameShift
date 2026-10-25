@@ -185,8 +185,43 @@ public sealed class MainActions
             true);
     }
 
-    /// <summary>Reverts the journal's last batch, then reloads the shown folder. Null when not allowed. Never throws.</summary>
-    public Task<ActionReport?> RevertAsync()
+    /// <summary>Checks what a Revert would skip, off the calling thread, with the window locked. Null when Revert is not
+    /// allowed. Never throws: a failed check gives RevertCheck.Empty, so the click reverts as before and the
+    /// executor's own checks still hold.</summary>
+    public async Task<RevertCheck?> CheckRevertAsync()
+    {
+        if (!CanRevert)
+        {
+            return null;
+        }
+
+        IsBusy = true;
+        BusyText = ActionText.CheckingRevert;
+        _journalVersion++;
+        try
+        {
+            RaiseChanged();
+            try
+            {
+                return await Task.Run(() => _renamer.CheckRevert());
+            }
+            catch (Exception)
+            {
+                // CheckRevert reports problems as a result; if it ever throws, Revert runs and checks for itself.
+                return RevertCheck.Empty;
+            }
+        }
+        finally
+        {
+            IsBusy = false;
+            BusyText = "";
+            RaiseChanged();
+        }
+    }
+
+    /// <summary>Reverts the journal's last batch, then reloads the shown folder; includeModified also reverts the files
+    /// changed after the batch. Null when not allowed. Never throws.</summary>
+    public Task<ActionReport?> RevertAsync(bool includeModified = false)
     {
         if (!CanRevert)
         {
@@ -195,7 +230,7 @@ public sealed class MainActions
 
         // Read before the Revert runs: afterwards the journal reads Reverted and its folder list is empty.
         IReadOnlyList<string> changed = RevertFolders(_lastBatch!, _files.FolderPath);
-        return RunAsync(ActionText.Reverting, _files.FolderPath, changed, () => _renamer.Revert(), ActionText.ForRevert, _ => false, false);
+        return RunAsync(ActionText.Reverting, _files.FolderPath, changed, () => _renamer.Revert(includeModified), ActionText.ForRevert, _ => false, false);
     }
 
     /// <summary>Resets every rule panel and every filter; no-op unless CanReset. Never touches files, the journal, the

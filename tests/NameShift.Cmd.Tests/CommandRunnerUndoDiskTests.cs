@@ -237,4 +237,40 @@ public sealed class CommandRunnerUndoDiskTests : IDisposable
         Assert.Equal(RevertOutcome.NothingToRevert, window.Revert().Outcome);
         Assert.Equal(new[] { "IMG_001.JPG" }, _temp.FileNames());
     }
+
+    [Fact]
+    public void Undo_AllSkipped_Exit3()
+    {
+        _temp.File("IMG_001.JPG");
+        _temp.File("IMG_002.JPG");
+        ApplyLower();
+        File.AppendAllText(Path.Combine(_temp.Files, "img_001.JPG"), " edited");
+        File.AppendAllText(Path.Combine(_temp.Files, "img_002.JPG"), " edited");
+
+        var undo = Cmd.RunOnDisk(_temp, "undo");
+
+        Assert.Equal((int)ExitCode.NotRenamed, undo.Code);
+        Assert.Equal("", undo.Output);
+        Assert.Contains(string.Format(CultureInfo.InvariantCulture, UiStrings.SkipModified, Path.Combine(_temp.Files, "img_001.JPG")), undo.Error);
+        Assert.Equal(new[] { "img_001.JPG", "img_002.JPG" }, _temp.FileNames());
+        Assert.Equal(LastBatchState.Revertable, new JournaledRenamer(_temp.History).LoadLastBatch().State);
+    }
+
+    [Fact]
+    public void DryRun_EditedFile_SkippedWithReason_TouchesNothing()
+    {
+        _temp.File("IMG_001.JPG");
+        _temp.File("IMG_002.JPG");
+        ApplyLower();
+        File.AppendAllText(Path.Combine(_temp.Files, "img_002.JPG"), " edited");
+        string[] before = Snapshot(_temp.Root);
+
+        var dry = Cmd.RunOnDisk(_temp, "undo", "--dry-run");
+
+        Assert.Equal(0, dry.Code);
+        Assert.Equal(Cmd.Written("img_001.JPG -> IMG_001.JPG", "img_002.JPG: skipped (changed since the rename)"), dry.Output);
+        Assert.Equal("", dry.Error);
+        Assert.Equal(before, Snapshot(_temp.Root));
+        Assert.False(File.Exists(PendingPath));
+    }
 }

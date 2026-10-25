@@ -34,6 +34,12 @@ internal sealed class FakeBatchRenamer : IBatchRenamer
 
     public int CheckCalls { get; private set; }
 
+    /// <summary>Runs inside CheckRevert.</summary>
+    public Action? CheckDuring { get; set; }
+
+    /// <summary>When true, CheckRevert throws after CheckDuring.</summary>
+    public bool CheckThrows { get; set; }
+
     /// <summary>Runs inside Rename and Revert, after the gate.</summary>
     public Action? During { get; set; }
 
@@ -71,6 +77,12 @@ internal sealed class FakeBatchRenamer : IBatchRenamer
     public RevertCheck CheckRevert()
     {
         CheckCalls++;
+        CheckDuring?.Invoke();
+        if (CheckThrows)
+        {
+            throw new InvalidOperationException("A bug in the check.");
+        }
+
         return CheckResult;
     }
 

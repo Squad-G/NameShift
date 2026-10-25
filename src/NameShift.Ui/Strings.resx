@@ -228,6 +228,21 @@
   <data name="RenamingOne" xml:space="preserve"><value>Renaming 1 file...</value></data>
   <data name="RenamingMany" xml:space="preserve"><value>Renaming {0} files...</value></data>
   <data name="Reverting" xml:space="preserve"><value>Reverting...</value></data>
+  <data name="RevertChecking" xml:space="preserve"><value>Checking the files...</value></data>
+  <data name="RevertCheckLine" xml:space="preserve"><value>{0}: {1}</value></data>
+  <data name="RevertCheckMoreOne" xml:space="preserve"><value>and 1 more</value></data>
+  <data name="RevertCheckMoreMany" xml:space="preserve"><value>and {0} more</value></data>
+  <data name="RevertReasonModified" xml:space="preserve"><value>changed since the rename</value></data>
+  <data name="RevertReasonMissing" xml:space="preserve"><value>no longer there</value></data>
+  <data name="RevertReasonNameTaken" xml:space="preserve"><value>its old name is now used by another file</value></data>
+  <data name="RevertReasonWaits" xml:space="preserve"><value>waits for another file</value></data>
+  <data name="RevertReasonFailed" xml:space="preserve"><value>could not be renamed</value></data>
+  <data name="RevertCancelled" xml:space="preserve"><value>Revert cancelled.</value></data>
+  <data name="RevertCheckTitle" xml:space="preserve"><value>Some files cannot be reverted as they are:</value></data>
+  <data name="RevertCheckRest" xml:space="preserve"><value>Revert the rest</value></data>
+  <data name="RevertCheckIncludeModified" xml:space="preserve"><value>Revert changed files too</value></data>
+  <data name="RevertCheckCancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="RevertCheckClose" xml:space="preserve"><value>Close</value></data>
   <data name="WaitForAction" xml:space="preserve"><value>Wait until the rename finishes.</value></data>
   <data name="PreviewChanged" xml:space="preserve"><value>The new names changed. Check them and click Rename again.</value></data>
   <data name="RenameDoneOne" xml:space="preserve"><value>1 file renamed.</value></data>

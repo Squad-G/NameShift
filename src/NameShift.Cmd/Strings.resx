@@ -65,6 +65,7 @@
   <data name="UnchangedLine" xml:space="preserve"><value>{0}: unchanged</value></data>
   <data name="NothingToRename" xml:space="preserve"><value>Nothing to rename.</value></data>
   <data name="DryRunLine" xml:space="preserve"><value>{0} -&gt; {1}</value></data>
+  <data name="DryRunSkippedLine" xml:space="preserve"><value>{0}: skipped ({1})</value></data>
   <data name="ItemLine" xml:space="preserve"><value>{0}: {1}</value></data>
   <data name="HelpPointer" xml:space="preserve"><value>For help, run: NameShiftCmd --help</value></data>
   <data name="UnexpectedBeforeRename" xml:space="preserve"><value>NameShift hit an unexpected problem. No file was renamed.</value></data>
@@ -178,8 +179,8 @@ Give at least one rule option. Options can come in any order.
 Example of apply:
   NameShiftCmd apply "D:\Pics" --replace IMG Trip --case lower --dry-run</value></data>
   <data name="HelpUndo" xml:space="preserve"><value>Options of undo:
-  --dry-run       List the names undo would restore; change nothing. Reads the
-                  history only: it does not check the files.
+  --dry-run       List the names undo would restore; change nothing. Checks
+                  the files and the history; changes nothing.
   --help, -h, /?  Show this help.
 Undo takes back the last batch, also one made in the window.
 

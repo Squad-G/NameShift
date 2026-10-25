@@ -107,7 +107,7 @@ internal sealed class MainForm : Form
         _skippedFolders.Withdrawn += (_, text) => ClearStatusIf(text);
         FilterHost.Controls.Add(new FilterRow(Filters) { Dock = DockStyle.Fill });
         Actions = new MainActions(Preview, FileListModel, RuleHost, Filters, renamer);
-        ButtonsHost.Controls.Add(new ActionButtons(Actions, ShowReport, ShowStatus, AskYesNo));
+        ButtonsHost.Controls.Add(new ActionButtons(Actions, ShowReport, ShowStatus, AskYesNo, check => RevertCheckDialog.Ask(this, check)));
         var presets = new PresetMenuModel(presetStore, RuleHost, () => Actions.IsBusy);
         _menu = new MainMenu(presets, AskYesNo, preFill => PresetNameDialog.Ask(this, preFill), ShowStatus, () => IsDisposed)
         {

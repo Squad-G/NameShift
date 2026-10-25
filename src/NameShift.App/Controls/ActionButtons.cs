@@ -2,6 +2,7 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using NameShift.App.Style;
+using NameShift.Disk;
 using NameShift.Ui;
 using NameShift.Ui.Actions;
 
@@ -19,6 +20,7 @@ internal sealed class ActionButtons : UserControl
     private readonly Action<ActionReport> _showReport;
     private readonly Action<string> _showStatus;
     private readonly Func<string, bool, bool> _askYesNo;
+    private readonly Func<RevertCheck, RevertDialogChoice> _askRevert;
     private readonly Button _reset = new Button();
     private readonly Button _revert = new Button();
     private readonly Button _rename = new Button();
@@ -32,12 +34,14 @@ internal sealed class ActionButtons : UserControl
         MainActions actions,
         Action<ActionReport> showReport,
         Action<string> showStatus,
-        Func<string, bool, bool> askYesNo)
+        Func<string, bool, bool> askYesNo,
+        Func<RevertCheck, RevertDialogChoice> askRevert)
     {
         _actions = actions ?? throw new ArgumentNullException(nameof(actions));
         _showReport = showReport ?? throw new ArgumentNullException(nameof(showReport));
         _showStatus = showStatus ?? throw new ArgumentNullException(nameof(showStatus));
         _askYesNo = askYesNo ?? throw new ArgumentNullException(nameof(askYesNo));
+        _askRevert = askRevert ?? throw new ArgumentNullException(nameof(askRevert));
         BuildLayout();
         CreateIcons();
         _reset.Click += (_, _) => _actions.Reset();
@@ -191,7 +195,31 @@ internal sealed class ActionButtons : UserControl
     {
         try
         {
-            ActionReport? report = await _actions.RevertAsync();
+            RevertCheck? check = await _actions.CheckRevertAsync();
+            if (check == null)
+            {
+                return;
+            }
+
+            bool includeModified = false;
+            if (check.Skipped.Count > 0)
+            {
+                RevertDialogChoice choice = _askRevert(check);
+                if (choice == RevertDialogChoice.Cancel)
+                {
+                    // Close (nothing could run) is not a decision: no status text.
+                    if (!RevertDialogOptions.For(check).CloseOnly)
+                    {
+                        _showStatus(Strings.RevertCancelled);
+                    }
+
+                    return;
+                }
+
+                includeModified = choice == RevertDialogChoice.IncludeModified;
+            }
+
+            ActionReport? report = await _actions.RevertAsync(includeModified);
             if (report != null)
             {
                 _showReport(report);
