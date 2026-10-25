@@ -204,8 +204,18 @@ public sealed class CommandRunner
 
         // The window's default order, then files only (hidden and system out by the filter's default); every entry
         // name still counts. No UI thread here, so the filter runs in place.
-        var filter = new ItemFilter(includeFolders: false);
+        ItemFilter filter = options.Filter;
         RenameItem[] items = FileListOrder.Sort(listing.Items).Where(filter.Includes).ToArray();
+
+        if (options.Filtered && items.Length == 0)
+        {
+            if (options.Output != OutputLevel.Quiet)
+            {
+                _output.WriteLine(Strings.NoFilesMatch);
+            }
+
+            return (int)ExitCode.Success;
+        }
 
         RenamePlan plan = RenamePlanner.Plan(BuildRules?.Invoke(options) ?? host.Rules, items, listing.ExistingNamesByFolder, CancellationToken.None);
         switch (plan.Blocker)

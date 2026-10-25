@@ -50,6 +50,9 @@
   <data name="RemoveKeepMarkerNeeds" xml:space="preserve"><value>--remove-before or --remove-after</value></data>
   <data name="RemoveRangeOptions" xml:space="preserve"><value>--remove-from and --remove-to</value></data>
   <data name="RegexNeedsValues" xml:space="preserve"><value>--regex needs two values: the pattern and the replacement.</value></data>
+  <data name="FilterKindOptions" xml:space="preserve"><value>--files-only, --folders-only or --include-folders</value></data>
+  <data name="MaskTwice" xml:space="preserve"><value>Give the mask once: in the folder or with --mask.</value></data>
+  <data name="NoFilesMatch" xml:space="preserve"><value>No files match.</value></data>
   <data name="MoveModeOptions" xml:space="preserve"><value>--move or --copy</value></data>
   <data name="MoveFromValues" xml:space="preserve"><value>start or end</value></data>
   <data name="MoveToValues" xml:space="preserve"><value>start, end or position</value></data>
@@ -167,6 +170,15 @@ Examples:
   --folder-placement prefix|suffix
                              Put the folder name before or after the name.
   --folder-separator &lt;text&gt;  The text between the folder name and the name.
+  --mask &lt;list&gt;              Only names that match, such as *.jpg;*.png.
+  --filter-regex &lt;pattern&gt;   Only base names where the pattern is found.
+  --filter-ignore-case       With --filter-regex: ignore capitals.
+  --min-length &lt;n&gt;           Only base names of at least &lt;n&gt; characters.
+  --max-length &lt;n&gt;           Only base names of at most &lt;n&gt; characters.
+  --include-hidden           Also hidden and system items.
+  --files-only               Only files (the default).
+  --folders-only             Only folders.
+  --include-folders          Files and folders.
   --preset &lt;name&gt;            Use the rules of a preset saved in the window.
   --save-preset &lt;name&gt;       Save the rules as a preset (also with --dry-run).
   --overwrite                Let --save-preset replace a preset of that name.
@@ -175,6 +187,7 @@ Examples:
   --verbose, -v              Also list the renamed and the unchanged files.
   --help, -h, /?             Show this help.
 Give at least one rule option. Options can come in any order.
+The folder may end with a mask: "D:\Pics\*.jpg".
 
 Example of apply:
   NameShiftCmd apply "D:\Pics" --replace IMG Trip --case lower --dry-run</value></data>

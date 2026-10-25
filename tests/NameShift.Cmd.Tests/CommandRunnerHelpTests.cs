@@ -185,8 +185,17 @@ public sealed class CommandRunnerHelpTests : IDisposable
             int first = Array.IndexOf(lines, expected[0]);
             Assert.True(first >= 0);
             Assert.Equal(expected, lines.Skip(first).Take(3).ToArray());
-            Assert.Equal(first - 1, Array.FindIndex(lines, line => line.StartsWith("  --folder-separator ", StringComparison.Ordinal)));
+            Assert.Equal(first - 1, Array.FindIndex(lines, line => line.StartsWith("  --include-folders ", StringComparison.Ordinal)));
         }
+    }
+
+    [Fact]
+    public void ApplyHelp_NamesTheFolderMask()
+    {
+        string pathMask = "D:" + (char)92 + "Pics" + (char)92 + "*.jpg";
+
+        Assert.Contains(HelpText.Apply().ToArray(), line => line.Contains(pathMask));
+        Assert.Contains(HelpText.Apply().ToArray(), line => line.Contains("--mask <list>"));
     }
 
     [Fact]

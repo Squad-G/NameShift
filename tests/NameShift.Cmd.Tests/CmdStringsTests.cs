@@ -84,6 +84,14 @@ public sealed class CmdStringsTests
     }
 
     [Fact]
+    public void FilterTexts()
+    {
+        Assert.Equal("--files-only, --folders-only or --include-folders", Strings.FilterKindOptions);
+        Assert.Equal("Give the mask once: in the folder or with --mask.", Strings.MaskTwice);
+        Assert.Equal("No files match.", Strings.NoFilesMatch);
+    }
+
+    [Fact]
     public void PresetTexts()
     {
         Assert.Equal("Preset \"{0}\" was not found.", Strings.PresetNotFound);

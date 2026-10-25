@@ -10,6 +10,6 @@ internal static class ApplyReaders
     {
         new ReplaceCaseReader(), new RunSwitchesReader(), new PresetReader(), new AddReader(), new NumberingReader(),
         new NameReader(), new ExtensionReader(), new RemoveReader(), new RegexReader(), new MoveCopyReader(),
-        new AutoDateReader(), new FolderNameReader(),
+        new AutoDateReader(), new FolderNameReader(), new FilterReader(),
     };
 }

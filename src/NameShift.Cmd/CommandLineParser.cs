@@ -12,7 +12,8 @@ namespace NameShift.Cmd;
 /// <c>--name-empty</c> and <c>--name-reverse</c>, the Extension panel's five <c>--ext-...</c> flags, the Remove panel's
 /// eighteen <c>--remove-...</c> options, the RegEx panel's <c>--regex</c> options, the Move or copy panel's
 /// <c>--move</c>, <c>--copy</c> and <c>--move-...</c> options, the Auto date panel's <c>--date</c> options, the Append
-/// folder name panel's <c>--folder-...</c> options, <c>--preset &lt;name&gt;</c> (a saved
+/// folder name panel's <c>--folder-...</c> options, the filter options (<c>--mask</c>, <c>--filter-regex</c>, the
+/// kinds and more; the folder may end with a mask), <c>--preset &lt;name&gt;</c> (a saved
 /// preset's rules), <c>--save-preset &lt;name&gt;</c> with <c>--overwrite</c>, and <c>--dry-run</c>,
 /// <c>--quiet|-q</c>, <c>--verbose|-v</c>; or <c>undo [--dry-run]</c>. Options of <c>apply</c> come in any order; the
 /// folder is the one argument that is neither an option nor an option's value. <c>undo</c> takes no folder. Words are
@@ -61,6 +62,9 @@ internal static class CommandLineParser
         AutoDateReader.PlacementOption, AutoDateReader.SeparatorOption,
         FolderNameReader.FolderNameOption, FolderNameReader.LevelsOption, FolderNameReader.PlacementOption,
         FolderNameReader.SeparatorOption,
+        FilterReader.MaskOption, FilterReader.RegexOption, FilterReader.IgnoreCaseOption,
+        FilterReader.MinLengthOption, FilterReader.MaxLengthOption, FilterReader.IncludeHiddenOption,
+        FilterReader.FilesOnlyOption, FilterReader.FoldersOnlyOption, FilterReader.IncludeFoldersOption,
         PresetReader.PresetOption, PresetReader.SavePresetOption, PresetReader.OverwriteOption,
     };
 
@@ -222,12 +226,18 @@ internal static class CommandLineParser
 
         // A folder with a quote is what cmd makes of "D:\Pics\" --case lower: one argument that swallowed the options.
         // The runner says so (Strings.QuoteInFolder), which helps more than "give a rule".
+        var (folderText, pathMask) = FolderMask.Split(folder);
+        if (pathMask != null && draft.MaskGiven)
+        {
+            return Fail(Strings.MaskTwice);
+        }
+
         if (!draft.HasRule && folder.IndexOf('"') < 0)
         {
             return Fail(Strings.NoRule);
         }
 
-        return ParsedCommand.Apply(draft.Build(folder));
+        return ParsedCommand.Apply(draft.Build(folderText, pathMask));
     }
 
     private static bool Is(string arg, string word) => OptionArgs.Is(arg, word);
