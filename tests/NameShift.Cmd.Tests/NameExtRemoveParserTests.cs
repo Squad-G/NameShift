@@ -278,7 +278,6 @@ public sealed class NameExtRemoveParserTests
         }
     }
 
-
     [Fact]
     public void ApplyHelp_NameExtRemoveLines()
     {
@@ -299,6 +298,7 @@ public sealed class NameExtRemoveParserTests
             Assert.True(line.Length > 29 && line.Substring(0, 29).TrimEnd().Length < 29 && line[29] != ' ', word);
         }
     }
+
     [Fact]
     public void Words_AreAllInTheApplyList()
     {

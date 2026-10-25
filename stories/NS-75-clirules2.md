@@ -1,6 +1,6 @@
 # NS-75: Command line: Name, Extension and Remove options
 
-Status: In Review
+Status: Done
 Depends on: NS-40, NS-69, NS-79, NS-55, NS-30
 Area: app
 Build after NS-40, NS-69 and NS-79 are merged (all four change the parser, the help and `Strings.resx`), and before NS-76.
@@ -138,3 +138,8 @@ Same as the window, and the rest:
 - 2026-10-24: In Progress (builder).
 - 2026-10-24: story text corrected by the builder: the old-key lines in `CommandLineParserTests` are 623-624 (not 550-551); the Words and help-order tests also change (`ApplyHelp_ListsPresetOptions` now expects `--remove-double-spaces` before `--preset`).
 - 2026-10-24: In Review (builder), PR #78.
+- 2026-10-24: Done (tech-lead), PR #78 approved and squash-merged; review nits 1-3 folded (non-ASCII parity names as
+  `\u` escapes, a space in the word list, blank lines in a test file). Follow-up (nit 4, style): `NameReader.ReadOwn`
+  mixes `string.Equals` with `==` and a nested ternary for the mode, and `ExtensionReader` ignores the return of
+  `TryChoice`: one shared style (a small mode table) would read better; `RemoveReader.ReadOwn` (about 45 lines, several
+  `value!`) could split into `ReadCount` and `ReadText`.

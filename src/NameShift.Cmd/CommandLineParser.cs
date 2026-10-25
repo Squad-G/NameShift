@@ -52,7 +52,7 @@ internal static class CommandLineParser
         RemoveReader.DigitsOption, RemoveReader.SymbolsOption, RemoveReader.AccentsOption,
         RemoveReader.HighCharsOption, RemoveReader.TrimOption, RemoveReader.LeadingDotsOption,
         RemoveReader.DoubleSpacesOption,
-        PresetReader.PresetOption,PresetReader.SavePresetOption, PresetReader.OverwriteOption,
+        PresetReader.PresetOption, PresetReader.SavePresetOption, PresetReader.OverwriteOption,
     };
 
     private static readonly string[] UndoOptionWordList = { RunSwitchesReader.DryRunOption };

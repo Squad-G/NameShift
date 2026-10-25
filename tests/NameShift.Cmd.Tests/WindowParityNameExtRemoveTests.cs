@@ -52,8 +52,8 @@ public sealed class WindowParityNameExtRemoveTests
         yield return RemoveRow(Plain, "--remove-before|-|--remove-keep-marker", m => { m.CropBefore = "-"; m.KeepMarker = true; });
         yield return RemoveRow(Plain, "--remove-digits", m => m.Digits = true);
         yield return RemoveRow(Plain, "--remove-symbols", m => m.Symbols = true);
-        yield return RemoveRow(new[] { "café.txt" }, "--remove-accents", m => m.Accents = true);
-        yield return RemoveRow(new[] { "café.txt", "a中b.txt" }, "--remove-high-chars", m => m.HighCharacters = true);
+        yield return RemoveRow(new[] { "caf\u00E9.txt" }, "--remove-accents", m => m.Accents = true);
+        yield return RemoveRow(new[] { "caf\u00E9.txt", "a\u4E2Db.txt" }, "--remove-high-chars", m => m.HighCharacters = true);
         yield return RemoveRow(new[] { " a .txt", "b.txt" }, "--remove-trim", m => m.Trim = true);
         yield return RemoveRow(new[] { "..a.txt", "b.txt" }, "--remove-leading-dots", m => m.LeadingDots = true);
         yield return RemoveRow(Plain, "--remove-double-spaces", m => m.DoubleSpaces = true);
