@@ -15,6 +15,8 @@ public static class DateSourceText
                 return Strings.AutoDateSourceModified;
             case DateSource.Created:
                 return Strings.AutoDateSourceCreated;
+            case DateSource.Taken:
+                return Strings.AutoDateSourceTaken;
             default:
                 throw new ArgumentOutOfRangeException(nameof(source), source, "Unknown date source.");
         }

@@ -375,6 +375,8 @@ public static class Strings
 
     public static string AutoDateSourceCreated => Get(nameof(AutoDateSourceCreated));
 
+    public static string AutoDateSourceTaken => Get(nameof(AutoDateSourceTaken));
+
     public static string AutoDatePlaceBefore => Get(nameof(AutoDatePlaceBefore));
 
     public static string AutoDatePlaceAfter => Get(nameof(AutoDatePlaceAfter));

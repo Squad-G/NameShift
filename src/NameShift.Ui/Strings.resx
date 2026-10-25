@@ -165,6 +165,7 @@
   <data name="AutoDateSeparator" xml:space="preserve"><value>Text &amp;between</value></data>
   <data name="AutoDateSourceModified" xml:space="preserve"><value>Modified date</value></data>
   <data name="AutoDateSourceCreated" xml:space="preserve"><value>Created date</value></data>
+  <data name="AutoDateSourceTaken" xml:space="preserve"><value>Photo date</value></data>
   <data name="AutoDatePlaceBefore" xml:space="preserve"><value>Before the name</value></data>
   <data name="AutoDatePlaceAfter" xml:space="preserve"><value>After the name</value></data>
   <data name="AutoDateExample" xml:space="preserve"><value>Example: {0}</value></data>

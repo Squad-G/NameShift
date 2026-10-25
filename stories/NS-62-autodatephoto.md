@@ -1,6 +1,6 @@
 # NS-62: Auto date: the photo date in the engine
 
-Status: Ready
+Status: Done
 Depends on: NS-26, NS-27
 Area: engine
 
@@ -47,3 +47,6 @@ window or the command line changes until NS-86.
 ## Log
 - 2026-10-24: created when NS-27 was split: this is the rule and wiring part (po).
 - 2026-10-25: re-scoped to the engine only; reading and wiring moved to NS-85 and NS-86; fallback decided; set Ready (po).
+- 2026-10-25: In Progress (builder).
+- 2026-10-25: In Review, PR #98 (builder).
+- 2026-10-25: Done (tech-lead), PR #98 approved and squash-merged. No hand check (engine only; nothing visible changes). Review nits not folded: LoadSettings_Taken_KeepsModified cannot start from Created to tell "ignored" from "reset", because LoadSettings resets every setting before applying the saved ones, so both give Modified; the Taken row already pins the guard (the setter throws without it), and the "2" row is kept as a guard against a numeric value ever loading as Taken. PickDate could be an expression-bodied switch (style only).

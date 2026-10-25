@@ -3,8 +3,9 @@ using System.Globalization;
 
 namespace NameShift.Core;
 
-/// <summary>Adds the item's modified or created date (local time, as the app read it; never converted) before or
-/// after the base name. The date text is a .NET custom format in the invariant culture; time-zone letters are refused
+/// <summary>Adds the item's modified, created or photo date (as the caller read it; never converted) before or
+/// after the base name. The photo date (<see cref="DateSource.Taken"/>) falls back to the modified date when the item
+/// has none. The date text is a .NET custom format in the invariant culture; time-zone letters are refused
 /// so names never depend on the PC. The extension is never touched.</summary>
 public sealed class AutoDateRule : IRenameRule
 {
@@ -66,7 +67,7 @@ public sealed class AutoDateRule : IRenameRule
             return name;
         }
 
-        var date = Source == DateSource.Created ? context.Item.Created : context.Item.Modified;
+        var date = PickDate(context.Item);
         if (date == default(DateTime))
         {
             throw new InvalidOperationException("The item has no date to use.");
@@ -81,6 +82,19 @@ public sealed class AutoDateRule : IRenameRule
         return Placement == DatePlacement.Prefix
             ? name.WithBaseName(text + Separator + name.BaseName)
             : name.WithBaseName(name.BaseName + Separator + text);
+    }
+
+    private DateTime PickDate(RenameItem item)
+    {
+        switch (Source)
+        {
+            case DateSource.Created:
+                return item.Created;
+            case DateSource.Taken:
+                return item.Taken.HasValue && item.Taken.Value != default(DateTime) ? item.Taken.Value : item.Modified;
+            default:
+                return item.Modified;
+        }
     }
 
     /// <summary>The text the rule adds for this date: "" for an empty format.</summary>
