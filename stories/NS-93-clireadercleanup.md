@@ -25,11 +25,10 @@ suite passes without edits to its expectations.
 4. Given `CommandRunner`, which writes `NameShift.Ui.Strings.ActionUnexpected` in full because `NameShift.Cmd.Strings` has the
    same name, then a `using` alias (`UiStrings`) is used in every file of `NameShift.Cmd` that needs both, and no
    fully qualified `NameShift.Ui.Strings` remains in `src/NameShift.Cmd`.
-5. Given `RegexMoveDateFolderParserTests.UsageErrors`, then the row xUnit reports as a duplicate (the reviewer named
-   `--copy|1|--copy|1`; at dev 57d695b that text is in the file once, at line 112, so first find the real duplicate: compare
-   the rows the member yields with the cases the run reports, for both runtimes) is removed or replaced by the case it was
-   meant to be, and a test fails when a row in that member is yielded twice (a check on the member's rows, run in the same
-   file).
+5. Given `RegexMoveDateFolderParserTests` (the member `ErrorRows` feeds the theory `UsageErrors`), then the row
+   `--copy|1|--copy|1` (written at line 112) is also yielded by the loop over `Words` (`Once("--copy")` is `--copy|1`), so
+   xUnit sees two identical rows and silently skips one. The hand-written row at line 112 is removed (the loop keeps it),
+   and a test fails when `ErrorRows` yields the same row twice (a check on the member's rows, in the same file).
 6. Given the checks (`dotnet build -c Release` and `dotnet test -c Release --no-build`), then they pass on both runtimes, and
    the number of test cases is the old number minus the removed duplicate (written in the PR).
 
@@ -39,8 +38,9 @@ suite passes without edits to its expectations.
 ## Decisions
 - One concern per PR? **Decision:** yes: these four cleanups are all about the readers' shared helpers and ship together; the
   duplicate test row rides along because it is in the same files' tests (po, 2026-10-25).
-- Is the duplicate row a real finding? **Decision:** unverified: the builder confirms which row it is before touching it (po,
-  2026-10-25).
+- Is the duplicate row a real finding? **Decision:** yes, confirmed in the PR #90 review (po, 2026-10-25).
+- Order against NS-41? **Decision:** NS-93 first: the new filter reader then starts from the shared helpers and there are
+  fewer merge conflicts in the readers (po, 2026-10-25).
 
 ## Log
 - 2026-10-25: created from the CLI review follow-ups; set Ready (po).

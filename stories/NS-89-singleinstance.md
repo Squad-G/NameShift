@@ -29,14 +29,29 @@ a named pipe per user session). Names are indicative.
    gather into the folder of the first). No gathering delay applies to a start without a path argument.
 6. Given no window is running and several processes start at once, then exactly one becomes the window (the mutex decides),
    the others hand over their request as in criterion 1 after the pipe is ready (they retry for up to 5 s).
-7. Given a request from the pipe, then it is untrusted: the pipe is open to the current user only; a message over 4 MiB or
-   with more than 100,000 paths, or one that cannot be read, is ignored without a crash; every path goes through
-   `OpenTarget` (its checks and its messages). A request never renames anything.
+7. Given a request from the pipe, then it is untrusted:
+   - the pipe is open to the current user only, and the server creates it with `PipeOptions.FirstPipeInstance`: when the
+     creation fails (another process holds the name), the window does not trust the pipe, takes no request from it, and says
+     nothing is lost: it still works as a normal window;
+   - the client checks that the pipe server belongs to the same user (the owner or the process SID) before it sends a
+     path or the current directory, and sends nothing otherwise (it then opens its own window, criterion 8);
+   - the server reads one client at a time with a read timeout of 2 s: a client that connects and never sends or never
+     closes is dropped and does not block the next request;
+   - a message over 1 MiB, or with more than 2,000 paths (Windows gives a command line at most 32,000 characters), or one
+     that cannot be read, is ignored without a crash;
+   - the disk is not asked once per path: only the first path goes through `OpenTarget.Resolve` (one folder check); the
+     others are cut into folder and name as text and matched against the loaded list (NS-88's `SelectNames`), so a request
+     of 2,000 paths on a slow share costs one check;
+   - a request never renames anything.
 8. Given the running window does not answer within 3 s (hung, or a crashed owner left the mutex), then the new process
-   starts its own window rather than doing nothing. An abandoned mutex is taken over without an exception.
-9. Given two Windows users on one PC, then each has their own window (the mutex and the pipe are per session and per user).
+   starts its own window rather than doing nothing. An abandoned mutex is taken over without an exception. That window
+   does not own the instance: it never saves the settings at close (criterion 11).
+9. Given two Windows users on one PC, then each has their own window: the mutex is named `Local\NameShift.<user SID>` and the
+   pipe `NameShift.<user SID>.<session id>` (per session through `Local\`, per user through the SID), so another user's
+   process can neither find nor squat them by a guessable name.
 10. Given `NameShiftCmd.exe`, then it is not affected and can run beside the window.
-11. Given the settings (NS-37), then they are saved by the one window at its close, never by two.
+11. Given the settings (NS-37), then only the window that owns the instance saves them at its close; a fallback window of
+    criterion 8 does not, so two windows never overwrite each other (a test of the owner flag in `NameShift.Ui`).
 12. By hand, written in the PR: start twice; start with a folder while the window is minimised; start while a Rename runs;
     15 starts in a command prompt loop with 15 files of one folder: one window, 15 rows selected; closing the window and
     starting again opens normally.
@@ -54,5 +69,11 @@ a named pipe per user session). Names are indicative.
 - Gathering times? **Decision:** 300 ms of quiet and 3 s at most: long enough for Explorer's burst, short enough to feel
   instant for one path; tunable by the tech lead if a measurement says otherwise (po, 2026-10-25).
 
+- Who saves the settings when two windows exist? **Decision:** only the instance owner: a fallback window opened because
+  the first one hung must not overwrite the first one's settings (po, 2026-10-25, PR #90 review).
+- Pipe squatting? **Decision:** first-instance creation and an owner check by the client, with per-user, per-session names;
+  a failed check means "open my own window", never "send the paths anyway" (po, 2026-10-25, PR #90 review).
+
 ## Log
 - 2026-10-25: created from NS-49's split (po).
+- 2026-10-25: PR #90 review: pipe hardening, lower caps, one disk check, names with the SID, owner-only saving (po).

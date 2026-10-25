@@ -20,15 +20,8 @@ On Windows 11 the classic entry hides under "Show more options"; users would fin
 ## Decisions
 - Do it at all? **Decision:** only if it keeps the installer small and needs no admin rights, because the compact menu needs a packaged shell extension, which is heavier and may need signing; if it fails either test, this story is cancelled and the classic entry stays (po, 2026-10-18).
 - Order? **Decision:** last in the backlog, after the classic entry has been used for a while (po, 2026-10-18).
-
-- 2026-10-25: after v1? **Decision:** yes: it needs the installer (NS-44, last before v1) and a spike on a packaged shell
-  extension, which is heavier than a registry entry, needs extra tooling and may need a signing certificate (money and an
-  account: David's call). It stays Draft, listed after NS-44, and is not planned for v1 (po, 2026-10-25).
-
 - Cancelled? **Decision (David, 2026-10-25):** cancelled. The classic entry from NS-49 stays the only entry; on Windows 11 it is under "Show more options" (po, 2026-10-25).
 
 ## Log
 - 2026-10-18: created (po).
 - 2026-10-25: Cancelled by David's decision; removed from the plan.
-- 2026-10-25: stays Draft; open question for David in the po report: cancel it for good, or keep it as a post-v1 idea.
-  po default: keep it Draft after v1, and cancel it if the spike needs a paid certificate (po).

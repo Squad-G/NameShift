@@ -1,7 +1,7 @@
 # NS-92: Move the settings-saving logic out of MainForm into NameShift.Ui
 
 Status: Ready
-Depends on: NS-37
+Depends on: NS-37, NS-84
 Area: app
 Chore: no visible change; behaviour stays exactly as it is.
 
@@ -12,7 +12,10 @@ which folder is kept) that no test can reach. The rule of CLAUDE.md is: logic in
 ## Acceptance criteria
 A new static class in `NameShift.Ui.Settings` (indicative `SettingsCapture`) with tests on net10.0 and net48; `MainForm`
 only reads its own facts and calls it. Its input is plain values (a small own enum for the window state: Normal, Maximized,
-Minimized), never a WinForms type.
+Minimized), never a WinForms type. The input also holds the collapsed-panel states (NS-84:
+`IReadOnlyDictionary<RuleStage, bool>`, today `PanelCollapse.States`), which go into `AppSettings.CollapsedPanels` as they
+are (a test: states in, same states out; none in, none out). `AppSettings` has no `Equals`, so "equal to" below means member
+by member (window, split, last folder, collapsed panels), which a small test helper compares.
 1. Given a Normal window with bounds 100, 50, 1200 x 800 at scale 1.5, then the saved window is
    `WindowPlacement.ToSaved(100, 50, 1200, 800, 1.5, maximized: false)`; a Maximized window uses its restore bounds and
    `maximized: true`; a Minimized window uses its restore bounds and is maximized exactly when it was maximised before it

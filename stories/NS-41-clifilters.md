@@ -1,7 +1,7 @@
 # NS-41: Command line: filters
 
 Status: Ready
-Depends on: NS-38, NS-32, NS-33, NS-70, NS-79, NS-76
+Depends on: NS-38, NS-32, NS-33, NS-70, NS-79, NS-76, NS-93 (build NS-93 first: the new reader uses its helpers)
 Area: app
 
 ## Why
@@ -22,8 +22,12 @@ builds `new ItemFilter(includeFolders: false)` today. Options (any order, each o
 3. Given `--filter-regex "("` (invalid), then exit code 1, nothing is listed, and the message is `--filter-regex:` followed
    by the window's own regex message (without its "skipped" sentence, as the RegEx rule's option does).
 4. Given `--min-length 3 --max-length 5`, then base names of 3 to 5 characters pass (the extension does not count). Given
-   `--min-length x`, `-1`, `1.5` or an empty value, then exit code 1 and `--min-length:` with the window's length text;
-   the same for `--max-length`. Given a minimum above the maximum, then exit code 1 with the window's range text.
+   `--min-length x`, `-1` or `1.5`, then exit code 1 and `--min-length:` with the window's length text
+   (`Strings.FilterLengthInvalid`); the same for `--max-length`. The model reports one joined error for both fields, so
+   the reader checks each value on its own (a throwaway `FilterPanelModel` with only that text set) to know which option
+   to name. An empty or white-space value is refused by the reader itself with `EmptyOptionText` (as `--date-format`
+   does), although the model reads it as "no limit". Given a minimum above the maximum, then exit code 1 with the range
+   text, which is the Core constant `ItemFilter.LengthRangeError` (not a `Strings` entry), prefixed `--min-length:`.
 5. Given hidden or system files, then they are left out, and `--include-hidden` brings them in (a fake source with
    attributes, and one real temp folder).
 6. Given kinds: the default is files only (as NS-38); `--files-only` is accepted and means the same; `--include-folders`

@@ -1,7 +1,7 @@
 # NS-86: Auto date panel: the Photo date choice
 
 Status: Draft
-Depends on: NS-62, NS-85, NS-59
+Depends on: NS-62, NS-85, NS-59, NS-76
 Area: app
 
 ## Why
@@ -22,8 +22,8 @@ Logic in `NameShift.Ui` and `NameShift.Cmd` with tests on net10.0 and net48; the
    Status cell shows `No photo date: modified date used` (new string, not a conflict: `IsConflict` is false), Rename is
    not blocked by it, and the new name uses the modified date (NS-62). A row that also has a conflict shows the conflict
    text only. A row with a photo date shows nothing.
-5. Given `apply --date-source taken` on the command line, then it is accepted (the values text becomes `modified, created,
-   taken`), the photo dates are filled before planning with the same class, and a name uses the photo date. A file without
+5. Given `apply --date-source taken` on the command line, then it is accepted (the values text becomes `modified, created or
+   taken`, in the style of the other values texts), the photo dates are filled before planning with the same class, and a name uses the photo date. A file without
    one uses its modified date and, once before the rename or the dry run, one line goes to the error stream: `N files have
    no photo date; their modified date was used.` (one: `1 file has no photo date; its modified date was used.`). The exit
    code is not changed by the line and `--quiet` does not hide it (warnings are not success output).

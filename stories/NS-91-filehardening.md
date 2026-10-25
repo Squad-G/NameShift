@@ -41,8 +41,14 @@ and the three default folders change; nothing else.
 7. Given an empty profile folder, then `JournaledRenamer` no longer throws "must be a full path" with the default history
    root (a test builds one over `Resolve`'s fallback). No hand check is needed.
 
+8. Given the journal reader (`JournalJson.Deserialize`, for `last-batch.json` and `pending.json`), then it gets the same
+   quotas (copied from `Max`, `MaxDepth` 32) and the same two tests as criterion 1 and 2 (too deep gives `Unreadable`;
+   a real journal still loads). A file of 100,000 levels may crash the process by stack depth instead of "not finishing", so
+   the 32 versus 33 level rows are the real regression test; the deep file test runs in a child task with a timeout and a
+   small stack budget in mind, and the PR says what it observed on both runtimes.
+
 ## Out of scope
-- Cleaning the journal's temp files; a message about the fallback folder; moving existing files from an old folder.
+- Cleaning the journal's temp files (still NS-9's decision); a message about the fallback folder; moving existing files from an old folder.
 
 ## Decisions
 - Depth limit? **Decision:** 32: the real files are only a few levels deep, and 32 leaves room for a future field while a
@@ -53,5 +59,9 @@ and the three default folders change; nothing else.
   Revert still has a journal; the history may be cleaned by Windows, which is acceptable for a PC in that state (po,
   2026-10-25).
 
+- One PR or three? **Decision:** one: the three fixes are each a few lines in the same small set of files and tests, and
+  splitting would triple the review round trips; the builder may split into commits (po, 2026-10-25, PR #90 review).
+
 ## Log
+- 2026-10-25: PR #90 review: the journal reader's quota gap added (criterion 8) (po).
 - 2026-10-25: created from the review follow-ups of NS-37 and NS-36; set Ready (po).

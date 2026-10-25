@@ -27,7 +27,8 @@ every text in `Strings`. Names are indicative.
    skipped entries. Given the click when the journal changed between the check and the revert (another window), then
    the executor's own checks still hold (nothing is overwritten).
 6. Given `NameShiftCmd undo`, then it never asks: it skips `Modified`, `Missing` and `NameTaken` entries, reverts the rest,
-   and reports through the existing result text; a partial revert is exit code 4 as today. There is no option to include
+   and reports through the existing result text; a partial revert is exit code 4 as today, and when every entry is skipped nothing is reverted: exit code 3
+   (`NothingReverted`). The skipped changed file's line comes from NS-90's `SkipModified` text. There is no option to include
    changed files (the window has the dialog).
 7. Given `NameShiftCmd undo --dry-run`, then each entry that would be reverted prints `new -> old` as today, and each entry
    that would be skipped prints `name: skipped (reason)` with the same reason words; exit code 0.

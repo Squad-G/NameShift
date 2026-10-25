@@ -22,9 +22,12 @@ Logic in `NameShift.Ui` (`OpenTarget`, `FileListModel`) with tests on net10.0 an
 4. Given paths in other folders, paths that do not exist and paths that are invalid, then they are not selected and the
    status bar says `N items were not selected: not found or not in {folder}.` (new string; none, nothing is said). Given
    none exists, then the first path's NS-47 message shows and the window opens as usual.
-5. Given `FileListModel` selection by names (indicative `SelectNames(IEnumerable<string>)`), then it selects the rows whose
+5. Given `FileListModel` selection by names (indicative `SelectNames(IEnumerable<string>)`), then it selects the rows of the
+   shown folder (`PathInput.SameFolder(item.FolderPath, FolderPath)`, as `FindRow` does; never a row of a sub-folder) whose
    name equals one of them (ordinal, ignoring case), returns how many were selected, selects nothing for a name the list
-   does not show (hidden or filtered out), and scrolls the first selected row into view. The `N of M files` count shows N.
+   does not show (hidden or filtered out), and scrolls the first selected row into view. A test row with Sub-folders on and
+   a root `a.jpg` next to `sub\a.jpg`: asking for `a.jpg` selects only the root one (Rename must never touch what was not
+   picked). The `N of M files` count shows N.
    It replaces the current selection. With 20,000 names against 20,000 items, it is linear (a name to row map, never a scan
    per name), tested by a test that completes and selects all of them.
 6. Given the selection is made on the loaded list, then it happens after the load lands (as NS-47's `FileName`), and a click
