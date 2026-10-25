@@ -24,9 +24,11 @@ edit `CommandRunner.RunApply`); re-read that method then.
 - The command line (`CommandRunner.RunApply`) lists with `ListEntries(folder, false, ...)`, sorts with
   `FileListOrder.Sort`, filters with `options.Filter` (NS-41, merged), returns early on `No files match.`, then calls
   `RenamePlanner.Plan`; warnings and errors go to `_error`. NS-87 (`--recurse`) edits the same method: build it first
-  (order: NS-87, then NS-86). In `RunApply` today: `items` is `FileListOrder.Sort(listing.Items).Where(filter.Includes)
-  .ToArray()`, then `RenamePlanner.Plan(BuildRules?.Invoke(options) ?? host.Rules, items, ...)`; the Auto date panel is in
-  `host.Panels` (an `AutoDatePanelModel`, `Enabled` and `Source` tell whether photo dates are needed).
+  (order: NS-87, then NS-86). In `RunApply` today: `items` is
+  `FileListOrder.Sort(listing.Items).Where(filter.Includes).ToArray()`, then
+  `RenamePlanner.Plan(BuildRules?.Invoke(options) ?? host.Rules, items, ...)`; the Auto date panel is in `host.Panels`,
+  but the built rules decide whether photo dates are needed: an `AutoDateRule` with `Source == DateSource.Taken` among
+  `BuildRules?.Invoke(options) ?? host.Rules` (criterion 3), not the panel's `Enabled` and `Source`.
 - Re-checked after NS-85 (226ff59): `PhotoDates` is public with a public parameterless constructor (real disk, 50,000
   entries) and `Fill(IReadOnlyList<RenameItem>, CancellationToken)` returning a new list of the same length and order;
   `DiskPhotoFile` and `IPhotoFile` are the internal seam. `PreviewModel.Compute` is still static and takes no
@@ -78,10 +80,6 @@ Logic in `NameShift.Ui` and `NameShift.Cmd` with tests on net10.0 and net48; the
    226ff59: `SaveSettings` already writes `Source.ToString()` ("Taken") and `ApplySettings` loads it only when
    `IndexOf(source) >= 0`, so adding `Taken` to `SourceList` is the whole fix for save and load; `IsDefault` and Reset
    (`Source = Modified`) are unchanged. A test saves with Taken, loads it, and checks the window's panel shows Photo date.
-11. Existing tests that change (the builder updates them, not deletes them): `RegexMoveDateFolderParserTests` (about line
-   150: `--date-source taken` is a bad choice today), `CmdStringsTests` (about line 82: the `DateSourceValues` text),
-   the help-text tests that hold the apply help line, `WindowParityRegexMoveDateFolderTests` (add a Taken row),
-   `AutoDatePanelModelTests` (the list of two becomes three), and `CommandLineParserTests` if it names the values.
 7. Given the Rename of such a batch, then the journal and Revert work as for any batch (a hand check with two JPEGs, one
    with no Exif date).
 8. By hand, written in the PR: a folder of 2,000 photos with Photo date chosen stays responsive (the list does not freeze
@@ -93,6 +91,10 @@ Logic in `NameShift.Ui` and `NameShift.Cmd` with tests on net10.0 and net48; the
 10. Items given to `PhotoDates.Fill` come from a folder listing (the file list's items, or `ListEntries` on the command
    line), never built by hand: an item with invalid path characters can throw `ArgumentException` on net48. No new code
    path builds an item for it.
+11. Existing tests that change (the builder updates them, not deletes them): `RegexMoveDateFolderParserTests` (about line
+   150: `--date-source taken` is a bad choice today), `CmdStringsTests` (about line 82: the `DateSourceValues` text),
+   the help-text tests that hold the apply help line, `WindowParityRegexMoveDateFolderTests` (add a Taken row),
+   `AutoDatePanelModelTests` (the list of two becomes three), and `CommandLineParserTests` if it names the values.
 
 ## Out of scope
 - Other date tags (DateTimeDigitized, DateTime), time zones, other file types.
@@ -121,4 +123,8 @@ Logic in `NameShift.Ui` and `NameShift.Cmd` with tests on net10.0 and net48; the
 - 2026-10-25: PR #104 review nits folded in: one trigger (built `AutoDateRule` with Taken), snapshot flag at compute
   time, grey rule in `FileList`, `CommandRunner.PhotoDates` seam, warning placement and format, clean-read and
   pool-thread test notes, the list of existing tests that change, preset trace; BACKLOG rows swapped (po).
-- 2026-10-25: from the PR #103 review (NS-85), for the hand checks: a file that becomes an online-only placeholder between the attribute check and the open is recalled, and a file symlink whose target is a placeholder is opened (it shows only ReparsePoint); items given to PhotoDates.Fill must come from a listing (tech-lead).
+- 2026-10-25: from the PR #103 review (NS-85), for the hand checks: a file that becomes an online-only placeholder
+  between the attribute check and the open is recalled, and a file symlink whose target is a placeholder is opened (it
+  shows only ReparsePoint); items given to PhotoDates.Fill must come from a listing (tech-lead).
+- 2026-10-25: PR #104 re-review nits folded in: the command-line fact says the built rules decide (not the panel's
+  Enabled and Source), and criterion 11 moved after 10 (tech-lead).
