@@ -14,6 +14,7 @@ using NameShift.Ui.Folders;
 using NameShift.Ui.Presets;
 using NameShift.Ui.Preview;
 using NameShift.Ui.Rules;
+using NameShift.Ui.Settings;
 using MainMenu = NameShift.App.Controls.MainMenu;
 
 namespace NameShift.App;
@@ -48,12 +49,30 @@ internal sealed class MainForm : Form
     private bool _fitting;
     private (string Folder, string FileName)? _pendingSelection;
     private bool _shownBusy;
+    private readonly AppSettingsStore _settingsStore;
+    private readonly AppSettings _saved;
+    private PlacedWindow? _placed;
+    private bool _maximizedBeforeMinimize;
 
     /// <param name="args">The command line: the first path argument opens at start (NS-47).</param>
     /// <param name="currentDirectory">The directory the program started in, for a relative path argument.</param>
-    public MainForm(IFolderSource source, IFileListSource fileListSource, IBatchRenamer renamer, string[] args, string currentDirectory, PresetStore presetStore)
+    /// <param name="settingsStore">Where the window facts and the last rules are saved at close (NS-37).</param>
+    /// <param name="saved">The window facts read at start (NS-37).</param>
+    /// <param name="rules">The last rules read at start, or null (NS-37).</param>
+    public MainForm(
+        IFolderSource source,
+        IFileListSource fileListSource,
+        IBatchRenamer renamer,
+        string[] args,
+        string currentDirectory,
+        PresetStore presetStore,
+        AppSettingsStore settingsStore,
+        AppSettings saved,
+        Preset? rules)
     {
         _source = source;
+        _settingsStore = settingsStore;
+        _saved = saved;
         _startArgument = OpenTarget.FirstPathArgument(args);
         _currentDirectory = currentDirectory;
         _navigator = new FolderNavigator(source);
@@ -63,6 +82,14 @@ internal sealed class MainForm : Form
 
         IReadOnlyList<RulePanelEntry> entries = RulePanels.Create();
         RuleHost = new RulePanelHostModel(entries.Select(e => e.Model));
+
+        // The last rules come back before the preview, the actions and any listing (NS-37), and before the collapse
+        // model, so the restored ticked panels start open.
+        if (rules != null)
+        {
+            RuleHost.ApplyPreset(rules);
+        }
+
         PanelCollapse = new PanelCollapseModel(RuleHost);
         _stack = new RulePanelStack(RuleHost, entries, PanelCollapse) { Dock = DockStyle.Fill };
         _stack.LayoutNeeded += (_, _) => FitBottomArea();
@@ -203,13 +230,35 @@ internal sealed class MainForm : Form
         base.OnFormClosing(e);
     }
 
+    protected override void OnFormClosed(FormClosedEventArgs e)
+    {
+        // Only reached when the close was not cancelled: a close refused while a Rename or Revert runs saves nothing.
+        SaveSettings();
+        base.OnFormClosed(e);
+    }
+
+    protected override void OnResize(EventArgs e)
+    {
+        base.OnResize(e);
+        if (WindowState != FormWindowState.Minimized)
+        {
+            _maximizedBeforeMinimize = WindowState == FormWindowState.Maximized;
+        }
+    }
+
     protected override void OnLoad(EventArgs e)
     {
         base.OnLoad(e);
+        ApplyLandingScale();
 
         // Splitter values are only valid once the containers have their real size.
         _mainSplit.Panel1MinSize = LogicalToDeviceUnits(160);
-        _mainSplit.SplitterDistance = LogicalToDeviceUnits(260);
+        _mainSplit.SplitterDistance = SplitterRule.Clamp(
+            _saved.MainSplit is int m ? LogicalToDeviceUnits(m) : null,
+            LogicalToDeviceUnits(260),
+            _mainSplit.Width,
+            _mainSplit.Panel1MinSize,
+            _mainSplit.Width - _mainSplit.Panel2MinSize - _mainSplit.SplitterWidth);
         _rightSplit.Panel1MinSize = LogicalToDeviceUnits(160);
 
         // The bottom area's height follows the panels (NS-83): set in code only, never dragged.
@@ -222,14 +271,18 @@ internal sealed class MainForm : Form
     protected override void OnShown(EventArgs e)
     {
         base.OnShown(e);
-        if (_startArgument is null)
+        switch (StartFolderChoice.Pick(_startArgument, _saved.LastFolder))
         {
-            _navigator.Start();
-        }
-        else
-        {
-            // One navigation once the path is resolved: Documents is never shown first for nothing.
-            _ = OpenAsync(_startArgument);
+            case StartFolderSource.Argument:
+                // One navigation once the path is resolved: Documents is never shown first for nothing.
+                _ = OpenAsync(_startArgument!);
+                break;
+            case StartFolderSource.Remembered:
+                _ = OpenRememberedAsync(_saved.LastFolder!);
+                break;
+            default:
+                _navigator.Start();
+                break;
         }
 
         _ = Actions.LoadJournalAsync();
@@ -368,9 +421,122 @@ internal sealed class MainForm : Form
     private void ApplyWindowSizes()
     {
         MinimumSize = LogicalToDeviceUnits(MinimumLogicalSize);
+
+        // The saved placement when it still lands on a screen (NS-37); otherwise centred at the default size.
+        _placed = _saved.Window == null
+            ? null
+            : WindowPlacement.Fit(_saved.Window, ScreenAreas.Current(), MinimumLogicalSize.Width, MinimumLogicalSize.Height);
+        if (_placed != null)
+        {
+            StartPosition = FormStartPosition.Manual;
+            Bounds = new Rectangle(_placed.Left, _placed.Top, _placed.Width, _placed.Height);
+            if (_placed.Maximized)
+            {
+                // After the bounds, so they become the restore bounds. Never minimised.
+                WindowState = FormWindowState.Maximized;
+            }
+
+            return;
+        }
+
         Rectangle area = Screen.FromControl(this).WorkingArea;
         Size initial = LogicalToDeviceUnits(InitialLogicalSize);
         Size = new Size(Math.Min(initial.Width, area.Width), Math.Min(initial.Height, area.Height));
+    }
+
+    /// <summary>
+    /// Once the handle exists, <see cref="Control.DeviceDpi"/> is the landing screen's. When the window's size is not
+    /// the saved logical size at that scale (the screen's scale was not the expected one, or WinForms rescaled the
+    /// window as it was created), the size is set again from the saved logical size (NS-37 AC 7). For a maximised
+    /// window this sets the restore size underneath.
+    /// </summary>
+    private void ApplyLandingScale()
+    {
+        if (_placed == null || _saved.Window == null)
+        {
+            return;
+        }
+
+        try
+        {
+            MinimumSize = LogicalToDeviceUnits(MinimumLogicalSize);
+            Rectangle area = Screen.FromControl(this).WorkingArea;
+            var landing = new ScreenArea(area.Left, area.Top, area.Width, area.Height, DeviceDpi / 96.0);
+            var saved = new SavedWindow(_placed.Left, _placed.Top, _saved.Window.Width, _saved.Window.Height, _placed.Maximized);
+            PlacedWindow? again = WindowPlacement.Fit(saved, new[] { landing }, MinimumLogicalSize.Width, MinimumLogicalSize.Height);
+            if (again == null)
+            {
+                return;
+            }
+
+            var target = new Size(again.Width, again.Height);
+            Size current = WindowState == FormWindowState.Normal ? Size : RestoreBounds.Size;
+            if (current != target)
+            {
+                Size = target;
+            }
+        }
+        catch (Exception)
+        {
+            // A placement detail must never stop the window from opening.
+        }
+    }
+
+    /// <summary>Saves the window facts and the rules (NS-37) at close: on the pool, waiting at most 2 seconds, silent.
+    /// Nothing of the filters, the sort, the selection, the sub-folders box, the collapse state or the lock is read.</summary>
+    private void SaveSettings()
+    {
+        try
+        {
+            Rectangle b = WindowState == FormWindowState.Normal ? Bounds : RestoreBounds;
+            bool maximized = WindowState == FormWindowState.Maximized
+                || (WindowState == FormWindowState.Minimized && _maximizedBeforeMinimize);
+            double scale = DeviceDpi / 96.0;
+            SavedWindow? window = b.Width > 0 && b.Height > 0
+                ? WindowPlacement.ToSaved(b.Left, b.Top, b.Width, b.Height, scale, maximized)
+                : null;
+            int split = (int)Math.Round(_mainSplit.SplitterDistance / scale, MidpointRounding.AwayFromZero);
+
+            // A start that never showed a folder keeps the one read at start instead of erasing it.
+            var settings = new AppSettings(window, split >= 0 ? split : null, _navigator.CurrentFolder ?? _saved.LastFolder);
+            _settingsStore.SaveWithin(
+                settings, Preset.FromPanels(AppSettingsStore.LastRulesName, RuleHost.Panels), AppSettingsStore.SaveLimit);
+        }
+        catch (Exception)
+        {
+            // A close must never crash, and a failure to save is silent.
+        }
+    }
+
+    /// <summary>Opens the folder shown at the last close (NS-37 AC 8): checked off the UI thread; a folder that is gone
+    /// falls back to the start folder with no message. A click in the tree or a typed path meanwhile wins (its
+    /// FolderChanged invalidates the ticket). Never throws.</summary>
+    private async Task OpenRememberedAsync(string folder)
+    {
+        try
+        {
+            int ticket = _opens.Begin();
+            OpenRequest request = await Task.Run(() => StartFolderChoice.Resolve(folder, _source));
+            if (IsDisposed)
+            {
+                return;
+            }
+
+            switch (_opens.Complete(ticket, request, Actions.IsBusy, _navigator.CurrentFolder != null))
+            {
+                case OpenAction.Open when request.Folder != null:
+                    _navigator.SelectFromTree(request.Folder);
+                    break;
+                case OpenAction.OpenStartFolder:
+                    _navigator.Start();
+                    break;
+            }
+        }
+        catch (Exception)
+        {
+            // Runs fire-and-forget: an escaping exception would end the process.
+            ShowStatus(Strings.SomethingWentWrong);
+        }
     }
 
     /// <summary>Locks the window while a Rename or Revert runs, and unlocks it after the folder reloaded.</summary>

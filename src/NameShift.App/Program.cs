@@ -5,6 +5,7 @@ using NameShift.Ui.Actions;
 using NameShift.Ui.Files;
 using NameShift.Ui.Folders;
 using NameShift.Ui.Presets;
+using NameShift.Ui.Settings;
 
 namespace NameShift.App;
 
@@ -19,6 +20,21 @@ internal static class Program
         Application.SetCompatibleTextRenderingDefault(false);
         // The window's only place that names the real history folder (the command line's is NameShift.Cmd.Exe's Main).
         var renamer = new JournaledBatchRenamer(new JournaledRenamer(JournaledRenamer.DefaultHistoryRoot));
-        Application.Run(new MainForm(new DiskFolderSource(), new DiskFileListSource(), renamer, args, currentDirectory, new PresetStore(PresetStore.DefaultFolder)));
+
+        // The only place that names the real settings folder (NS-37). Read before the message loop: two small files,
+        // never throwing; the window saves them again at close.
+        var settingsStore = new AppSettingsStore(AppSettingsStore.DefaultFolder);
+        AppSettings saved = settingsStore.LoadSettings();
+        Preset? rules = settingsStore.LoadRules();
+        Application.Run(new MainForm(
+            new DiskFolderSource(),
+            new DiskFileListSource(),
+            renamer,
+            args,
+            currentDirectory,
+            new PresetStore(PresetStore.DefaultFolder),
+            settingsStore,
+            saved,
+            rules));
     }
 }

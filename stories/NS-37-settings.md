@@ -1,6 +1,6 @@
 # NS-37: Remember last settings
 
-Status: Ready
+Status: Done
 Depends on: NS-36, NS-72, NS-83
 Area: app
 
@@ -109,3 +109,18 @@ Privacy:
   is not remembered, Reset without a menu item); set Ready, to be built after NS-72 (po).
 - 2026-10-24: `rightSplit` dropped (NS-83 makes the bottom height follow the open panels); to be built after NS-83. Panel
   collapse state is added by NS-84 (po).
+- 2026-10-25: In Progress (builder).
+- 2026-10-25: In Review (builder), PR #87.
+- 2026-10-25: Done (tech-lead), PR #87 approved and squash-merged; review nit 5 folded (the null checks of `Save` and
+  `SaveWithin` share one helper). Hand checks for David (PR #87 checklist): AC 4 (close box, Alt+F4, while minimised:
+  both files written; a close refused while busy writes nothing; the close takes well under 2 s; and, review nit 1,
+  logging off or shutting Windows down with the window open also saves the settings), AC 5 (second screen, unplugged
+  screen gives centred, partly off screen but grabbable, maximised and minimised), AC 7 (150 % and 100 %, mixed DPI
+  not rescaled twice), AC 6 (folder tree splitter back; bottom height not restored), AC 3 (last rules back, ticked
+  panels open), AC 8 (remembered folder; a deleted one falls back silently; a command-line folder and a tree click
+  win), AC 9 (filters, Sub-folders, sort, selection fresh), AC 10 (Reset, close, reopen: empty), AC 2 (a corrupt
+  `settings.json` gives defaults and stays until the next close). Follow-ups: deeply nested JSON parses slowly: set
+  `XmlDictionaryReaderQuotas.MaxDepth` for `AppSettingsJson` and `PresetJson`, one small hardening chore with a test
+  (nit 2); a leftover `*.tmp` after a cut-off save (nit 3); the split rounding and the maximised/minimised logic in
+  `MainForm.SaveSettings` should move to `NameShift.Ui` with tests (nit 4); an empty `LocalApplicationData` path is
+  shared by all stores (nit 6).
