@@ -1,6 +1,6 @@
 # NS-95: Cold start: the first window gathers its own paths with the later ones
 
-Status: In Progress
+Status: In Review
 Depends on: NS-88, NS-89
 Area: app
 
@@ -57,3 +57,4 @@ Logic in `NameShift.Ui` with tests on net10.0 and net48 (the fake clock of NS-89
 - 2026-10-25: PR #107 re-review nits folded in: the gather decision in `NameShift.Ui` (`Pick` gives `Gather`, a helper
   builds the owner's request, tests that fail without the change), nothing shown during the gathering and the not-found
   end as today, the 2,000-path cap stated for the owner (tech-lead).
+- 2026-10-25: built (builder): StartFolderSource.Argument became Gather, StartGathering helper, OnShown gathers; PR open, In Review.
