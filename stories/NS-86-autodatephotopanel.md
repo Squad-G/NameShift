@@ -1,6 +1,6 @@
 # NS-86: Auto date panel: the Photo date choice
 
-Status: In Review
+Status: Done
 Depends on: NS-62, NS-85, NS-87, NS-59, NS-76
 Area: app
 
@@ -129,3 +129,10 @@ Logic in `NameShift.Ui` and `NameShift.Cmd` with tests on net10.0 and net48; the
 - 2026-10-25: PR #104 re-review nits folded in: the command-line fact says the built rules decide (not the panel's
   Enabled and Source), and criterion 11 moved after 10 (tech-lead).
 - 2026-10-25: built (builder): Photo date in the panel (Sources, presets), PhotoDateNeed trigger, snapshot flag and grey Status note, `apply --date-source taken` with one error-stream line for planned files without a photo date; In Review.
+- 2026-10-25: Done (tech-lead), PR #106 approved and squash-merged. Review nits folded: the parity test splits the file
+  names once; the photo-date test helpers are ListedFile and TakenArgs. Hand checks for David (PR #106): the note shows
+  in grey and a conflict row keeps the conflict colour, also in a Windows contrast theme (AC 4); Rename then Revert of
+  two JPEGs, one with no Exif date (AC 7); about 2,000 photos with Photo date stay responsive while typing in the
+  format box, a second pass does not reread, the undated row shows the note, and the time of the first pass is noted
+  (AC 8); a OneDrive online-only .jpg shows the note and is not downloaded (AC 9a); note whether either known
+  placeholder gap is seen (AC 9b); a preset saved with Photo date shows Photo date after loading.

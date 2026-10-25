@@ -27,7 +27,7 @@ public sealed class CommandRunnerPhotoDateTests : IDisposable
 
     private string PathOf(string name) => Path.Combine(_temp.Files, name);
 
-    private RenameItem File(string name) =>
+    private RenameItem ListedFile(string name) =>
         new RenameItem(name, _temp.Files, ItemKind.File, ItemAttributes.None, 100, Modified, Modified);
 
     private RenameItem Folder(string name) => new RenameItem(name, _temp.Files, ItemKind.Folder, ItemAttributes.None, 0, Modified, Modified);
@@ -43,7 +43,7 @@ public sealed class CommandRunnerPhotoDateTests : IDisposable
     private (int Code, string Output, string Error) Run(RenameItem[] items, params string[] options) =>
         Run(FileListing.Ok(items), options);
 
-    private static string[] Taken_(params string[] more) =>
+    private static string[] TakenArgs(params string[] more) =>
         new[] { "--date", "--date-source", "taken", "--dry-run" }.Concat(more).ToArray();
 
     [Fact]
@@ -51,7 +51,7 @@ public sealed class CommandRunnerPhotoDateTests : IDisposable
     {
         _fake.Answer(PathOf("a.jpg"), PhotoRead.Found(Taken));
 
-        var run = Run(new[] { File("a.jpg") }, Taken_());
+        var run = Run(new[] { ListedFile("a.jpg") }, TakenArgs());
 
         Assert.Equal(0, run.Code);
         Assert.Equal(new[] { "a.jpg -> 2023-07-01_a.jpg" }, Cmd.Lines(run.Output));
@@ -65,9 +65,9 @@ public sealed class CommandRunnerPhotoDateTests : IDisposable
     [InlineData(1234, "1,234 files have no photo date; their modified date was used.")]
     public void Missing_OneAndMany(int count, string line)
     {
-        RenameItem[] items = Enumerable.Range(0, count).Select(i => File("p" + i + ".jpg")).ToArray();
+        RenameItem[] items = Enumerable.Range(0, count).Select(i => ListedFile("p" + i + ".jpg")).ToArray();
 
-        var run = Run(items, Taken_());
+        var run = Run(items, TakenArgs());
 
         Assert.Equal(0, run.Code);
         Assert.Equal(Cmd.Written(line), run.Error);
@@ -82,7 +82,7 @@ public sealed class CommandRunnerPhotoDateTests : IDisposable
         _fake.Answer(PathOf("a.jpg"), PhotoRead.Found(Taken));
         _fake.Answer(PathOf("c.jpg"), PhotoRead.Failed);
 
-        var run = Run(new[] { File("a.jpg"), File("b.jpg"), File("c.jpg"), File("d.txt") }, Taken_());
+        var run = Run(new[] { ListedFile("a.jpg"), ListedFile("b.jpg"), ListedFile("c.jpg"), ListedFile("d.txt") }, TakenArgs());
 
         Assert.Equal(Cmd.Written("3 files have no photo date; their modified date was used."), run.Error);
     }
@@ -90,7 +90,7 @@ public sealed class CommandRunnerPhotoDateTests : IDisposable
     [Fact]
     public void Missing_WithQuiet()
     {
-        var run = Run(new[] { File("a.jpg") }, "--date", "--date-source", "taken", "-q");
+        var run = Run(new[] { ListedFile("a.jpg") }, "--date", "--date-source", "taken", "-q");
 
         Assert.Equal(0, run.Code);
         Assert.Equal("", run.Output);
@@ -100,7 +100,7 @@ public sealed class CommandRunnerPhotoDateTests : IDisposable
     [Fact]
     public void Missing_OnlyPlannedFiles()
     {
-        var run = Run(new[] { File("a.jpg"), File("b.jpg"), File("c.txt") }, Taken_("--mask", "a*"));
+        var run = Run(new[] { ListedFile("a.jpg"), ListedFile("b.jpg"), ListedFile("c.txt") }, TakenArgs("--mask", "a*"));
 
         Assert.Equal(Cmd.Written("1 file has no photo date; its modified date was used."), run.Error);
         Assert.Equal(1, _fake.Calls);
@@ -113,13 +113,13 @@ public sealed class CommandRunnerPhotoDateTests : IDisposable
     {
         _fake.Answer(PathOf("a.jpg"), PhotoRead.Found(Taken));
 
-        var run = Run(new[] { File("a.jpg"), Folder("sub") }, Taken_("--include-folders"));
+        var run = Run(new[] { ListedFile("a.jpg"), Folder("sub") }, TakenArgs("--include-folders"));
 
         Assert.Equal(0, run.Code);
         Assert.Equal("", run.Error);
         Assert.Contains("sub -> 2024-03-04_sub", run.Output);
 
-        var two = Run(new[] { File("b.jpg"), Folder("sub") }, Taken_("--include-folders"));
+        var two = Run(new[] { ListedFile("b.jpg"), Folder("sub") }, TakenArgs("--include-folders"));
 
         Assert.Equal(Cmd.Written("1 file has no photo date; its modified date was used."), two.Error);
     }
@@ -127,7 +127,7 @@ public sealed class CommandRunnerPhotoDateTests : IDisposable
     [Fact]
     public void NoFilesMatch_NoRead_NoLine()
     {
-        var run = Run(new[] { File("a.jpg") }, Taken_("--mask", "*.zip"));
+        var run = Run(new[] { ListedFile("a.jpg") }, TakenArgs("--mask", "*.zip"));
 
         Assert.Equal(0, run.Code);
         Assert.Equal(Cmd.Written(Strings.NoFilesMatch), run.Output);
@@ -138,7 +138,7 @@ public sealed class CommandRunnerPhotoDateTests : IDisposable
     [Fact]
     public void OtherSource_NoRead()
     {
-        var run = Run(new[] { File("a.jpg") }, "--date", "--dry-run");
+        var run = Run(new[] { ListedFile("a.jpg") }, "--date", "--dry-run");
 
         Assert.Equal(0, run.Code);
         Assert.Equal(new[] { "a.jpg -> 2024-03-04_a.jpg" }, Cmd.Lines(run.Output));
@@ -149,7 +149,7 @@ public sealed class CommandRunnerPhotoDateTests : IDisposable
     [Fact]
     public void NoRule_NoRead()
     {
-        var run = Run(new[] { File("a.jpg") }, "--prefix", "x", "--dry-run");
+        var run = Run(new[] { ListedFile("a.jpg") }, "--prefix", "x", "--dry-run");
 
         Assert.Equal("", run.Error);
         Assert.Equal(0, _fake.Calls);
@@ -158,7 +158,7 @@ public sealed class CommandRunnerPhotoDateTests : IDisposable
     [Fact]
     public void BuiltRulesDecide_NotThePanel()
     {
-        var items = new[] { File("a.jpg") };
+        var items = new[] { ListedFile("a.jpg") };
         var args = new[] { "apply", _temp.Files, "--date", "--date-source", "taken", "--dry-run" };
 
         // The panel says Taken, but the built rules hold no Photo date rule: nothing is read, nothing is said.
@@ -177,7 +177,7 @@ public sealed class CommandRunnerPhotoDateTests : IDisposable
         _fake.Answer(PathOf("a.jpg"), PhotoRead.Found(Taken));
 
         // A separator that cannot be in a name blocks the batch; b.jpg also fell back to its modified date.
-        var run = Run(new[] { File("a.jpg"), File("b.jpg") }, Taken_("--date-separator", ":"));
+        var run = Run(new[] { ListedFile("a.jpg"), ListedFile("b.jpg") }, TakenArgs("--date-separator", ":"));
 
         Assert.Equal(2, run.Code);
         string[] lines = Cmd.Lines(run.Error);
@@ -189,7 +189,7 @@ public sealed class CommandRunnerPhotoDateTests : IDisposable
     [Fact]
     public void AfterSkippedFoldersLine()
     {
-        var run = Run(FileListing.Ok(new[] { File("a.jpg") }, 1), Taken_("--recurse"));
+        var run = Run(FileListing.Ok(new[] { ListedFile("a.jpg") }, 1), TakenArgs("--recurse"));
 
         string[] lines = Cmd.Lines(run.Error);
         Assert.Equal(2, lines.Length);
@@ -218,7 +218,7 @@ public sealed class CommandRunnerPhotoDateTests : IDisposable
         var run = Cmd.Run(
             new FakeBatchRenamer(), _temp.Files,
             new[] { "apply", _temp.Files, "--date", "--date-source", "taken", "--save-preset", "P", "--dry-run" },
-            new FakeFileListSource(FileListing.Ok(new[] { File("a.jpg") })),
+            new FakeFileListSource(FileListing.Ok(new[] { ListedFile("a.jpg") })),
             presetsFolder: _temp.Presets,
             photoDates: new PhotoDates(_fake, PhotoDates.DefaultCapacity));
 

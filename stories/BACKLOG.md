@@ -102,7 +102,7 @@ NS-86 and NS-87 both edit the command line's apply path: NS-87 is being built no
 | 41 | [NS-41 Command line: filters](NS-41-clifilters.md) | Done | NS-38, NS-32, NS-33, NS-70, NS-79, NS-76, NS-93 |
 | 85 | [NS-85 Read the photo dates of the listed files](NS-85-photodates.md) | Done | NS-62, NS-27 |
 | 87 | [NS-87 Command line: --recurse](NS-87-clirecurse.md) | Done | NS-41, NS-74, NS-78 |
-| 86 | [NS-86 Auto date panel: the Photo date choice](NS-86-autodatephotopanel.md) | In Review | NS-62, NS-85, NS-87, NS-59, NS-76 |
+| 86 | [NS-86 Auto date panel: the Photo date choice](NS-86-autodatephotopanel.md) | Done | NS-62, NS-85, NS-87, NS-59, NS-76 |
 | 92 | [NS-92 Move the settings-saving logic out of MainForm into NameShift.Ui](NS-92-savesettingslogic.md) | Ready | NS-37, NS-84 |
 | 94 | [NS-94 Close gaps in the tests: PathInput prefixes, both orders of the list model, broken path literals](NS-94-testgaps.md) | Done | NS-10, NS-70, NS-78, NS-80 |
 | 49 | [NS-49 Explorer right-click entry "Bulk Rename Here": the registry keys](NS-49-explorer-entry.md) | Draft | NS-88, NS-89 |

@@ -176,8 +176,9 @@ public sealed class WindowParityRegexMoveDateFolderTests
     [MemberData(nameof(Cases))]
     public async Task CliEqualsTheWindow(string fileNames, string options, bool setTimes, Func<IRulePanelModel[]> window)
     {
+        string[] names = fileNames.Split('\n');
         using var temp = new TempFolder();
-        foreach (string name in fileNames.Split('\n'))
+        foreach (string name in names)
         {
             string path = temp.File(name);
             if (setTimes)
@@ -222,7 +223,7 @@ public sealed class WindowParityRegexMoveDateFolderTests
         Assert.Equal(0, run.Code);
 
         // Photo date: none of these temp files holds an Exif date, so the CLI says so once, on the error stream.
-        int count = fileNames.Split('\n').Length;
+        int count = names.Length;
         string expectedError = !options.Contains("taken") ? "" : Cmd.Written(count == 1
             ? Strings.PhotoDateMissingOne
             : string.Format(Cmd.EnUs, Strings.PhotoDateMissingMany, count.ToString("N0", Cmd.EnUs)));
