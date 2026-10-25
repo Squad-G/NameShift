@@ -498,7 +498,8 @@ internal sealed class MainForm : Form
             int split = (int)Math.Round(_mainSplit.SplitterDistance / scale, MidpointRounding.AwayFromZero);
 
             // A start that never showed a folder keeps the one read at start instead of erasing it.
-            var settings = new AppSettings(window, split >= 0 ? split : null, _navigator.CurrentFolder ?? _saved.LastFolder, PanelCollapse.States);
+            var settings = new AppSettings(
+                window, split >= 0 ? split : null, _navigator.CurrentFolder ?? _saved.LastFolder, PanelCollapse.States);
             _settingsStore.SaveWithin(
                 settings, Preset.FromPanels(AppSettingsStore.LastRulesName, RuleHost.Panels), AppSettingsStore.SaveLimit);
         }

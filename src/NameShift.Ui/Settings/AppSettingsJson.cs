@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
@@ -14,9 +14,10 @@ namespace NameShift.Ui.Settings;
 
 /// <summary>
 /// The <c>settings.json</c> format, version 1: <c>{ "version": 1, "window": { "left", "top", "width", "height",
-/// "maximized" }, "mainSplit", "lastFolder", "panels" (stage name to "collapsed" or "open") }</c>, UTF-8 without BOM, indented, null values left out. The reader is
-/// lenient: each value is read as text and parsed on its own, so one wrong value defaults alone and the others still
-/// load (the in-box serializer would fail the whole file on one wrong type). Unknown members are ignored.
+/// "maximized" }, "mainSplit", "lastFolder", "panels" (stage name to "collapsed" or "open") }</c>, UTF-8 without
+/// BOM, indented, null values left out. The reader is lenient: each value is read as text and parsed on its own, so
+/// one wrong value defaults alone and the others still load (the in-box serializer would fail the whole file on one
+/// wrong type). Unknown members are ignored.
 /// </summary>
 internal static class AppSettingsJson
 {
@@ -54,15 +55,16 @@ internal static class AppSettingsJson
                 ? null
                 : s.CollapsedPanels
                     .OrderBy(pair => (int)pair.Key)
-                    .ToDictionary(pair => pair.Key.ToString(), pair => pair.Value ? "collapsed" : "open", StringComparer.Ordinal),
+                    .ToDictionary(
+                        pair => pair.Key.ToString(), pair => pair.Value ? "collapsed" : "open", StringComparer.Ordinal),
         };
 
         using var stream = new MemoryStream();
         using (var writer = JsonReaderWriterFactory.CreateJsonWriter(
             stream, new UTF8Encoding(false), ownsStream: false, indent: true, indentChars: "  "))
         {
-            new DataContractJsonSerializer(typeof(SettingsDto), new DataContractJsonSerializerSettings { UseSimpleDictionaryFormat = true })
-                .WriteObject(writer, dto);
+            var settings = new DataContractJsonSerializerSettings { UseSimpleDictionaryFormat = true };
+            new DataContractJsonSerializer(typeof(SettingsDto), settings).WriteObject(writer, dto);
             writer.Flush();
         }
 
@@ -106,7 +108,8 @@ internal static class AppSettingsJson
             string? lastFolder = folder != null && IsType(folder, "string") && !string.IsNullOrWhiteSpace(folder.Value)
                 ? folder.Value
                 : null;
-            return new AppSettings(ReadWindow(root.Element("window")), mainSplit, lastFolder, ReadPanels(root.Element("panels")));
+            return new AppSettings(
+                ReadWindow(root.Element("window")), mainSplit, lastFolder, ReadPanels(root.Element("panels")));
         }
         catch (Exception)
         {
@@ -137,8 +140,11 @@ internal static class AppSettingsJson
         return new SavedWindow(left, top, width, height, maximized);
     }
 
-    /// <summary>The <c>panels</c> object: each entry is read on its own, and one with an unknown stage name or a state
-    /// text other than "collapsed" or "open" is skipped alone. A first repeated key wins.</summary>
+    private static readonly string[] StageNames = Enum.GetNames(typeof(RuleStage));
+
+    /// <summary>The <c>panels</c> object: each entry is read on its own, and one whose key is not exactly a stage name
+    /// (ordinal: no spaces, signs, numbers or lists) or whose state text is not "collapsed" or "open" is skipped alone.
+    /// For a repeated key, the first valid entry wins.</summary>
     private static IReadOnlyDictionary<RuleStage, bool> ReadPanels(XElement? element)
     {
         var result = new Dictionary<RuleStage, bool>();
@@ -151,12 +157,14 @@ internal static class AppSettingsJson
         {
             // A key that is not a valid XML name arrives in an "item" attribute.
             string key = (string?)child.Attribute("item") ?? child.Name.LocalName;
-            if (key.Length == 0
-                || key.All(char.IsDigit)
-                || !Enum.TryParse(key, ignoreCase: false, out RuleStage stage)
-                || !Enum.IsDefined(typeof(RuleStage), stage)
-                || result.ContainsKey(stage)
-                || !IsType(child, "string"))
+            string? name = Array.Find(StageNames, n => string.Equals(n, key, StringComparison.Ordinal));
+            if (name == null || !IsType(child, "string"))
+            {
+                continue;
+            }
+
+            var stage = (RuleStage)Enum.Parse(typeof(RuleStage), name);
+            if (result.ContainsKey(stage))
             {
                 continue;
             }

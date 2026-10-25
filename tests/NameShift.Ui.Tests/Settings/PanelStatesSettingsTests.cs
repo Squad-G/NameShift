@@ -142,12 +142,24 @@ public sealed class PanelStatesSettingsTests : IDisposable
     [InlineData("5")]
     [InlineData("05")]
     [InlineData("99")]
+    [InlineData(" Remove")]
+    [InlineData("+5")]
     public void NumberAsStageName_Ignored(string key)
     {
         AppSettings s = LoadRaw("{\"panels\": {\"" + key + "\": \"open\", \"Add\": \"open\"}}");
 
         KeyValuePair<RuleStage, bool> only = Assert.Single(s.CollapsedPanels);
         Assert.Equal(RuleStage.Add, only.Key);
+    }
+
+    [Fact]
+    public void RepeatedKey_FirstValidEntryWins()
+    {
+        AppSettings s = LoadRaw("{\"panels\": {\"Remove\": 3, \"Remove\": \"open\", \"Remove\": \"collapsed\"}}");
+
+        KeyValuePair<RuleStage, bool> only = Assert.Single(s.CollapsedPanels);
+        Assert.Equal(RuleStage.Remove, only.Key);
+        Assert.False(only.Value);
     }
 
     [Fact]
