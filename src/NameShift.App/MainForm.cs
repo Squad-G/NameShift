@@ -44,6 +44,8 @@ internal sealed class MainForm : Form
     private readonly OpenSequence _opens = new OpenSequence();
     private readonly FilterBinding _filterBinding;
     private readonly SkippedFoldersNotice _skippedFolders;
+    private readonly RulePanelStack _stack;
+    private bool _fitting;
     private (string Folder, string FileName)? _pendingSelection;
     private bool _shownBusy;
 
@@ -61,7 +63,10 @@ internal sealed class MainForm : Form
 
         IReadOnlyList<RulePanelEntry> entries = RulePanels.Create();
         RuleHost = new RulePanelHostModel(entries.Select(e => e.Model));
-        PanelHost.Controls.Add(new RulePanelStack(RuleHost, entries) { Dock = DockStyle.Fill });
+        PanelCollapse = new PanelCollapseModel(RuleHost);
+        _stack = new RulePanelStack(RuleHost, entries, PanelCollapse) { Dock = DockStyle.Fill };
+        _stack.LayoutNeeded += (_, _) => FitBottomArea();
+        PanelHost.Controls.Add(_stack);
 
         Preview = new PreviewModel(RuleHost, FileListModel);
         _fileList = new FileList(FileListModel, Preview, ShowStatus) { Dock = DockStyle.Fill };
@@ -110,6 +115,10 @@ internal sealed class MainForm : Form
 
     /// <summary>The enabled rules in pipeline order and their change event, for the preview (NS-13).</summary>
     internal RulePanelHostModel RuleHost { get; }
+
+    /// <summary>Which rule panels are collapsed to their title line (NS-83): in memory only, unticked panels start
+    /// collapsed. The bottom area's height follows it.</summary>
+    internal PanelCollapseModel PanelCollapse { get; }
 
     /// <summary>The New Name preview, for conflicts (NS-52), selection (NS-14) and Rename (NS-15).</summary>
     internal PreviewModel Preview { get; }
@@ -177,6 +186,7 @@ internal sealed class MainForm : Form
             _filterBinding.Dispose();
             _skippedFolders.Dispose();
             FileListModel.Dispose();
+            PanelCollapse.Dispose();
         }
 
         base.Dispose(disposing);
@@ -201,10 +211,12 @@ internal sealed class MainForm : Form
         _mainSplit.Panel1MinSize = LogicalToDeviceUnits(160);
         _mainSplit.SplitterDistance = LogicalToDeviceUnits(260);
         _rightSplit.Panel1MinSize = LogicalToDeviceUnits(160);
-        _rightSplit.Panel2MinSize = LogicalToDeviceUnits(120);
-        _rightSplit.SplitterDistance = Math.Max(
-            _rightSplit.Panel1MinSize,
-            _rightSplit.Height - LogicalToDeviceUnits(240) - _rightSplit.SplitterWidth);
+
+        // The bottom area's height follows the panels (NS-83): set in code only, never dragged.
+        _rightSplit.IsSplitterFixed = true;
+        _stack.StartCollapse();
+        FitBottomArea();
+        _rightSplit.SizeChanged += (_, _) => FitBottomArea();
     }
 
     protected override void OnShown(EventArgs e)
@@ -227,6 +239,53 @@ internal sealed class MainForm : Form
     {
         base.OnDpiChanged(e);
         MinimumSize = LogicalToDeviceUnits(MinimumLogicalSize);
+        if (IsHandleCreated)
+        {
+            BeginInvoke(new Action(FitBottomArea)); // once the controls have rescaled
+        }
+    }
+
+    /// <summary>
+    /// Sizes the bottom area (rule panels and buttons) to the wrapped panels (NS-83): never below the buttons, never
+    /// above what leaves the file list its minimum (the panels scroll there). Ends: moving the splitter of a horizontal
+    /// split changes only the area's height, never its width, so measuring again gives the same answer; the flag stops
+    /// the synchronous re-entry.
+    /// </summary>
+    private void FitBottomArea()
+    {
+        if (_fitting || !IsHandleCreated || IsDisposed || WindowState == FormWindowState.Minimized)
+        {
+            return;
+        }
+
+        _fitting = true;
+        try
+        {
+            int splitter = _rightSplit.SplitterWidth;
+            int lowest = _rightSplit.Panel1MinSize;
+            int highest = _rightSplit.Height - _rightSplit.Panel2MinSize - splitter;
+            if (highest < lowest)
+            {
+                return; // too small to place the splitter
+            }
+
+            // Heights of the bottom area (the split's lower panel). The stack sits inside PanelHost's cell margin, so its
+            // height is the area's minus that margin. This is the only place the minimum and the cap are applied.
+            int hostMargin = PanelHost.Margin.Vertical;
+            int minimum = ButtonsHost.PreferredSize.Height + ButtonsHost.Margin.Vertical;
+            int cap = Math.Max(minimum, _rightSplit.Height - lowest - splitter);
+            int panels = _stack.PreferredAreaHeight(Math.Max(0, cap - hostMargin)) + hostMargin;
+            int height = Math.Min(cap, Math.Max(minimum, panels));
+            int distance = Math.Min(highest, Math.Max(lowest, _rightSplit.Height - height - splitter));
+            if (distance != _rightSplit.SplitterDistance)
+            {
+                _rightSplit.SplitterDistance = distance;
+            }
+        }
+        finally
+        {
+            _fitting = false;
+        }
     }
 
     private void BuildLayout()

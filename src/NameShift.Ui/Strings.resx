@@ -71,6 +71,10 @@
   <data name="RulePanelResetName" xml:space="preserve"><value>Reset {0}</value></data>
   <data name="RulePanelActive" xml:space="preserve"><value>Active: this rule changes names</value></data>
   <data name="RulePanelsName" xml:space="preserve"><value>Rename rules</value></data>
+  <data name="PanelExpandGlyph" xml:space="preserve"><value>▸</value></data>
+  <data name="PanelCollapseGlyph" xml:space="preserve"><value>▾</value></data>
+  <data name="PanelExpandName" xml:space="preserve"><value>Expand {0}</value></data>
+  <data name="PanelCollapseName" xml:space="preserve"><value>Collapse {0}</value></data>
   <data name="ReplaceTitle" xml:space="preserve"><value>&amp;Replace</value></data>
   <data name="ReplaceFind" xml:space="preserve"><value>&amp;Find</value></data>
   <data name="ReplaceWith" xml:space="preserve"><value>&amp;With</value></data>

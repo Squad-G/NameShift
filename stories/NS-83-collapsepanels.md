@@ -1,6 +1,6 @@
 # NS-83: Collapsible rule panels, and a bottom row that fits
 
-Status: Ready
+Status: Done
 Depends on: NS-11, NS-15
 Area: app
 
@@ -47,7 +47,8 @@ Model (`NameShift.Ui`, a `PanelCollapseModel` over the `RulePanelHostModel`; the
    The width passed in is the usable width: the host's client width, minus the vertical scroll bar's width when one
    is shown. `Measure` is run in two steps to settle the scroll bar and wrap loop: first with the full client width; if
    the answer is "scroll", again with the client width minus the scroll bar width, and that second answer is final
-   (more narrowing can only add rows, so the cap is still hit and the scroll stays on; it cannot flip back). Tests: a
+   (the narrower pass can regroup into fewer rows and end under the cap; the flow then keeps the narrower width,
+   `PanelFlowResult.UsableWidth`, rather than wrap back at the full width and go over the cap again). Tests: a
    width where the first pass fits without scrolling; one where the first pass scrolls and the narrower second pass
    wraps one more row; the boundary width (exactly the width of the panels) with and without the scroll bar width.
    A panel wider than the usable width also makes the stack scroll horizontally (it is `AutoScroll`): kept as today, and
@@ -113,6 +114,9 @@ Window (App; by hand, written in the PR, with a screenshot of each state):
   get wrong in the window and cheap to test as plain numbers (po, 2026-10-24).
 - Why a model for something this small? **Decision:** CLAUDE.md puts window logic in `NameShift.Ui` with tests; the
   default, the tick-opens rule and the height function are exactly what a UI bug hides in (po, 2026-10-24).
+- Settle's second pass ending under the cap? **Decision:** keep its narrower width (`PanelFlowResult.UsableWidth`):
+  nothing scrolls and the scroll bar's space stays empty, since wrapping back at the full width would exceed the cap
+  again (found in review: 8 collapsed and 3 open panels; tech-lead, 2026-10-25).
 
 ## Log
 - 2026-10-24: created from David's decisions (collapsed keeps width and shows check box, name, Reset, arrow; row height
@@ -122,3 +126,14 @@ Window (App; by hand, written in the PR, with a screenshot of each state):
   wrapped rows' total, each row as tall as its tallest open panel, capped. Criteria 4, 6 and 9 reworked (po).
 - 2026-10-24: PR #82 review applied: usable width and the scroll bar loop, `Panel2MinSize` removed, how a collapsed frame
   keeps its width, arrow glyphs in `Strings.resx` and the UI font, NS-15 dependency, criterion 10 kept as a guard (po).
+- 2026-10-25: In Progress (builder).
+- 2026-10-25: In Review (builder), PR #86.
+- 2026-10-25: Done (tech-lead), PR #86 approved on re-review and squash-merged. AC 4 corrected: Settle's second pass
+  can regroup into fewer rows and end under the cap, and the flow keeps the narrower width (`UsableWidth`), with a
+  Decisions line. Hand checks for David, with screenshots at 100 %, 125 % and 150 % (PR #86 checklist): AC 6 (no
+  sideways move on toggle, collapsed keeps its open width), AC 7 (title line only, active look kept, a collapsed ticked
+  panel still renames), AC 8 (both arrows readable, the arrow never ticks), AC 9 (Remove fits or the area scrolls at
+  the cap with the list at 160 px, for example Remove scrolling at the cap in a 720 px window; buttons fit when all
+  are collapsed; the splitter is fixed; resize, minimize and a monitor change refit with no flicker; at the width
+  where the panels just fit side by side, they re-wrap and no horizontal bar appears), AC 10 (keyboard pass: focus
+  moves to the arrow, collapsed content is skipped by Tab), and AC 3 and 5 (tick and preset open; screen-reader names).

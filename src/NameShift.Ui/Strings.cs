@@ -180,6 +180,18 @@ public static class Strings
 
     public static string RulePanelsName => Get(nameof(RulePanelsName));
 
+    /// <summary>The arrow of a collapsed rule panel (U+25B8): a click expands it.</summary>
+    public static string PanelExpandGlyph => Get(nameof(PanelExpandGlyph));
+
+    /// <summary>The arrow of an open rule panel (U+25BE): a click collapses it.</summary>
+    public static string PanelCollapseGlyph => Get(nameof(PanelCollapseGlyph));
+
+    /// <summary>"Expand {0}": the arrow's accessible name on a collapsed panel.</summary>
+    public static string PanelExpandName => Get(nameof(PanelExpandName));
+
+    /// <summary>"Collapse {0}": the arrow's accessible name on an open panel.</summary>
+    public static string PanelCollapseName => Get(nameof(PanelCollapseName));
+
     public static string ReplaceTitle => Get(nameof(ReplaceTitle));
 
     public static string ReplaceFind => Get(nameof(ReplaceFind));
