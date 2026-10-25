@@ -1,6 +1,6 @@
 # NS-83: Collapsible rule panels, and a bottom row that fits
 
-Status: In Progress
+Status: In Review
 Depends on: NS-11, NS-15
 Area: app
 
@@ -123,3 +123,4 @@ Window (App; by hand, written in the PR, with a screenshot of each state):
 - 2026-10-24: PR #82 review applied: usable width and the scroll bar loop, `Panel2MinSize` removed, how a collapsed frame
   keeps its width, arrow glyphs in `Strings.resx` and the UI font, NS-15 dependency, criterion 10 kept as a guard (po).
 - 2026-10-25: In Progress (builder).
+- 2026-10-25: In Review (builder), PR #86.
