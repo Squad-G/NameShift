@@ -1,6 +1,6 @@
 # NS-86: Auto date panel: the Photo date choice
 
-Status: Ready
+Status: In Progress
 Depends on: NS-62, NS-85, NS-87, NS-59, NS-76
 Area: app
 
