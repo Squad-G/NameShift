@@ -1,6 +1,6 @@
 # NS-80: Fix raw control characters in a test and guard against them
 
-Status: Ready
+Status: In Progress
 Depends on:
 Area: app
 Chore: no product change.
@@ -43,3 +43,4 @@ the test means. Nothing fails today; the next person to edit the line will not s
 ## Log
 - 2026-10-24: created and set Ready (po). The task note gave lines 1081-1082; the bytes are on 1114 and 1115.
 - 2026-10-24: PR #75 review applied: missing folders skipped, the root finder is extracted, stale commit id dropped (po).
+- 2026-10-24: In Progress (builder).
