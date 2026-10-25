@@ -1,6 +1,6 @@
 # NS-50: "Bulk Rename Here" in the Windows 11 top-level menu
 
-Status: Draft
+Status: Cancelled
 Depends on: NS-49
 Area: installer
 
@@ -20,6 +20,8 @@ On Windows 11 the classic entry hides under "Show more options"; users would fin
 ## Decisions
 - Do it at all? **Decision:** only if it keeps the installer small and needs no admin rights, because the compact menu needs a packaged shell extension, which is heavier and may need signing; if it fails either test, this story is cancelled and the classic entry stays (po, 2026-10-18).
 - Order? **Decision:** last in the backlog, after the classic entry has been used for a while (po, 2026-10-18).
+- Cancelled? **Decision (David, 2026-10-25):** cancelled. The classic entry from NS-49 stays the only entry; on Windows 11 it is under "Show more options" (po, 2026-10-25).
 
 ## Log
 - 2026-10-18: created (po).
+- 2026-10-25: Cancelled by David's decision; removed from the plan.
