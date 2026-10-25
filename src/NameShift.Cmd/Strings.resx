@@ -175,10 +175,11 @@ Examples:
   --filter-ignore-case       With --filter-regex: ignore capitals.
   --min-length &lt;n&gt;           Only base names of at least &lt;n&gt; characters.
   --max-length &lt;n&gt;           Only base names of at most &lt;n&gt; characters.
-  --include-hidden           Also hidden and system items.
+  --include-hidden           Also hidden and system items and folders.
   --files-only               Only files (the default).
   --folders-only             Only folders.
   --include-folders          Files and folders.
+  --recurse                  Also the sub-folders (not hidden ones).
   --preset &lt;name&gt;            Use the rules of a preset saved in the window.
   --save-preset &lt;name&gt;       Save the rules as a preset (also with --dry-run).
   --overwrite                Let --save-preset replace a preset of that name.

@@ -317,7 +317,7 @@ public sealed class CommandLineParserTests
                 "--date-placement", "--date-separator", "--folder-name", "--folder-levels", "--folder-placement",
                 "--folder-separator", "--mask", "--filter-regex", "--filter-ignore-case", "--min-length",
                 "--max-length", "--include-hidden", "--files-only", "--folders-only", "--include-folders",
-                "--preset", "--save-preset", "--overwrite",
+                "--recurse", "--preset", "--save-preset", "--overwrite",
             },
             CommandLineParser.Words);
         Assert.Equal(CommandLineParser.Words, CommandLineParser.GlobalWords.Concat(CommandLineParser.ApplyOptionWords));

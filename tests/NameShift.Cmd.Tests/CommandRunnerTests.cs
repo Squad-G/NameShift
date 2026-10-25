@@ -197,7 +197,7 @@ public sealed class CommandRunnerTests : IDisposable
     [Fact]
     public void Listing_TopFolderOnly_NeverSubfolders()
     {
-        // NS-74 AC 2: the command line lists the folder alone (recursion is NS-41).
+        // NS-74 AC 2: the command line lists the folder alone (recursion is NS-87).
         var files = new FakeFileListSource(FileListing.Ok(new[] { new RenameItem("VISIBLE.txt", _temp.Files) }));
 
         var run = Cmd.Run(new FakeBatchRenamer(), _temp.Files, new[] { "apply", _temp.Files, "--case", "lower", "--dry-run" }, files);

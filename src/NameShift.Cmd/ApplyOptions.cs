@@ -14,7 +14,8 @@ internal sealed class ApplyOptions
 {
     public ApplyOptions(string folderText, string? find, string? with, CaseMode? caseMode, bool dryRun,
         OutputLevel output = OutputLevel.Normal, ApplyPanels? panels = null, string? presetName = null,
-        string? saveName = null, bool overwrite = false, ItemFilter? filter = null, bool filtered = false)
+        string? saveName = null, bool overwrite = false, ItemFilter? filter = null, bool filtered = false,
+        bool recurse = false)
     {
         FolderText = folderText ?? throw new ArgumentNullException(nameof(folderText));
         if ((find == null) != (with == null))
@@ -43,6 +44,7 @@ internal sealed class ApplyOptions
         Overwrite = overwrite;
         Filter = filter ?? new ItemFilter(includeFolders: false);
         Filtered = filtered;
+        Recurse = recurse;
 
         var given = new List<IRulePanelModel>();
         if (find != null)
@@ -94,6 +96,9 @@ internal sealed class ApplyOptions
 
     /// <summary>True when a filter option or a mask in the folder text was given.</summary>
     public bool Filtered { get; }
+
+    /// <summary>True with --recurse: the sub-folders are listed and their items renamed in place.</summary>
+    public bool Recurse { get; }
 
     /// <summary>The models the rule options filled (Replace, Case, Add, Numbering...), each enabled, in stage order.</summary>
     public IReadOnlyList<IRulePanelModel> GivenPanels { get; }

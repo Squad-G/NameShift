@@ -33,6 +33,9 @@ internal sealed class ApplyDraft
     /// <summary>The filter the filter options built; null when none was given.</summary>
     public FilterPanelModel? Filter { get; set; }
 
+    /// <summary>True with --recurse: the sub-folders are listed too.</summary>
+    public bool Recurse { get; set; }
+
     /// <summary>True when --mask was given (a mask in the folder text then makes two).</summary>
     public bool MaskGiven { get; set; }
 
@@ -46,6 +49,6 @@ internal sealed class ApplyDraft
         }
 
         return new ApplyOptions(folder, Find, With, Case, DryRun, Output, new ApplyPanels(Panels), PresetName,
-            SaveName, Overwrite, model.Filter, Filter != null || pathMask != null);
+            SaveName, Overwrite, model.Filter, Filter != null || pathMask != null, recurse: Recurse);
     }
 }

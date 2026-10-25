@@ -13,7 +13,7 @@ namespace NameShift.Cmd;
 /// eighteen <c>--remove-...</c> options, the RegEx panel's <c>--regex</c> options, the Move or copy panel's
 /// <c>--move</c>, <c>--copy</c> and <c>--move-...</c> options, the Auto date panel's <c>--date</c> options, the Append
 /// folder name panel's <c>--folder-...</c> options, the filter options (<c>--mask</c>, <c>--filter-regex</c>, the
-/// kinds and more; the folder may end with a mask), <c>--preset &lt;name&gt;</c> (a saved
+/// kinds and more; the folder may end with a mask), <c>--recurse</c> (the sub-folders too), <c>--preset &lt;name&gt;</c> (a saved
 /// preset's rules), <c>--save-preset &lt;name&gt;</c> with <c>--overwrite</c>, and <c>--dry-run</c>,
 /// <c>--quiet|-q</c>, <c>--verbose|-v</c>; or <c>undo [--dry-run]</c>. Options of <c>apply</c> come in any order; the
 /// folder is the one argument that is neither an option nor an option's value. <c>undo</c> takes no folder. Words are
@@ -65,6 +65,7 @@ internal static class CommandLineParser
         FilterReader.MaskOption, FilterReader.RegexOption, FilterReader.IgnoreCaseOption,
         FilterReader.MinLengthOption, FilterReader.MaxLengthOption, FilterReader.IncludeHiddenOption,
         FilterReader.FilesOnlyOption, FilterReader.FoldersOnlyOption, FilterReader.IncludeFoldersOption,
+        RecurseReader.RecurseOption,
         PresetReader.PresetOption, PresetReader.SavePresetOption, PresetReader.OverwriteOption,
     };
 
