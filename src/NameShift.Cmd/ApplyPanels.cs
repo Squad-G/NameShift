@@ -7,7 +7,7 @@ namespace NameShift.Cmd;
 
 /// <summary>The rule panels the command line filled, one window model per panel, in stage order. Each given model has
 /// Enabled = true. Built by the parser only, then read-only by convention. NS-69 replaces a preset's entry for a panel
-/// with the model here; NS-75 and NS-76 add a reader, no property per panel is needed.</summary>
+/// with the model here. Each panel has a property, so a test can check that every window panel has options.</summary>
 internal sealed class ApplyPanels
 {
     public ApplyPanels(IEnumerable<IRulePanelModel> models)
@@ -44,6 +44,27 @@ internal sealed class ApplyPanels
 
     /// <summary>The Numbering panel, or null.</summary>
     public NumberingPanelModel? Numbering => Given.OfType<NumberingPanelModel>().FirstOrDefault();
+
+    /// <summary>The Name panel, or null.</summary>
+    public NamePanelModel? Name => Given.OfType<NamePanelModel>().FirstOrDefault();
+
+    /// <summary>The Extension panel, or null.</summary>
+    public ExtensionPanelModel? Extension => Given.OfType<ExtensionPanelModel>().FirstOrDefault();
+
+    /// <summary>The Remove panel, or null.</summary>
+    public RemovePanelModel? Remove => Given.OfType<RemovePanelModel>().FirstOrDefault();
+
+    /// <summary>The RegEx panel, or null.</summary>
+    public RegexPanelModel? Regex => Given.OfType<RegexPanelModel>().FirstOrDefault();
+
+    /// <summary>The Move or copy panel, or null.</summary>
+    public MoveCopyPanelModel? MoveCopy => Given.OfType<MoveCopyPanelModel>().FirstOrDefault();
+
+    /// <summary>The Auto date panel, or null.</summary>
+    public AutoDatePanelModel? AutoDate => Given.OfType<AutoDatePanelModel>().FirstOrDefault();
+
+    /// <summary>The Append folder name panel, or null.</summary>
+    public FolderNamePanelModel? FolderName => Given.OfType<FolderNamePanelModel>().FirstOrDefault();
 
     /// <summary>The given models, in stage order.</summary>
     public IReadOnlyList<IRulePanelModel> Given { get; }

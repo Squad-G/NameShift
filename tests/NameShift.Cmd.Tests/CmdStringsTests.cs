@@ -73,6 +73,17 @@ public sealed class CmdStringsTests
     }
 
     [Fact]
+    public void RegexDateFolderTexts()
+    {
+        Assert.Equal("--regex needs two values: the pattern and the replacement.", Strings.RegexNeedsValues);
+        Assert.Equal("--move or --copy", Strings.MoveModeOptions);
+        Assert.Equal("start or end", Strings.MoveFromValues);
+        Assert.Equal("start, end or position", Strings.MoveToValues);
+        Assert.Equal("modified or created", Strings.DateSourceValues);
+        Assert.Equal("prefix or suffix", Strings.PlacementValues);
+    }
+
+    [Fact]
     public void PresetTexts()
     {
         Assert.Equal("Preset \"{0}\" was not found.", Strings.PresetNotFound);

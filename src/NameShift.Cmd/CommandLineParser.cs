@@ -10,7 +10,9 @@ namespace NameShift.Cmd;
 /// <c>--number-start</c>, <c>--number-step</c>, <c>--number-pad</c>, <c>--number-separator</c>,
 /// <c>--number-position</c>, <c>--number-system</c> and <c>--number-case</c>, the Name panel's <c>--name-fixed</c>,
 /// <c>--name-empty</c> and <c>--name-reverse</c>, the Extension panel's five <c>--ext-...</c> flags, the Remove panel's
-/// eighteen <c>--remove-...</c> options, <c>--preset &lt;name&gt;</c> (a saved
+/// eighteen <c>--remove-...</c> options, the RegEx panel's <c>--regex</c> options, the Move or copy panel's
+/// <c>--move</c>, <c>--copy</c> and <c>--move-...</c> options, the Auto date panel's <c>--date</c> options, the Append
+/// folder name panel's <c>--folder-...</c> options, <c>--preset &lt;name&gt;</c> (a saved
 /// preset's rules), <c>--save-preset &lt;name&gt;</c> with <c>--overwrite</c>, and <c>--dry-run</c>,
 /// <c>--quiet|-q</c>, <c>--verbose|-v</c>; or <c>undo [--dry-run]</c>. Options of <c>apply</c> come in any order; the
 /// folder is the one argument that is neither an option nor an option's value. <c>undo</c> takes no folder. Words are
@@ -52,6 +54,13 @@ internal static class CommandLineParser
         RemoveReader.DigitsOption, RemoveReader.SymbolsOption, RemoveReader.AccentsOption,
         RemoveReader.HighCharsOption, RemoveReader.TrimOption, RemoveReader.LeadingDotsOption,
         RemoveReader.DoubleSpacesOption,
+        RegexReader.RegexOption, RegexReader.IgnoreCaseOption, RegexReader.ExtensionOption,
+        MoveCopyReader.MoveOption, MoveCopyReader.CopyOption, MoveCopyReader.FromOption, MoveCopyReader.ToOption,
+        MoveCopyReader.PositionOption, MoveCopyReader.SeparatorOption,
+        AutoDateReader.DateOption, AutoDateReader.SourceOption, AutoDateReader.FormatOption,
+        AutoDateReader.PlacementOption, AutoDateReader.SeparatorOption,
+        FolderNameReader.FolderNameOption, FolderNameReader.LevelsOption, FolderNameReader.PlacementOption,
+        FolderNameReader.SeparatorOption,
         PresetReader.PresetOption, PresetReader.SavePresetOption, PresetReader.OverwriteOption,
     };
 

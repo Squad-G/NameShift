@@ -139,6 +139,24 @@ public static class Strings
     /// <summary>The label of the Remove range error.</summary>
     public static string RemoveRangeOptions => Get(nameof(RemoveRangeOptions));
 
+    /// <summary>Usage error: --regex has fewer than two values.</summary>
+    public static string RegexNeedsValues => Get(nameof(RegexNeedsValues));
+
+    /// <summary>The flags of the Move or copy panel's modes.</summary>
+    public static string MoveModeOptions => Get(nameof(MoveModeOptions));
+
+    /// <summary>The values of --move-from.</summary>
+    public static string MoveFromValues => Get(nameof(MoveFromValues));
+
+    /// <summary>The values of --move-to.</summary>
+    public static string MoveToValues => Get(nameof(MoveToValues));
+
+    /// <summary>The values of --date-source.</summary>
+    public static string DateSourceValues => Get(nameof(DateSourceValues));
+
+    /// <summary>The values of --date-placement and --folder-placement.</summary>
+    public static string PlacementValues => Get(nameof(PlacementValues));
+
     /// <summary>"The folder {0} contains a quote: ...": what cmd makes of a quoted folder that ends with a backslash.</summary>
     public static string QuoteInFolder => Get(nameof(QuoteInFolder));
 
