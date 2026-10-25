@@ -1,6 +1,6 @@
 # NS-75: Command line: Name, Extension and Remove options
 
-Status: Ready
+Status: In Progress
 Depends on: NS-40, NS-69, NS-79, NS-55, NS-30
 Area: app
 Build after NS-40, NS-69 and NS-79 are merged (all four change the parser, the help and `Strings.resx`), and before NS-76.
@@ -135,3 +135,4 @@ Same as the window, and the rest:
 - 2026-10-24: NS-40 approved (review of its code): criteria written against its parser, `ApplyPanels` and help; the split of
   `ParseApply` is the chore NS-79, which this story follows; set Ready, to start after NS-40, NS-69 and NS-79 are merged (po).
 - 2026-10-24: PR #75 review applied: the two tests naming the old key are edited, blank counts refused, `README.md` example (po).
+- 2026-10-24: In Progress (builder).
