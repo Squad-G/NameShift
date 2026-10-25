@@ -75,11 +75,14 @@ List:
    exists and is tested; today nobody calls it.)
 
 Alt keys and access:
-10. Each label and check box of the row has its own Alt key. Letters are unique among the rule panel titles (R, C, M, X, E, G,
-    V, D, F, A, N), the menu bar's (P, NS-72), and the row's own; the free letters are H, I, J, K, L, O, Q, S, T, U, W, Y,
-    Z; B is reserved for NS-78's Sub-folders box (lead, 2026-10-24) (examples: Hidden H, Mask: K). `WindowMnemonicTests` (created by NS-72 or by this story, whichever merges first) lists
-    the row's strings and fails on a repeated letter among titles, menu and row. Letters shared between a label of one panel and
-    another panel stay allowed, as today.
+10. The first line of the row has its own Alt keys: `Mas&k:` (K), `Fi&les` (L), `Folder&s` (S), `&Hidden` (H) and
+    `M&ore` (O); `More *` keeps the letter O. The second line has no Alt keys: Alt+O opens it and moves the focus to the
+    `Regex:` box, and Tab moves on from there. Letters are unique among the rule panel titles (R, C, M, X, E, G, V, D, F,
+    A, N), the menu bar's (P, NS-72), and the row's own; B is reserved for NS-78's Sub-folders box (lead, 2026-10-24).
+    `WindowMnemonicTests` (created by NS-72 or by this story, whichever merges first) lists the row's first-line strings
+    and fails on a repeated letter among titles, menu and row; it also checks that `More *` keeps the letter of `More`,
+    that the row never uses B and that the second line's texts have no Alt key. Letters shared between a label of one
+    panel and another panel stay allowed, as today.
 11. Given the Tab order, then it goes path bar, folder tree, filter row, file list, rule panels, buttons; each control has an
     accessible name from `Strings`. At 150 % and 200 % the row is not clipped and `More` stays reachable (by hand).
 
@@ -98,6 +101,9 @@ Alt keys and access:
   load) and the row shows what applies, so nothing is hidden unseen (po, 2026-10-24).
 - Typing delay? **Decision:** 250 ms, a little more than the 150 ms of the rule preview since each update reruns the preview
   too; check boxes update at once (po, 2026-10-24).
+- Alt keys of the row? **Decision (option B, lead, 2026-10-24):** the first line has its own letters (K, L, S, H, O); the
+  More line has none, and Alt+O opens it and focuses the `Regex:` box. `Regex:` has no free letter, and with More on O
+  and Mask on K the six other texts compete for five letters (H, I, L, S, T), so not every text can have one.
 
 ## Log
 - 2026-10-24: created from the original NS-33 (po); Draft until NS-33 (the logic) is merged.
@@ -105,3 +111,4 @@ Alt keys and access:
   Added the `FileList.RenderOrder` row-count fix, `MainForm` disposing `FileListModel`, the typing debounce class, the
   `MainActions` filter reset and the filtered count rule; set Ready (po).
 - 2026-10-24: In Progress (builder).
+- 2026-10-24: AC 10 reworded to the decided Alt keys (option B: no Alt keys on the More line) (builder).

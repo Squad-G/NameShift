@@ -102,6 +102,7 @@ public sealed class FilterTypingTests
 
         Assert.Equal("x", _filters.Pattern);
         Assert.Equal(1, ChangeCount);
+        Assert.Equal(1, _delay.Cancelled); // the flush ended the wait
 
         await ReleaseAllAndWait();
 
