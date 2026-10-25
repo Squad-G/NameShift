@@ -1,4 +1,8 @@
+using System;
 using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace NameShift.Disk.Tests;
@@ -128,5 +132,75 @@ public sealed class UndoJournalFormatTests : JournalTestBase
 
         Assert.Equal(LastBatchState.Revertable, last.State);
         Assert.Single(last.Renames);
+    }
+
+    // NS-91 AC 8: the journal reader's depth limit (JsonReaderQuotas, MaxDepth 32).
+
+    /// <summary><paramref name="levels"/> nested containers, the innermost one empty: objects {"d":{"d":...{}...}} or
+    /// arrays [[...[]...]]. How the reader counts (probed, the same as the settings and preset readers): each "{" or
+    /// "[" from the root is one level, the root object being level 1, and a scalar value is one level more than the
+    /// container holding it.</summary>
+    private static string Nested(int levels, bool arrays = false) => arrays
+        ? new string('[', levels) + new string(']', levels)
+        : string.Concat(Enumerable.Repeat("{\"d\":", levels - 1)) + "{}" + new string('}', levels - 1);
+
+    /// <summary>A valid last-batch.json whose unknown member "deep" makes the whole document <paramref name="depth"/>
+    /// levels deep (the root object is level 1, so "deep" holds depth - 1 containers).</summary>
+    private string DeepJournal(int depth, bool arrays = false) =>
+        Journal(ValidBody()).TrimEnd('}') + ", \"deep\": " + Nested(depth - 1, arrays) + "}";
+
+    [Fact]
+    public void Depth32_Reads_Depth33_Unreadable()
+    {
+        Assert.Equal(32, JsonReaderQuotas.MaxDepth);
+        foreach (bool arrays in new[] { false, true })
+        {
+            string at32 = DeepJournal(32, arrays);
+            string at33 = DeepJournal(33, arrays);
+
+            Assert.Equal("id9", JournalJson.ParseLastBatch(Encoding.UTF8.GetBytes(at32)).Id);
+            WriteJournal(at32);
+            Assert.Equal(LastBatchState.Revertable, Renamer.LoadLastBatch().State);
+
+            Assert.ThrowsAny<Exception>(() => JournalJson.ParseLastBatch(Encoding.UTF8.GetBytes(at33)));
+            WriteJournal(at33);
+            Assert.Equal(LastBatchState.Unreadable, Renamer.LoadLastBatch().State);
+        }
+    }
+
+    [Fact]
+    public void PendingDepth33_Unreadable()
+    {
+        static byte[] Pending(int depth) =>
+            Encoding.UTF8.GetBytes("{\"version\": 1, \"id\": \"p1\", \"deep\": " + Nested(depth - 1) + "}");
+
+        Assert.Equal("p1", JournalJson.ParsePendingId(Pending(32)));
+        Assert.ThrowsAny<Exception>(() => JournalJson.ParsePendingId(Pending(33)));
+    }
+
+    [Fact]
+    public async Task DeepNesting_Unreadable_Within5s()
+    {
+        WriteJournal(string.Concat(Enumerable.Repeat("{\"a\":", 100000)));
+        Assert.True(new FileInfo(LastBatchPath).Length < 1024 * 1024);
+
+        Task<LastBatch> load = Task.Run(() => Renamer.LoadLastBatch());
+        Task first = await Task.WhenAny(load, Task.Delay(TimeSpan.FromSeconds(5)));
+
+        Assert.True(first == load, "LoadLastBatch did not finish in 5 seconds.");
+        Assert.Equal(LastBatchState.Unreadable, (await load).State);
+    }
+
+    [Fact]
+    public void RealJournal_StillLoads()
+    {
+        RenameFiles(("a", "b"), ("c", "d"));
+
+        var record = JournalJson.ParseLastBatch(JournalBytes());
+        var last = NewRenamer().LoadLastBatch();
+
+        Assert.Equal(2, record.Renames.Count);
+        Assert.Equal(LastBatchState.Revertable, last.State);
+        Assert.Equal([(Temp.Full("a"), Temp.Full("b")), (Temp.Full("c"), Temp.Full("d"))], Pairs(last.Renames));
     }
 }

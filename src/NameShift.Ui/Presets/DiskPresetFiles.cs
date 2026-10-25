@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace NameShift.Ui.Presets;
 
@@ -9,6 +10,10 @@ namespace NameShift.Ui.Presets;
 /// inside it (the same pattern as the journal's DiskJournalFiles in NameShift.Disk).</summary>
 internal sealed class DiskPresetFiles : IPresetFiles
 {
+    /// <summary>How old a leftover temporary file must be before a save deletes it: a save in progress in another window
+    /// ends in milliseconds, so it is never touched.</summary>
+    internal static readonly TimeSpan StaleAge = TimeSpan.FromHours(1);
+
     /// <summary>For tests: called with the temporary file's path after it is flushed and before it replaces or is
     /// moved onto the preset file. A test makes it throw to fail the write.</summary>
     internal Action<string>? BeforeReplace { get; set; }
@@ -31,10 +36,12 @@ internal sealed class DiskPresetFiles : IPresetFiles
 
     /// <summary>Writes "&lt;name&gt;.&lt;32 hex&gt;.tmp" in the same folder (created if needed), flushed to the disk,
     /// then replaces the file with it (or moves it into place when there is no file yet). The temporary file is
-    /// deleted quietly whatever happens.</summary>
+    /// deleted quietly whatever happens. Before writing, it deletes this file's own leftovers of a cut-off save (see
+    /// <see cref="DeleteStaleTemps"/>).</summary>
     public void WriteAtomic(string path, byte[] content)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        DeleteStaleTemps(path);
         var tempPath = $"{Path.ChangeExtension(path, null)}.{Guid.NewGuid():N}.tmp";
         try
         {
@@ -67,6 +74,41 @@ internal sealed class DiskPresetFiles : IPresetFiles
     /// extension through an 8.3 short name ("x.jsonx"), so the listing is filtered again.</summary>
     internal static IReadOnlyList<string> OnlyJson(IEnumerable<string> paths) =>
         paths.Where(path => path.EndsWith(".json", StringComparison.OrdinalIgnoreCase)).ToList();
+
+    /// <summary>Best effort, never throws: deletes, in the file's own folder only (never below it), the files named
+    /// exactly "&lt;stem&gt;.&lt;32 lower-case hex&gt;.tmp" (the name <see cref="WriteAtomic"/> gives its temporary file,
+    /// same stem as <paramref name="path"/>) last written over <see cref="StaleAge"/> ago. A file that cannot be read or
+    /// deleted is skipped. It runs before this save's own temporary file exists.</summary>
+    internal static void DeleteStaleTemps(string path)
+    {
+        try
+        {
+            var folder = Path.GetDirectoryName(path)!;
+            var stem = Path.GetFileName(Path.ChangeExtension(path, null));
+            var ownTemp = new Regex("^" + Regex.Escape(stem) + @"\.[0-9a-f]{32}\.tmp\z", RegexOptions.CultureInvariant);
+            var cutoff = DateTime.UtcNow - StaleAge;
+
+            // The wildcard can also match other names through an 8.3 short name, so each name is checked again.
+            foreach (var file in Directory.EnumerateFiles(folder, stem + ".*.tmp", SearchOption.TopDirectoryOnly))
+            {
+                try
+                {
+                    if (ownTemp.IsMatch(Path.GetFileName(file)) && File.GetLastWriteTimeUtc(file) < cutoff)
+                    {
+                        File.Delete(file);
+                    }
+                }
+                catch (Exception)
+                {
+                    // Open, read-only or gone: skip it; the next save tries again.
+                }
+            }
+        }
+        catch (Exception)
+        {
+            // A missing or unreadable folder: nothing to clean, and the save goes on.
+        }
+    }
 
     private static void DeleteTempQuietly(string tempPath)
     {

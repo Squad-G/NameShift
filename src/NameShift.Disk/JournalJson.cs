@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Xml;
 using NameShift.Core;
 
 namespace NameShift.Disk;
@@ -135,10 +136,12 @@ internal static class JournalJson
         return stream.ToArray();
     }
 
+    /// <summary>Reads through <see cref="JsonReaderQuotas"/>: a file nested deeper than its MaxDepth throws at once
+    /// (no size limit: a big batch is a real journal).</summary>
     private static T Deserialize<T>(byte[] content)
     {
-        using var stream = new MemoryStream(content, writable: false);
-        return (T?)new DataContractJsonSerializer(typeof(T)).ReadObject(stream)
+        using XmlDictionaryReader reader = JsonReaderWriterFactory.CreateJsonReader(content, JsonReaderQuotas.Create());
+        return (T?)new DataContractJsonSerializer(typeof(T)).ReadObject(reader)
             ?? throw new SerializationException("The file holds null.");
     }
 

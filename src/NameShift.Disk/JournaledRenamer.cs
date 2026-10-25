@@ -55,9 +55,15 @@ public sealed class JournaledRenamer
         this.newId = newId ?? throw new ArgumentNullException(nameof(newId));
     }
 
-    /// <summary>%LOCALAPPDATA%\NameShift\history. Only computed: reading it creates nothing.</summary>
+    /// <summary>%LOCALAPPDATA%\NameShift\history. Only computed: reading it creates nothing. Without a usable local
+    /// application data folder it is %TEMP%\NameShift\history (<see cref="AppDataFolders.Resolve"/>).</summary>
     public static string DefaultHistoryRoot =>
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NameShift", "history");
+        HistoryRootFor(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Path.GetTempPath());
+
+    /// <summary>The history folder for a local application data path and a temp path (the testable part of
+    /// <see cref="DefaultHistoryRoot"/>).</summary>
+    internal static string HistoryRootFor(string? localAppData, string tempPath) =>
+        Path.Combine(AppDataFolders.Resolve(localAppData, tempPath), "history");
 
     /// <summary>Reads the journal: what Revert would do, or why it is disabled. Never writes, moves or deletes anything,
     /// and never throws.</summary>

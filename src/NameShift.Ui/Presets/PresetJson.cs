@@ -4,7 +4,9 @@ using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Xml;
 using NameShift.Core;
+using NameShift.Disk;
 
 namespace NameShift.Ui.Presets;
 
@@ -77,8 +79,8 @@ public static class PresetJson
         PresetDto? dto;
         try
         {
-            using var stream = new MemoryStream(content, writable: false);
-            dto = new DataContractJsonSerializer(typeof(PresetDto), SerializerSettings).ReadObject(stream) as PresetDto;
+            using XmlDictionaryReader reader = JsonReaderWriterFactory.CreateJsonReader(content, JsonReaderQuotas.Create());
+            dto = new DataContractJsonSerializer(typeof(PresetDto), SerializerSettings).ReadObject(reader) as PresetDto;
         }
         catch (Exception)
         {

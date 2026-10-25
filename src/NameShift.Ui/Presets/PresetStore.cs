@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using NameShift.Disk;
 
 namespace NameShift.Ui.Presets;
 
@@ -49,9 +50,15 @@ public sealed class PresetStore
     }
 
     /// <summary>The user's presets folder: %APPDATA%\NameShift\presets (roaming: presets are small and the user's
-    /// own). Only computed here, never created; the first save creates it.</summary>
+    /// own). Only computed here, never created; the first save creates it. Without a usable roaming application data
+    /// folder it is %TEMP%\NameShift\presets (<see cref="AppDataFolders.Resolve"/>).</summary>
     public static string DefaultFolder =>
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "NameShift", "presets");
+        FolderFor(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Path.GetTempPath());
+
+    /// <summary>The presets folder for a roaming application data path and a temp path (the testable part of
+    /// <see cref="DefaultFolder"/>).</summary>
+    internal static string FolderFor(string? appData, string tempPath) =>
+        Path.Combine(AppDataFolders.Resolve(appData, tempPath), "presets");
 
     /// <summary>The store's folder, a full path without a trailing separator.</summary>
     public string Folder { get; }
