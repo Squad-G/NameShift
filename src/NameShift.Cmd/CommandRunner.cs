@@ -15,7 +15,7 @@ namespace NameShift.Cmd;
 
 /// <summary>Runs one command line: lists the folder like the window, plans with <see cref="RenamePlanner"/>, and
 /// renames and reverts only through the <see cref="IBatchRenamer"/> (the journal), in the window's words. Never reads
-/// input and never prompts.</summary>
+/// input and never prompts. <c>--quiet</c> hides success output only: every error is written as without it.</summary>
 public sealed class CommandRunner
 {
     private readonly TextWriter _output;
@@ -162,10 +162,19 @@ public sealed class CommandRunner
             case RenameBlocker.ConflictsAndRuleErrors:
                 return Blocked(items, plan);
             case RenameBlocker.NothingToRename:
-                _output.WriteLine(Strings.NothingToRename);
+                if (options.Output == OutputLevel.Verbose)
+                {
+                    WriteUnchanged(plan);
+                }
+
+                if (options.Output != OutputLevel.Quiet)
+                {
+                    _output.WriteLine(Strings.NothingToRename);
+                }
+
                 return (int)ExitCode.Success;
             case RenameBlocker.None:
-                return options.DryRun ? DryRun(plan) : Rename(plan);
+                return options.DryRun ? DryRun(plan, options.Output) : Rename(plan, options.Output);
             default:
                 throw new InvalidOperationException("Unknown blocker: " + plan.Blocker);
         }
@@ -238,8 +247,8 @@ public sealed class CommandRunner
         return (int)ExitCode.Blocked;
     }
 
-    /// <summary>The preview: "old -> new" for each changed file, in list order. Nothing is renamed.</summary>
-    private int DryRun(RenamePlan plan)
+    /// <summary>"old -> new" for each changed file, in list order.</summary>
+    private void WriteChanged(RenamePlan plan)
     {
         foreach (RenameResult result in plan.Results)
         {
@@ -248,23 +257,71 @@ public sealed class CommandRunner
                 _output.WriteLine(Format(Strings.DryRunLine, result.Item.Name, result.NewName));
             }
         }
+    }
+
+    /// <summary>"name: unchanged" for each file the rules leave as it is, in list order. The plan's items are the CLI's
+    /// files only (hidden, system and folders are filtered out before planning).</summary>
+    private void WriteUnchanged(RenamePlan plan)
+    {
+        foreach (RenameResult result in plan.Results)
+        {
+            if (result.Status == RenameStatus.Unchanged)
+            {
+                _output.WriteLine(Format(Strings.UnchangedLine, result.Item.Name));
+            }
+        }
+    }
+
+    /// <summary>The preview: "old -> new" for each changed file, in list order; with <see cref="OutputLevel.Verbose"/>
+    /// then the unchanged files. Nothing is renamed. The parser never builds Quiet with a dry run; if it happens, this
+    /// writes as Normal.</summary>
+    private int DryRun(RenamePlan plan, OutputLevel level)
+    {
+        WriteChanged(plan);
+        if (level == OutputLevel.Verbose)
+        {
+            WriteUnchanged(plan);
+        }
 
         return (int)ExitCode.Success;
     }
 
-    /// <summary>Renames the plan's own results and conflicts through the journal, and reports in the window's words.</summary>
-    private int Rename(RenamePlan plan)
+    /// <summary>Renames the plan's own results and conflicts through the journal, and reports in the window's words.
+    /// On exit 0: Normal writes the summary, Verbose first lists the renamed files (from the plan, in list order) and
+    /// the unchanged files, Quiet writes nothing. Anything else goes to the error stream at every level.</summary>
+    private int Rename(RenamePlan plan, OutputLevel level)
     {
         // From here on the disk state is unknown: an exception reaches Run's catch-all as exit 4.
         _renamerCalled = true;
         RenameRunResult result = _renamer.Rename(plan.Results, plan.Conflicts);
         ActionReport report = ActionText.ForRename(result, _culture);
         ExitCode code = ExitCodes.For(result);
-        TextWriter writer = code == ExitCode.Success ? _output : _error;
-        writer.WriteLine(report.Status);
+        if (code != ExitCode.Success)
+        {
+            _error.WriteLine(report.Status);
+            if (report.Details != null)
+            {
+                _error.WriteLine(report.Details);
+            }
+
+            return (int)code;
+        }
+
+        if (level == OutputLevel.Quiet)
+        {
+            return (int)code;
+        }
+
+        if (level == OutputLevel.Verbose)
+        {
+            WriteChanged(plan);
+            WriteUnchanged(plan);
+        }
+
+        _output.WriteLine(report.Status);
         if (report.Details != null)
         {
-            writer.WriteLine(report.Details);
+            _output.WriteLine(report.Details);
         }
 
         return (int)code;

@@ -158,6 +158,19 @@ public sealed class CommandRunnerHelpTests : IDisposable
     }
 
     [Fact]
+    public void ApplyHelp_ListsQuietAndVerbose()
+    {
+        string[] quiet = { "  --quiet, -q              Print nothing on success; errors are still shown." };
+        string[] verbose = { "  --verbose, -v            Also list each renamed file and each unchanged file." };
+
+        foreach (string[] lines in new[] { HelpText.Apply().ToArray(), HelpText.Main().ToArray() })
+        {
+            Assert.Single(lines, line => line == quiet[0]);
+            Assert.Single(lines, line => line == verbose[0]);
+        }
+    }
+
+    [Fact]
     public void ApplyHelp_HelpWordAfterApply_IsAFolder()
     {
         Directory.CreateDirectory(Path.Combine(_temp.Files, "help"));

@@ -30,6 +30,14 @@ public sealed class CmdStringsTests
     }
 
     [Fact]
+    public void VerbosityTexts()
+    {
+        Assert.Equal("--quiet and --verbose cannot be used together.", Strings.QuietWithVerbose);
+        Assert.Equal("--quiet and --dry-run cannot be used together.", Strings.QuietWithDryRun);
+        Assert.Equal("{0}: unchanged", Strings.UnchangedLine);
+    }
+
+    [Fact]
     public void QuoteInFolder_ShowsTheBackslashes()
     {
         string text = string.Format(CultureInfo.InvariantCulture, Strings.QuoteInFolder, "D:\\Pics\"");
