@@ -1,6 +1,6 @@
 # NS-41: Command line: filters
 
-Status: Ready
+Status: In Progress
 Depends on: NS-38, NS-32, NS-33, NS-70, NS-79, NS-76, NS-93 (build NS-93 first: the new reader uses its helpers)
 Area: app
 
