@@ -1,6 +1,6 @@
 # NS-93: Command line readers: remove the copies
 
-Status: In Review
+Status: Done
 Depends on: NS-40, NS-69, NS-75, NS-76
 Area: app
 Chore: no visible change; every existing Cmd test passes unchanged (except the one fixed row of criterion 5).
@@ -46,3 +46,4 @@ suite passes without edits to its expectations.
 - 2026-10-25: created from the CLI review follow-ups; set Ready (po).
 - 2026-10-25: In Progress (builder).
 - 2026-10-25: In Review (builder): PR opened to dev. xUnit already skipped the duplicate row, so the Cmd count rises only by the 18 new test cases.
+- 2026-10-25: Done (tech-lead), PR #99 approved and squash-merged. No hand check (no visible change; the apply help is byte-identical). Follow-up from the review: AddReader (--from-end, --word-space) and PresetReader (--overwrite) still hand-write the switch shape and could use OptionArgs.TakeSwitch.
