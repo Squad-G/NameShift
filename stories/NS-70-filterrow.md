@@ -1,6 +1,6 @@
 # NS-70: Filter row above the file list
 
-Status: In Review
+Status: Done
 Depends on: NS-33
 Area: app
 
@@ -113,3 +113,10 @@ Alt keys and access:
 - 2026-10-24: In Progress (builder).
 - 2026-10-24: AC 10 reworded to the decided Alt keys (option B: no Alt keys on the More line) (builder).
 - 2026-10-24: In Review (builder), PR #80.
+- 2026-10-24: Done (tech-lead), PR #80 approved and squash-merged. Hand checks for David (PR #80 checklist): AC 1 (the
+  row above the list, one line at 100 %, disabled during Rename and Revert); AC 8 (filter to zero and back, with a
+  selection, just after a selection change, scrolled to the bottom, sort after a filter: no exception); AC 9 (close
+  while a large folder loads or a filter runs); AC 11 (Tab order path bar, tree, filter row, list, panels, buttons; at
+  150 % and 200 % at the minimum size with the menu bar the row is not clipped and More is reachable); Alt+O opens More
+  and focuses the Regex box (and the other items of the checklist: AC 2, 3, 4, 6, 7, 10). Follow-up nits: the
+  `CanResetAny` guard in `MainActions.Reset` is redundant; no binding-level test of a filter change during a load.
