@@ -1,6 +1,6 @@
 # NS-78: Sub-folders box and Folder column
 
-Status: Ready
+Status: In Progress
 Depends on: NS-70, NS-74
 Area: app
 Build after NS-70 is merged (it extends NS-70's `FilterRow`, `FilterBinding`, `FilterTyping` use and `WindowMnemonicTests`). NS-74 is merged.
@@ -86,3 +86,4 @@ Tick one box to list and rename the files of all sub-folders, and see which fold
 - 2026-10-24: NS-74 merged. Re-checked against its API and the NS-70 brief (first-line Alt keys K L S H O, FilterBinding,
   FilterTyping): Alt key B chosen, the column map and the skipped-folders notice moved to tested `Ui` classes, the Reset
   case and the disposal added; set Ready, to start after NS-70 is merged (po).
+- 2026-10-24: In Progress (builder).
