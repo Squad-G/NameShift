@@ -80,6 +80,33 @@ internal static class OptionArgs
         return false;
     }
 
+    /// <summary>Takes the one value of a choice option that can be given once: a missing value, a repeat, then a value
+    /// outside <paramref name="values"/> (<see cref="Strings.BadChoice"/>, listing <paramref name="valuesText"/>).</summary>
+    public static bool TakeChoice<T>(IReadOnlyList<string> args, ref int i, string option,
+        KeyValuePair<string, T>[] values, string valuesText, ref T? target, out ParsedCommand? error)
+        where T : struct
+    {
+        if (!TakeOne(args, ref i, option, out string? value, out error))
+        {
+            return false;
+        }
+
+        if (target != null)
+        {
+            error = Fail(Format(Strings.RepeatedOption, option));
+            return false;
+        }
+
+        if (!TryChoice(value!, values, out T parsed))
+        {
+            error = Fail(Format(Strings.BadChoice, value!, option, valuesText));
+            return false;
+        }
+
+        target = parsed;
+        return true;
+    }
+
     /// <summary>The window's error texts end with a sentence that starts at <see cref="Strings.SkipSentenceMarker"/>
     /// ("Until then ... is skipped."); on the command line the run fails instead, so the sentence is removed.</summary>
     public static string WithoutSkipSentence(string problem)

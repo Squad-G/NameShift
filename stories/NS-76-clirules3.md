@@ -1,6 +1,6 @@
 # NS-76: Command line: RegEx, Move/Copy, Auto date and Folder name options
 
-Status: Ready
+Status: Done
 Depends on: NS-75, NS-31, NS-59
 Area: app
 Build after NS-75 is merged (it sets the five option rules, the cut-text helper and the panel readers this story reuses; both
@@ -126,3 +126,9 @@ Same as the window, and the rest:
 - 2026-10-24: NS-40 approved. Criteria written from the panel models (every setting an option, the window's error text cut),
   after NS-75 settles the five option rules; set Ready, to start after NS-75 is merged (po).
 - 2026-10-24: PR #75 review applied: blank `--move` count refused, Replace and Case worded as NS-69 leaves them (po).
+- 2026-10-24: In Progress (builder).
+- 2026-10-24: In Review (builder), PR #79.
+- 2026-10-24: Done (tech-lead), PR #79 approved on re-review and squash-merged. Follow-ups (optional review nits, to be
+  taken together with NS-75's reader-style nit 4 as one future `[chore]` cleanup of the readers): `NumberingReader` keeps
+  its own copies of the choice reading where `OptionArgs.TakeChoice` now exists; `ReadSwitch` is duplicated in
+  `AutoDateReader` and `FolderNameReader`; the repeated error/ok chain in `ReadOwn`; the `NameShift.Ui.Strings` alias.

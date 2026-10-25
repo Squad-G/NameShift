@@ -312,6 +312,10 @@ public sealed class CommandLineParserTests
                 "--remove-before", "--remove-after", "--remove-whole-word", "--remove-match-case",
                 "--remove-keep-marker", "--remove-digits", "--remove-symbols", "--remove-accents",
                 "--remove-high-chars", "--remove-trim", "--remove-leading-dots", "--remove-double-spaces",
+                "--regex", "--regex-ignore-case", "--regex-extension", "--move", "--copy", "--move-from", "--move-to",
+                "--move-position", "--move-separator", "--date", "--date-source", "--date-format",
+                "--date-placement", "--date-separator", "--folder-name", "--folder-levels", "--folder-placement",
+                "--folder-separator",
                 "--preset", "--save-preset", "--overwrite",
             },
             CommandLineParser.Words);

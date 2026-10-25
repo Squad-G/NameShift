@@ -320,6 +320,10 @@ public sealed class NameExtRemoveParserTests
             UiStrings.NumberingStartInvalidHexadecimal,
             UiStrings.NumberingStartInvalidLetters,
             UiStrings.NumberingStartInvalidRoman,
+            string.Format(CultureInfo.InvariantCulture, UiStrings.RegexPatternInvalid, "x"),
+            UiStrings.MoveCopyNumberInvalid,
+            string.Format(CultureInfo.InvariantCulture, UiStrings.AutoDateFormatInvalid, "x"),
+            UiStrings.FolderNameLevelsInvalid,
         };
 
         foreach (string text in shown)
