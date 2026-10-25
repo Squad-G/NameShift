@@ -1,6 +1,6 @@
 # NS-37: Remember last settings
 
-Status: Ready
+Status: In Progress
 Depends on: NS-36, NS-72, NS-83
 Area: app
 
@@ -109,3 +109,4 @@ Privacy:
   is not remembered, Reset without a menu item); set Ready, to be built after NS-72 (po).
 - 2026-10-24: `rightSplit` dropped (NS-83 makes the bottom height follow the open panels); to be built after NS-83. Panel
   collapse state is added by NS-84 (po).
+- 2026-10-25: In Progress (builder).
