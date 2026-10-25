@@ -1,6 +1,6 @@
 # NS-41: Command line: filters
 
-Status: In Progress
+Status: In Review
 Depends on: NS-38, NS-32, NS-33, NS-70, NS-79, NS-76, NS-93 (build NS-93 first: the new reader uses its helpers)
 Area: app
 
@@ -70,3 +70,4 @@ builds `new ItemFilter(includeFolders: false)` today. Options (any order, each o
 - 2026-10-18: created (po).
 - 2026-10-25: re-checked against dev 57d695b (the readers, `FilterPanelModel`, `RunSwitchesReader`): option names fixed (the
   `--regex` clash), recursion split off to NS-87, criteria made testable; set Ready (po).
+- 2026-10-25: built on feature/NS-41-clifilters: FilterReader, FolderMask, runner uses the filter; In Review (builder).
