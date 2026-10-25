@@ -112,8 +112,7 @@ public sealed class CommandRunnerUndoTests
         var renamer = Revertable(CmdResults.NothingReverted(2, afterFinishIssue: true));
         ActionReport report = ActionText.ForRevert(renamer.RevertResult!, Cmd.EnUs);
 
-        var run = Cmd.Run(renamer, @"C:
-owhere", Undo);
+        var run = Cmd.Run(renamer, @"C:\nowhere", Undo);
 
         Assert.Equal(3, run.Code);
         Assert.Equal("", run.Output);

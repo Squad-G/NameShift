@@ -1,6 +1,6 @@
 # NS-81: Pin the exit code of a refused undo that leaves the history unusable
 
-Status: In Review
+Status: Done
 Depends on: NS-42
 Area: app
 Test-only: no code change is expected. If a test fails, the code is fixed to match this story.
@@ -52,3 +52,6 @@ review asked whether this run should exit 3 or 4. Nothing pins the answer: `Exit
 - 2026-10-24: PR #75 review applied: criterion 3 rebuilt around a locked file and an injected `IJournalFiles` (po).
 - 2026-10-24: In Progress (builder).
 - 2026-10-24: In Review (builder), PR #91.
+- 2026-10-25: Done (tech-lead), PR #91 approved and squash-merged; review fix folded: the verbatim literal in
+  `CommandRunnerUndoTests.NothingRevertedAfterFinishIssue_Exit3_SaysHistoryNotCleaned` had been split by an editor into
+  `@"C:` and a new line `owhere"` (its `\n` turned into a line break); it is `@"C:\nowhere"` again, on one line.
