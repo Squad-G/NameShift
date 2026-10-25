@@ -67,7 +67,9 @@ public sealed class PhotoDates
     /// changed. May block on the disk: call it off the UI thread. Never throws, except
     /// <see cref="ArgumentNullException"/> (a null list or item) and <see cref="OperationCanceledException"/> when
     /// <paramref name="cancellationToken"/> is cancelled, checked before each file; what was read stays cached. A read
-    /// blocked on a dead share cannot be cancelled, only superseded.</summary>
+    /// blocked on a dead share cannot be cancelled, only superseded. That holds for items that came from a folder
+    /// listing: an item built by hand with invalid path characters can throw <see cref="ArgumentException"/>
+    /// (net48).</summary>
     public IReadOnlyList<RenameItem> Fill(IReadOnlyList<RenameItem> items, CancellationToken cancellationToken)
     {
         if (items == null)

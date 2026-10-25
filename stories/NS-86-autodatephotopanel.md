@@ -75,3 +75,4 @@ Logic in `NameShift.Ui` and `NameShift.Cmd` with tests on net10.0 and net48; the
   rule, the CLI help and values texts, the note colour); stays Draft until NS-85 is merged (po).
 - 2026-10-25: NS-41 merged (3dca426): the command-line fact refreshed; build after NS-87 (same method of
   `CommandRunner`); still Draft until NS-85 is merged (po).
+- 2026-10-25: from the PR #103 review (NS-85), for the hand checks: a file that becomes an online-only placeholder between the attribute check and the open is recalled, and a file symlink whose target is a placeholder is opened (it shows only ReparsePoint); items given to PhotoDates.Fill must come from a listing (tech-lead).
