@@ -214,7 +214,6 @@ internal static class CommandLineParser
 
     private static bool IsHelpFlag(string arg) => Is(arg, HelpOption) || Is(arg, HelpShortOption) || Is(arg, HelpSlashOption);
 
-
     private static string[] Combine(string[] first, string[] second)
     {
         var all = new string[first.Length + second.Length];

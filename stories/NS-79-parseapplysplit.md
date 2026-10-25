@@ -1,6 +1,6 @@
 # NS-79: Command line: split the apply parser by panel
 
-Status: In Review
+Status: Done
 Depends on: NS-40, NS-69
 Area: app
 Build after NS-40 and NS-69 are merged (NS-69 adds words to the same loop), and before NS-75 and NS-76.
@@ -32,8 +32,9 @@ Code in `src/NameShift.Cmd` only; no change in `Strings.resx`, the help, `NameSh
 3. Given the order in which errors are found, then it is unchanged: errors of one argument in argument order (a missing value,
    a repeat, an unknown option, the empty or blank folder, two folders), then after the loop the conflicts (`--quiet` with
    `--verbose`, then `--quiet` with `--dry-run`), then each reader's cross-checks in the order of the code NS-69 leaves: the
-   preset options (`--overwrite` without `--save-preset`), then Add (`--from-end` without `--insert`), then Numbering, then the missing folder, then the missing rule. A test with a command line that has
-   several mistakes pins the winner for each pair that matters (at least six pairs).
+   preset options (`--overwrite` without `--save-preset`), then Add (`--from-end` without `--insert`), then Numbering,
+   then the missing folder, then the missing rule. A test with a command line that has several mistakes pins the winner
+   for each pair that matters (at least six pairs).
 4. Given the words, then `CommandLineParser.Words`, `ApplyOptionWords` and `UndoOptionWords` hold exactly the same words in
    the same order as before, each built from the readers' constants, and a new test asserts that every word of
    `ApplyOptionWords` is claimed by exactly one reader (two readers claiming a word, or a word claimed by none, fails the
@@ -63,3 +64,6 @@ Code in `src/NameShift.Cmd` only; no change in `Strings.resx`, the help, `NameSh
 - 2026-10-24: created and set Ready (po), from the NS-40 review note about the size of `ParseApply`.
 - 2026-10-24: In Progress (builder).
 - 2026-10-24: In Review (builder), PR #77.
+- 2026-10-24: Done (tech-lead), PR #77 approved and squash-merged; review nits folded (a blank line, AC3 wrapped). Note
+  for NS-75 and NS-76: a new reader's words must also be added to `CommandLineParser.ApplyOptionWordList` (`IsOptionWord`
+  and the help read it, not `reader.Words`); `EveryApplyWord_IsClaimedByExactlyOneReader` fails if they drift.
