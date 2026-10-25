@@ -65,7 +65,7 @@ IDs), not the rank: the rank is the row order.
 | 77 | [NS-77 Find and fix the occasional net48 failure in the Ui tests](NS-77-uitestsflake.md) | Ready | |
 | 71 | [NS-71 Numbering panel: restart in each folder](NS-71-numberingrestart.md) | Done | NS-60, NS-61 |
 | 72 | [NS-72 Presets menu: save, load and delete](NS-72-presetmenu.md) | Done | NS-36, NS-15 |
-| 74 | [NS-74 Sub-folders: recursive, cancellable listing](NS-74-subfolderlisting.md) | In Review | NS-33, NS-66, NS-73 |
+| 74 | [NS-74 Sub-folders: recursive, cancellable listing](NS-74-subfolderlisting.md) | Done | NS-33, NS-66, NS-73 |
 | 70 | [NS-70 Filter row above the file list](NS-70-filterrow.md) | Ready | NS-33 |
 | 37 | [NS-37 Remember last settings](NS-37-settings.md) | Ready | NS-36, NS-72 |
 | 42 | [NS-42 Command line: undo the last batch](NS-42-cliundo.md) | Done | NS-38, NS-9, NS-43 |
