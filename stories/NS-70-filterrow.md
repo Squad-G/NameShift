@@ -76,8 +76,8 @@ List:
 
 Alt keys and access:
 10. Each label and check box of the row has its own Alt key. Letters are unique among the rule panel titles (R, C, M, X, E, G,
-    V, D, F, A, N), the menu bar's (P, NS-72), and the row's own; the free letters are B, H, I, J, K, L, O, Q, S, T, U, W, Y,
-    Z (examples: Hidden H, Mask: K). `WindowMnemonicTests` (created by NS-72 or by this story, whichever merges first) lists
+    V, D, F, A, N), the menu bar's (P, NS-72), and the row's own; the free letters are H, I, J, K, L, O, Q, S, T, U, W, Y,
+    Z; B is reserved for NS-78's Sub-folders box (lead, 2026-10-24) (examples: Hidden H, Mask: K). `WindowMnemonicTests` (created by NS-72 or by this story, whichever merges first) lists
     the row's strings and fails on a repeated letter among titles, menu and row. Letters shared between a label of one panel and
     another panel stay allowed, as today.
 11. Given the Tab order, then it goes path bar, folder tree, filter row, file list, rule panels, buttons; each control has an
