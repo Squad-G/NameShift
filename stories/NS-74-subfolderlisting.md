@@ -140,6 +140,6 @@ Relative folder and rename:
 - 2026-10-24: In Progress (builder).
 - 2026-10-24: In Review (builder), PR #72.
 - 2026-10-24: Possible follow-up from the PR #72 review: a sub-folder whose name ends in a dot or a space (created
-  through `\?\`) is read as another folder (`x.` reads `x`) after `Path.Combine` and the `DirectoryInfo` normalisation,
+  through `\\?\`) is read as another folder (`x.` reads `x`) after `Path.Combine` and the `DirectoryInfo` normalisation,
   so its entries can be listed under the wrong `FolderPath` (the Rename then fails and rolls back, no data lost); the walk
   could skip and count such names (builder).
