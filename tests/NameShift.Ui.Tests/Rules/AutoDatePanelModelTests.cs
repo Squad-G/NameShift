@@ -338,4 +338,39 @@ public sealed class AutoDatePanelModelTests
         Assert.Equal("_", rule.Separator);
         Assert.True(model.IsDefault);
     }
+
+    [Fact]
+    public void DateSourceText_Taken()
+    {
+        Assert.Equal("Photo date", DateSourceText.For(DateSource.Taken));
+        Assert.Equal(Strings.AutoDateSourceTaken, DateSourceText.For(DateSource.Taken));
+    }
+
+    [Fact]
+    public void Sources_StayModifiedAndCreated()
+    {
+        Assert.Equal(new[] { DateSource.Modified, DateSource.Created }, AutoDatePanelModel.Sources.ToArray());
+        Assert.Equal(-1, AutoDatePanelModel.IndexOf(DateSource.Taken));
+    }
+
+    [Fact]
+    public void Source_Taken_Throws()
+    {
+        var model = new AutoDatePanelModel();
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => model.Source = DateSource.Taken);
+        Assert.Equal(DateSource.Modified, model.Source);
+    }
+
+    [Theory]
+    [InlineData("Taken")]
+    [InlineData("2")]
+    public void LoadSettings_Taken_KeepsModified(string saved)
+    {
+        var model = new AutoDatePanelModel();
+
+        model.LoadSettings(new System.Collections.Generic.Dictionary<string, string> { ["Source"] = saved });
+
+        Assert.Equal(DateSource.Modified, model.Source);
+    }
 }

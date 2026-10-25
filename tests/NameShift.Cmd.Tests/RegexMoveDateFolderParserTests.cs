@@ -148,6 +148,10 @@ public sealed class RegexMoveDateFolderParserTests
         };
         yield return new object[]
         {
+            "--date-source|taken", Text("BadChoice", "taken", "--date-source", Strings.DateSourceValues),
+        };
+        yield return new object[]
+        {
             "--date-placement|middle", Text("BadChoice", "middle", "--date-placement", Strings.PlacementValues),
         };
         yield return new object[]

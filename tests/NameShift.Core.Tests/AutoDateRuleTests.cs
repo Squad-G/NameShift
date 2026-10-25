@@ -11,8 +11,8 @@ public sealed class AutoDateRuleTests
 
     private static RenameItem Item(string name = "a.txt", ItemKind kind = ItemKind.File,
         DateTime? created = null, DateTime? modified = null,
-        ItemAttributes attributes = ItemAttributes.None) =>
-        new RenameItem(name, @"C:\Test", kind, attributes, 0, created ?? default, modified ?? Mod);
+        ItemAttributes attributes = ItemAttributes.None, DateTime? taken = null) =>
+        new RenameItem(name, @"C:\Test", kind, attributes, 0, created ?? default, modified ?? Mod, taken);
 
     private static RenameResult[] Run(AutoDateRule rule, params RenameItem[] items) =>
         new RenamePipeline([rule]).Run(items).ToArray();
@@ -267,5 +267,108 @@ public sealed class AutoDateRuleTests
         Assert.Equal(DatePlacement.Prefix, defaults.Placement);
         Assert.Equal("_", defaults.Separator);
         Assert.Equal(RuleStage.AutoDate, defaults.Stage);
+    }
+
+    private static readonly DateTime Photo = new DateTime(2023, 7, 1, 10, 0, 0);
+
+    [Fact]
+    public void DateSource_TakenIsThird_OldNumbersKept()
+    {
+        Assert.Equal(0, (int)DateSource.Modified);
+        Assert.Equal(1, (int)DateSource.Created);
+        Assert.Equal(2, (int)DateSource.Taken);
+        Assert.Equal(new[] { DateSource.Modified, DateSource.Created, DateSource.Taken },
+            (DateSource[])Enum.GetValues(typeof(DateSource)));
+        Assert.Equal(DateSource.Taken, new AutoDateRule(DateSource.Taken).Source);
+    }
+
+    [Fact]
+    public void Taken_Prefix() =>
+        Assert.Equal("2023-07-01_IMG_001.JPG",
+            RunName(new AutoDateRule(DateSource.Taken, "yyyy-MM-dd", DatePlacement.Prefix, "_"),
+                Item("IMG_001.JPG", taken: Photo)));
+
+    [Fact]
+    public void Taken_Suffix_DateAndTime() =>
+        Assert.Equal("IMG_001-20230701_100000.JPG",
+            RunName(new AutoDateRule(DateSource.Taken, "yyyyMMdd_HHmmss", DatePlacement.Suffix, "-"),
+                Item("IMG_001.JPG", taken: Photo)));
+
+    [Fact]
+    public void Taken_Null_FallsBackToModified()
+    {
+        var result = Run(new AutoDateRule(DateSource.Taken),
+            Item("IMG_001.JPG", created: new DateTime(2020, 1, 2), taken: null))[0];
+
+        Assert.Equal("2024-03-09_IMG_001.JPG", result.NewName);
+        Assert.NotEqual(RenameStatus.Error, result.Status);
+        Assert.Null(result.Error);
+    }
+
+    [Fact]
+    public void Taken_Default_FallsBackToModified()
+    {
+        var result = Run(new AutoDateRule(DateSource.Taken),
+            Item("IMG_001.JPG", created: new DateTime(2020, 1, 2), taken: default(DateTime)))[0];
+
+        Assert.Equal("2024-03-09_IMG_001.JPG", result.NewName);
+        Assert.Null(result.Error);
+    }
+
+    [Fact]
+    public void Taken_MixedBatch()
+    {
+        var results = Run(new AutoDateRule(DateSource.Taken),
+            Item("a.jpg", taken: Photo), Item("b.png"), Item("c.jpg", taken: new DateTime(2022, 12, 31, 23, 59, 59)));
+
+        Assert.Equal("2023-07-01_a.jpg", results[0].NewName);
+        Assert.Equal("2024-03-09_b.png", results[1].NewName);
+        Assert.Equal("2022-12-31_c.jpg", results[2].NewName);
+        Assert.All(results, r => Assert.NotEqual(RenameStatus.Error, r.Status));
+    }
+
+    [Fact]
+    public void Taken_NoDates_SameRowError()
+    {
+        var rule = new AutoDateRule(DateSource.Taken);
+        var item = new RenameItem("b.txt", @"C:\Test");
+
+        var result = Run(rule, item)[0];
+
+        Assert.Equal(RenameStatus.Error, result.Status);
+        Assert.Equal("The item has no date to use.", result.Error!.Message);
+        Assert.Equal("b.txt", result.NewName);
+        Assert.Throws<InvalidOperationException>(
+            () => rule.Apply(NameParts.Split("b.txt", ItemKind.File), new ItemContext(item, 0, 1)));
+    }
+
+    [Fact]
+    public void TakenIgnored_ForModifiedAndCreated()
+    {
+        var item = Item(created: new DateTime(2020, 1, 2, 10, 0, 0), modified: Mod, taken: Photo);
+
+        Assert.Equal("2024-03-09_a.txt", RunName(new AutoDateRule(DateSource.Modified), item));
+        Assert.Equal("2020-01-02_a.txt", RunName(new AutoDateRule(DateSource.Created), item));
+    }
+
+    [Fact]
+    public void TakenIgnored_NoDateStillErrors()
+    {
+        var item = new RenameItem("a.txt", @"C:\Test", taken: Photo);
+
+        Assert.Equal(RenameStatus.Error, Run(new AutoDateRule(DateSource.Modified), item)[0].Status);
+        Assert.Equal(RenameStatus.Error, Run(new AutoDateRule(DateSource.Created), item)[0].Status);
+    }
+
+    [Theory]
+    [InlineData(DateTimeKind.Utc)]
+    [InlineData(DateTimeKind.Local)]
+    [InlineData(DateTimeKind.Unspecified)]
+    public void Taken_UtcOrLocalKind_NotConverted(DateTimeKind kind)
+    {
+        var taken = DateTime.SpecifyKind(new DateTime(2023, 7, 1, 10, 0, 0), kind);
+
+        Assert.Equal("10-00-00_a.txt",
+            RunName(new AutoDateRule(DateSource.Taken, "HH-mm-ss"), Item(taken: taken)));
     }
 }
