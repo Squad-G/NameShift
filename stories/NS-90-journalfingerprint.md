@@ -1,6 +1,6 @@
 # NS-90: Undo journal: remember each file's size and date, and check before Revert
 
-Status: Ready
+Status: In Progress
 Depends on: NS-9
 Area: app
 `NameShift.Disk`, `IBatchRenamer` and the one word for a skipped changed file in `ActionText`; the dialog is NS-45.
@@ -71,3 +71,4 @@ Tests on net10.0 and net48 against real temp folders (as the NS-9 tests).
 - 2026-10-25: created, the engine half of NS-45; set Ready (po).
 - 2026-10-25: PR #90 review: the skip text, kept fingerprints on a partial revert, precedence, `ItemMissing` and
   `EmitDefaultValue = false` added (po).
+- 2026-10-25: In Progress (builder).
