@@ -45,6 +45,77 @@ public sealed class CommandLineParserTests
         Assert.Equal(dryRun, options.DryRun);
     }
 
+    [Theory]
+    [InlineData(@"apply|-q|D:\P|--case|lower", "Quiet", false)]
+    [InlineData(@"apply|D:\P|--case|lower|--quiet", "Quiet", false)]
+    [InlineData(@"apply|--verbose|D:\P|--replace|a|b", "Verbose", false)]
+    [InlineData(@"apply|D:\P|-v|--case|lower|--dry-run", "Verbose", true)]
+    [InlineData(@"apply|D:\P|-Q|--case|lower", "Quiet", false)]
+    [InlineData(@"apply|D:\P|--VERBOSE|--case|lower", "Verbose", false)]
+    [InlineData(@"apply|D:\P|--case|lower", "Normal", false)]
+    public void Verbosity_Parses_AnyPosition(string joined, string level, bool dryRun)
+    {
+        ApplyOptions options = Applied(Args(joined));
+
+        Assert.Equal((OutputLevel)Enum.Parse(typeof(OutputLevel), level), options.Output);
+        Assert.Equal(dryRun, options.DryRun);
+        Assert.Equal(@"D:\P", options.FolderText);
+    }
+
+    [Fact]
+    public void Verbosity_Parses_UnderTurkishCulture()
+    {
+        CultureInfo culture = CultureInfo.CurrentCulture;
+        CultureInfo uiCulture = CultureInfo.CurrentUICulture;
+        try
+        {
+            CultureInfo turkish = CultureInfo.GetCultureInfo("tr-TR");
+            CultureInfo.CurrentCulture = turkish;
+            CultureInfo.CurrentUICulture = turkish;
+
+            Assert.Equal(OutputLevel.Quiet, Applied(Args(@"apply|D:\P|-q|--case|lower")).Output);
+            Assert.Equal(OutputLevel.Verbose, Applied(Args(@"apply|D:\P|-v|--case|lower")).Output);
+            Assert.Equal(OutputLevel.Verbose, Applied(Args(@"apply|D:\P|--VERBOSE|--case|lower")).Output);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = culture;
+            CultureInfo.CurrentUICulture = uiCulture;
+        }
+    }
+
+    [Theory]
+    [InlineData("-v")]
+    [InlineData("-q")]
+    public void ReplaceText_CannotBeAVerbosityWord(string word)
+    {
+        string messageStart = Strings.ReplaceNeedsValues;
+
+        ParsedCommand asWith = CommandLineParser.Parse(new[] { "apply", @"D:\P", "--replace", "a", word });
+        ParsedCommand asFind = CommandLineParser.Parse(new[] { "apply", @"D:\P", "--replace", word, "b" });
+
+        Assert.Equal(CommandKind.Error, asWith.Kind);
+        Assert.StartsWith(messageStart, asWith.Error, StringComparison.Ordinal);
+        Assert.Equal(CommandKind.Error, asFind.Kind);
+        Assert.StartsWith(messageStart, asFind.Error, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ReplaceText_OtherDashWords_StillParse()
+    {
+        ApplyOptions options = Applied(new[] { "apply", @"D:\P", "--replace", "a", "-x" });
+
+        Assert.Equal("-x", options.With);
+        Assert.Equal(OutputLevel.Normal, options.Output);
+    }
+
+    [Fact]
+    public void ApplyOptions_UndefinedOutputLevel_Throws()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(
+            () => new ApplyOptions(@"D:\P", null, null, CaseMode.Lower, false, (OutputLevel)7));
+    }
+
     [Fact]
     public void ReplaceValues_MayStartWithADash()
     {
@@ -140,10 +211,27 @@ public sealed class CommandLineParserTests
         new object?[] { @"apply|D:\P|--replace|IMG|--case|lower", "ReplaceNeedsValues", null, null },
         new object?[] { @"apply|D:\P|--replace|--dry-run|x", "ReplaceNeedsValues", null, null },
         new object?[] { @"apply|D:\P|--replace|--replace|x", "ReplaceNeedsValues", null, null },
+        new object?[] { @"apply|D:\P|--case|lower|-q|-q", "RepeatedOption", "--quiet", null },
+        new object?[] { @"apply|D:\P|--case|lower|--quiet|--quiet", "RepeatedOption", "--quiet", null },
+        new object?[] { @"apply|D:\P|--case|lower|-q|--quiet", "RepeatedOption", "--quiet", null },
+        new object?[] { @"apply|D:\P|--case|lower|-v|--verbose", "RepeatedOption", "--verbose", null },
+        new object?[] { @"apply|D:\P|--case|lower|--verbose|-v", "RepeatedOption", "--verbose", null },
+        new object?[] { @"apply|D:\P|--case|lower|-q|-v", "QuietWithVerbose", null, null },
+        new object?[] { @"apply|D:\P|--case|lower|--verbose|--quiet", "QuietWithVerbose", null, null },
+        new object?[] { @"apply|D:\P|--case|lower|--quiet|--dry-run", "QuietWithDryRun", null, null },
+        new object?[] { @"apply|D:\P|--case|lower|--dry-run|-q", "QuietWithDryRun", null, null },
+        new object?[] { @"apply|D:\P|--case|lower|-q|-v|--dry-run", "QuietWithVerbose", null, null },
+        new object?[] { @"apply|-q|-v", "QuietWithVerbose", null, null },
+        new object?[] { @"apply|D:\P|--replace|IMG|-v", "ReplaceNeedsValues", null, null },
+        new object?[] { @"apply|D:\P|--replace|-q|x", "ReplaceNeedsValues", null, null },
+        new object?[] { @"apply|D:\P|--case|-q", "BadCase", "-q", null },
         new object?[] { @"undo|C:\x", "UndoOnlyDryRun", null, null },
         new object?[] { @"undo|--case|lower", "UndoOnlyDryRun", null, null },
         new object?[] { @"undo|--replace|a|b", "UndoOnlyDryRun", null, null },
         new object?[] { @"undo|-q", "UndoOnlyDryRun", null, null },
+        new object?[] { @"undo|--quiet", "UndoOnlyDryRun", null, null },
+        new object?[] { @"undo|-v", "UndoOnlyDryRun", null, null },
+        new object?[] { @"undo|--verbose", "UndoOnlyDryRun", null, null },
         new object?[] { @"undo|apply", "UndoOnlyDryRun", null, null },
         new object?[] { @"undo|", "UndoOnlyDryRun", null, null },
         new object?[] { @"undo|--dry-run|--dry-run", "RepeatedOption", "--dry-run", null },
@@ -174,7 +262,11 @@ public sealed class CommandLineParserTests
     public void Words_AreTheDispatchedWords()
     {
         Assert.Equal(
-            new[] { "apply", "undo", "help", "--help", "-h", "/?", "--version", "--replace", "--case", "--dry-run" },
+            new[]
+            {
+                "apply", "undo", "help", "--help", "-h", "/?", "--version", "--replace", "--case", "--dry-run",
+                "--quiet", "-q", "--verbose", "-v",
+            },
             CommandLineParser.Words);
         Assert.Equal(CommandLineParser.Words, CommandLineParser.GlobalWords.Concat(CommandLineParser.ApplyOptionWords));
     }
