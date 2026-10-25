@@ -60,7 +60,8 @@ The command line is `src/NameShift.Cmd.Exe/bin/<Configuration>/net48/NameShiftCm
 - `tests/NameShift.Core.Tests`, `tests/NameShift.Disk.Tests`, `tests/NameShift.Ui.Tests` and
   `tests/NameShift.Cmd.Tests`: the xUnit tests of the four libraries, run on .NET 10 and on .NET Framework 4.8 (the
   tests of `NameShiftCmd.exe` itself on .NET Framework 4.8 only).
-- `installer/`: the Inno Setup script; planned, not there yet, see [stories/NS-44-installer.md](stories/NS-44-installer.md).
+- `installer/`: the per-user Inno Setup installer, its build script and the registry check; see
+  [installer/README.md](installer/README.md).
 - `docs/PLAN.md`: features and build order.
 - `stories/`: the backlog and one file per story.
 - `docs/RELEASING.md`: making a release (owner only).
