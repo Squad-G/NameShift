@@ -79,7 +79,7 @@ IDs), not the rank: the rank is the row order.
 | 83 | [NS-83 Collapsible rule panels, and a bottom row that fits](NS-83-collapsepanels.md) | Done | NS-11, NS-15 |
 | 37 | [NS-37 Remember last settings](NS-37-settings.md) | Done | NS-36, NS-72, NS-83 |
 | 84 | [NS-84 Remember which panels are collapsed](NS-84-collapsesaved.md) | Done | NS-83, NS-37 |
-| 80 | [NS-80 Fix raw control characters in a test and guard against them](NS-80-controlchars.md) | In Progress | |
+| 80 | [NS-80 Fix raw control characters in a test and guard against them](NS-80-controlchars.md) | In Review | |
 | 81 | [NS-81 Pin the exit code of a refused undo that leaves the history unusable](NS-81-undoexit.md) | Ready | NS-42 |
 | 34 | [NS-34 Copy or move to another folder (engine and executor)](NS-34-copymove.md) | Cancelled | NS-8, NS-9 |
 | 35 | [NS-35 Copy/move to location panel](NS-35-copymoveui.md) | Cancelled | NS-34, NS-15 |
