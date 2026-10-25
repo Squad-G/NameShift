@@ -1,6 +1,6 @@
 # NS-77: Find and fix the occasional net48 failure in the Ui tests
 
-Status: In Progress
+Status: In Review
 Depends on:
 Area: app
 
@@ -80,3 +80,4 @@ no product change.
 ## Log
 - 2026-10-24: created and set Ready (po): occasional net48 failure, hang and early stop in the Ui tests.
 - 2026-10-24: In Progress (builder).
+- 2026-10-25: In Review (builder), PR #83. Caught and fixed in tests only (no src change): the short counts were a hang of MainActionsTests.SlowStartupJournalRead_DoesNotOverwriteTheReadAfterRename (11 tests never ran); FolderTreeModelTests drove a UI-thread model from pool threads (corrupted Dictionary, a net48 hang); FilterBindingTests and PreviewModelTests assumed a run could not land before the next step.
