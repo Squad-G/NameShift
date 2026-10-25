@@ -48,7 +48,9 @@ internal static class JournalJson
                 .Select(entry => Path.GetDirectoryName(entry.OldPath)!)
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToArray(),
-            Renames = entries.Select(entry => Entry(entry.Kind, entry.OldPath, entry.NewPath, entry.Fingerprint)).ToArray(),
+            Renames = entries
+                .Select(entry => Entry(entry.Kind, entry.OldPath, entry.NewPath, entry.Fingerprint))
+                .ToArray(),
         });
     }
 

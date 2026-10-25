@@ -3,7 +3,8 @@ using System;
 namespace NameShift.Disk;
 
 /// <summary>A file's size and last write time, read right after a batch, so that Revert can tell a file still as the
-/// batch left it from one changed afterwards. Both are compared exactly (bytes, and 100 ns ticks in UTC).</summary>
+/// batch left it from one changed afterwards. Both are compared exactly (bytes, and 100 ns ticks in UTC). An edit that
+/// keeps the same size and the same last write time is not detected (accepted, NS-90).</summary>
 public sealed class FileFingerprint : IEquatable<FileFingerprint>
 {
     internal FileFingerprint(long size, DateTime modifiedUtc)
