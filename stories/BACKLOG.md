@@ -87,10 +87,10 @@ spec (NS-85, NS-86, NS-87) become Ready when the story they build on is merged.
 | 37 | [NS-37 Remember last settings](NS-37-settings.md) | Done | NS-36, NS-72, NS-83 |
 | 84 | [NS-84 Remember which panels are collapsed](NS-84-collapsesaved.md) | Done | NS-83, NS-37 |
 | 80 | [NS-80 Fix raw control characters in a test and guard against them](NS-80-controlchars.md) | Done | |
+| 81 | [NS-81 Pin the exit code of a refused undo that leaves the history unusable](NS-81-undoexit.md) | Done | NS-42 |
 | 34 | [NS-34 Copy or move to another folder (engine and executor)](NS-34-copymove.md) | Cancelled | NS-8, NS-9 |
 | 35 | [NS-35 Copy/move to location panel](NS-35-copymoveui.md) | Cancelled | NS-34, NS-15 |
 | 50 | [NS-50 "Bulk Rename Here" in the Windows 11 top-level menu](NS-50-win11-menu.md) | Cancelled | NS-49 |
-| 81 | [NS-81 Pin the exit code of a refused undo that leaves the history unusable](NS-81-undoexit.md) | Ready | NS-42 |
 | 91 | [NS-91 Settings, presets and history: deep files, leftover temp files, no profile folder](NS-91-filehardening.md) | Ready | NS-37, NS-36 |
 | 90 | [NS-90 Undo journal: remember each file's size and date, and check before Revert](NS-90-journalfingerprint.md) | Ready | NS-9 |
 | 45 | [NS-45 Safer Revert: detect changed files](NS-45-revertsafe.md) | Ready | NS-90, NS-15, NS-42 |

@@ -265,11 +265,18 @@ internal static class CmdResults
             Renames(count),
             journalIssue: afterFinishIssue ? Journal(JournalWritePhase.AfterFinish) : null);
 
-    public static RevertResult PartlyReverted(int reverted, int skipped) =>
-        new RevertResult(RevertOutcome.PartlyReverted, Renames(reverted), SkippedEntries(skipped));
+    public static RevertResult PartlyReverted(int reverted, int skipped, bool afterFinishIssue = false) =>
+        new RevertResult(
+            RevertOutcome.PartlyReverted,
+            Renames(reverted),
+            SkippedEntries(skipped),
+            journalIssue: afterFinishIssue ? Journal(JournalWritePhase.AfterFinish) : null);
 
-    public static RevertResult NothingReverted(int skipped) =>
-        new RevertResult(RevertOutcome.NothingReverted, notReverted: SkippedEntries(skipped));
+    public static RevertResult NothingReverted(int skipped, bool afterFinishIssue = false) =>
+        new RevertResult(
+            RevertOutcome.NothingReverted,
+            notReverted: SkippedEntries(skipped),
+            journalIssue: afterFinishIssue ? Journal(JournalWritePhase.AfterFinish) : null);
 
     public static RevertResult RevertNotStarted(string message) =>
         new RevertResult(RevertOutcome.NotStarted, journalIssue: Journal(JournalWritePhase.BeforeStart, message));

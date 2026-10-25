@@ -95,6 +95,10 @@ public sealed class ExitCodesTests
                 return CmdResults.PartlyReverted(1, 1);
             case "NothingReverted":
                 return CmdResults.NothingReverted(2);
+            case "NothingReverted, journal AfterFinish":
+                return CmdResults.NothingReverted(2, afterFinishIssue: true);
+            case "PartlyReverted, journal AfterFinish":
+                return CmdResults.PartlyReverted(1, 1, afterFinishIssue: true);
             case "NotStarted":
                 return CmdResults.RevertNotStarted("The disk is full.");
             case "NeedsAttention":
@@ -112,6 +116,8 @@ public sealed class ExitCodesTests
             ("Reverted, journal AfterFinish", ExitCode.NeedsAttention),
             ("PartlyReverted", ExitCode.NeedsAttention),
             ("NothingReverted", ExitCode.NotRenamed),
+            ("NothingReverted, journal AfterFinish", ExitCode.NotRenamed),
+            ("PartlyReverted, journal AfterFinish", ExitCode.NeedsAttention),
             ("NotStarted", ExitCode.NotRenamed),
             ("NeedsAttention", ExitCode.NeedsAttention),
         }.Select(c => new object[] { c.Name, c.Code });
