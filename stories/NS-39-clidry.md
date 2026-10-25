@@ -1,6 +1,6 @@
 # NS-39: Command line: quiet and verbose output
 
-Status: In Progress
+Status: In Review
 Depends on: NS-38, NS-43, NS-42
 Area: app
 
@@ -76,3 +76,4 @@ generic since NS-42 and are not touched here. Output today (NS-38): a real run p
   the unchanged line chosen, the verbose nothing-to-rename case, the `-q`/`-v` guard effect and repeated aliases added;
   depends on NS-42 for the build order only; set Ready, second of NS-42, NS-39, NS-40, NS-69 (po).
 - 2026-10-24: In Progress (builder).
+- 2026-10-24: In Review (builder), PR #73.
