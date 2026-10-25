@@ -1,6 +1,6 @@
 # NS-89: One window at all times
 
-Status: In Progress
+Status: In Review
 Depends on: NS-88
 Area: app
 
@@ -77,3 +77,4 @@ a named pipe per user session). Names are indicative.
 ## Log
 - 2026-10-25: created from NS-49's split (po).
 - 2026-10-25: PR #90 review: pipe hardening, lower caps, one disk check, names with the SID, owner-only saving (po).
+- 2026-10-25: built: the request format, caps, timed reader, gathering and owner flag in NameShift.Ui; the mutex, pipe and foreground hand-over in the App. On net48 the first instance is created through CreateNamedPipe (no FirstPipeInstance option there); each next instance is created while the previous one is open (builder).

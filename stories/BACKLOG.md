@@ -95,7 +95,7 @@ spec (NS-85, NS-86, NS-87) become Ready when the story they build on is merged.
 | 90 | [NS-90 Undo journal: remember each file's size and date, and check before Revert](NS-90-journalfingerprint.md) | Done | NS-9 |
 | 45 | [NS-45 Safer Revert: detect changed files](NS-45-revertsafe.md) | Done | NS-90, NS-15, NS-42 |
 | 88 | [NS-88 Start on several files: one folder, those items selected](NS-88-multipath.md) | Done | NS-47, NS-14 |
-| 89 | [NS-89 One window at all times](NS-89-singleinstance.md) | In Progress | NS-88 |
+| 89 | [NS-89 One window at all times](NS-89-singleinstance.md) | In Review | NS-88 |
 | 62 | [NS-62 Auto date: the photo date in the engine](NS-62-autodatephoto.md) | Ready | NS-26, NS-27 |
 | 93 | [NS-93 Command line readers: remove the copies](NS-93-clireadercleanup.md) | Ready | NS-40, NS-69, NS-75, NS-76 |
 | 41 | [NS-41 Command line: filters](NS-41-clifilters.md) | Ready | NS-38, NS-32, NS-33, NS-70, NS-79, NS-76, NS-93 |
