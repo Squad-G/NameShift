@@ -1,6 +1,6 @@
 # NS-84: Remember which panels are collapsed
 
-Status: Ready
+Status: In Progress
 Depends on: NS-83, NS-37
 Area: app
 
@@ -46,3 +46,4 @@ Logic in `NameShift.Ui` with tests on net10.0 and net48 against a temp folder. I
 ## Log
 - 2026-10-24: created; David asked for the state to be remembered with the settings. Depends on NS-37 for the store and
   on NS-83 for the model. Set Ready, to be built after both (po).
+- 2026-10-25: In Progress (builder).
