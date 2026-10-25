@@ -1,6 +1,6 @@
 # NS-92: Move the settings-saving logic out of MainForm into NameShift.Ui
 
-Status: Ready
+Status: Done
 Depends on: NS-37, NS-84
 Area: app
 Chore: no visible change; behaviour stays exactly as it is.
@@ -43,3 +43,12 @@ by member (window, split, last folder, collapsed panels), which a small test hel
 
 ## Log
 - 2026-10-25: created from the NS-37 review follow-up; set Ready (po).
+- 2026-10-25: In Progress (builder).
+- 2026-10-25: In Review (builder): SettingsCapture in NameShift.Ui, MainForm calls it; Ui tests 2079 to 2106.
+- 2026-10-25: Done (tech-lead), PR #108 approved and squash-merged. Review nits, not folded (harmless): in
+  MatchesTheOldCode the `cases > 10000` assert only proves the grid ran; the `Old` oracle dropped the comment about a
+  start that never showed a folder. Hand checks for David (AC 6): move and resize the window, close and start again
+  (same place and size); maximise, close, start again (maximised, and restoring gives the previous size); maximise,
+  minimise, close from the taskbar, start again (maximised); drag the folder-tree splitter, close, start again (same
+  width, also at 125, 150 and 200 % scale if available: no creep by a pixel); the last folder and the collapsed panels
+  come back.
