@@ -2,6 +2,7 @@
 
 Status: Draft
 Depends on: NS-15, NS-38, NS-49
+Order: the very last story before the v1 release (David, 2026-10-25). NS-49 is built in the same round.
 Area: installer
 
 ## Why
@@ -23,8 +24,10 @@ Install NameShift like any Windows app.
 
 ## Decisions
 - PATH default? **Decision:** off, because it changes the environment and most users never need it (po, 2026-10-18).
-- Explorer right-click entry? **Decision (David, 2026-10-18, overriding the po's earlier choice of leaving it out):** the installer adds "Bulk Rename Here", on by default, per user; behaviour is NS-49. The compact Windows 11 menu is NS-50 (po, 2026-10-18).
+- Explorer right-click entry? **Decision (David, 2026-10-18, overriding the po's earlier choice of leaving it out):** the installer adds "Bulk Rename Here", on by default, per user; behaviour is NS-49. The compact Windows 11 menu (NS-50) was cancelled by David on 2026-10-25: the classic entry is the only one.
 - Per-user install? **Decision:** the right-click entry is always per user, so it works without admin rights even when the program is installed for all users (po, 2026-10-18).
+- When is the installer built? **Decision (David, 2026-10-24/25):** at the very end, just before the v1 release, so it ships the final set of files and the Explorer entry in one go. This closes the open question of 2026-10-24 (ship without the entry or wait): it waits, and NS-49 is built in the same round (po, 2026-10-25).
+- Version of `NameShiftCmd.exe`? **Decision (David, 2026-10-25):** the release scripts are left alone: nothing stamps a version on `NameShiftCmd.exe`. The installer's version comes from `NameShift.exe` (criterion 9), and `NameShiftCmd --version` prints what it prints today (po, 2026-10-25).
 
 ## Log
 - 2026-10-18: created (po).
@@ -33,3 +36,6 @@ Install NameShift like any Windows app.
 - 2026-10-24: stays Draft: waits on NS-49 (criterion 7) and its split. Open question for David: ship the installer
   first without the right-click entry (criteria 1 to 6, 8 and 9), or wait for NS-49? po default: wait, the entry was
   his explicit request (po).
+- 2026-10-25: David's decisions recorded: the installer is the last story, built just before v1; the question above is
+  answered (wait; NS-49 is built in the same round, after NS-88 and NS-89 are merged); NameShiftCmd gets no version
+  stamping from the release scripts. Stays Draft until then; no open question left (po).

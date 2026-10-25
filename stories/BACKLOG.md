@@ -4,6 +4,13 @@ Ordered, highest priority first. The first rows (Ready) are the minimal usable s
 with Replace, Case, Add and Numbering. Everything after it is the long tail. The `#` column is the story number (stable
 IDs), not the rank: the rank is the row order.
 
+Order after NS-37 (po, 2026-10-25): finish what is tiny (NS-81; NS-84 and NS-80 are Done), then safety and trust (NS-91
+hardening, NS-90 and NS-45 safer Revert), then the Explorer launch path (NS-88, NS-89), then the photo date (NS-62, then
+NS-85 and NS-86) and the command line filters (NS-41, then NS-87), then the small chores (NS-92, NS-93, NS-94). NS-49 and
+NS-44 (the registry entry and the installer) are built together at the very end, just before the v1 release (David,
+2026-10-25); NS-44 is the last story of v1. NS-50 (Windows 11 compact menu) was cancelled by David on 2026-10-25. Stories marked Draft with a full
+spec (NS-85, NS-86, NS-87) become Ready when the story they build on is merged.
+
 | # | Story | Status | Depends on |
 |---|---|---|---|
 | 1 | [NS-1 Rename pipeline and rule contract](NS-1-pipeline.md) | Done | |
@@ -78,14 +85,24 @@ IDs), not the rank: the rank is the row order.
 | 77 | [NS-77 Find and fix the occasional net48 failure in the Ui tests](NS-77-uitestsflake.md) | Done | |
 | 83 | [NS-83 Collapsible rule panels, and a bottom row that fits](NS-83-collapsepanels.md) | Done | NS-11, NS-15 |
 | 37 | [NS-37 Remember last settings](NS-37-settings.md) | Done | NS-36, NS-72, NS-83 |
-| 84 | [NS-84 Remember which panels are collapsed](NS-84-collapsesaved.md) | Ready | NS-83, NS-37 |
-| 80 | [NS-80 Fix raw control characters in a test and guard against them](NS-80-controlchars.md) | Ready | |
-| 81 | [NS-81 Pin the exit code of a refused undo that leaves the history unusable](NS-81-undoexit.md) | Ready | NS-42 |
+| 84 | [NS-84 Remember which panels are collapsed](NS-84-collapsesaved.md) | Done | NS-83, NS-37 |
+| 80 | [NS-80 Fix raw control characters in a test and guard against them](NS-80-controlchars.md) | Done | |
 | 34 | [NS-34 Copy or move to another folder (engine and executor)](NS-34-copymove.md) | Cancelled | NS-8, NS-9 |
 | 35 | [NS-35 Copy/move to location panel](NS-35-copymoveui.md) | Cancelled | NS-34, NS-15 |
-| 41 | [NS-41 Command line: recursion and filters](NS-41-clifilters.md) | Draft | NS-38, NS-32, NS-33, NS-74 |
-| 45 | [NS-45 Safer Revert: detect changed files](NS-45-revertsafe.md) | Draft | NS-9 |
-| 49 | [NS-49 Explorer right-click entry "Bulk Rename Here"](NS-49-explorer-entry.md) | Draft | NS-47, NS-14 |
+| 50 | [NS-50 "Bulk Rename Here" in the Windows 11 top-level menu](NS-50-win11-menu.md) | Cancelled | NS-49 |
+| 81 | [NS-81 Pin the exit code of a refused undo that leaves the history unusable](NS-81-undoexit.md) | Ready | NS-42 |
+| 91 | [NS-91 Settings, presets and history: deep files, leftover temp files, no profile folder](NS-91-filehardening.md) | Ready | NS-37, NS-36 |
+| 90 | [NS-90 Undo journal: remember each file's size and date, and check before Revert](NS-90-journalfingerprint.md) | Ready | NS-9 |
+| 45 | [NS-45 Safer Revert: detect changed files](NS-45-revertsafe.md) | Ready | NS-90, NS-15, NS-42 |
+| 88 | [NS-88 Start on several files: one folder, those items selected](NS-88-multipath.md) | Ready | NS-47, NS-14 |
+| 89 | [NS-89 One window at all times](NS-89-singleinstance.md) | Ready | NS-88 |
+| 62 | [NS-62 Auto date: the photo date in the engine](NS-62-autodatephoto.md) | Ready | NS-26, NS-27 |
+| 41 | [NS-41 Command line: filters](NS-41-clifilters.md) | Ready | NS-38, NS-32, NS-33, NS-70, NS-79, NS-76 |
+| 85 | [NS-85 Read the photo dates of the listed files](NS-85-photodates.md) | Draft | NS-62, NS-27 |
+| 86 | [NS-86 Auto date panel: the Photo date choice](NS-86-autodatephotopanel.md) | Draft | NS-62, NS-85, NS-59 |
+| 87 | [NS-87 Command line: --recurse](NS-87-clirecurse.md) | Draft | NS-41, NS-74, NS-78 |
+| 92 | [NS-92 Move the settings-saving logic out of MainForm into NameShift.Ui](NS-92-savesettingslogic.md) | Ready | NS-37 |
+| 93 | [NS-93 Command line readers: remove the copies](NS-93-clireadercleanup.md) | Ready | NS-40, NS-69, NS-75, NS-76 |
+| 94 | [NS-94 Close two gaps in the tests: PathInput prefixes and both orders of the filter binding](NS-94-testgaps.md) | Ready | NS-10, NS-70, NS-78 |
+| 49 | [NS-49 Explorer right-click entry "Bulk Rename Here": the registry keys](NS-49-explorer-entry.md) | Draft | NS-88, NS-89 |
 | 44 | [NS-44 Installer](NS-44-installer.md) | Draft | NS-15, NS-38, NS-49 |
-| 62 | [NS-62 Auto date: use the photo date](NS-62-autodatephoto.md) | Draft | NS-26, NS-27, NS-59 |
-| 50 | [NS-50 "Bulk Rename Here" in the Windows 11 top-level menu](NS-50-win11-menu.md) | Draft | NS-49 |
