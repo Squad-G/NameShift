@@ -107,6 +107,24 @@ public sealed class CommandRunnerUndoTests
     }
 
     [Fact]
+    public void NothingRevertedAfterFinishIssue_Exit3_SaysHistoryNotCleaned()
+    {
+        var renamer = Revertable(CmdResults.NothingReverted(2, afterFinishIssue: true));
+        ActionReport report = ActionText.ForRevert(renamer.RevertResult!, Cmd.EnUs);
+
+        var run = Cmd.Run(renamer, @"C:\nowhere", Undo);
+
+        Assert.Equal(3, run.Code);
+        Assert.Equal("", run.Output);
+        Assert.NotNull(report.Details);
+        Assert.Equal(Cmd.Written(report.Status, report.Details!), run.Error);
+        Assert.StartsWith(UiStrings.RevertNone, report.Status, StringComparison.Ordinal);
+        Assert.Contains(UiStrings.HistoryNotSaved.Substring(0, UiStrings.HistoryNotSaved.IndexOf("{0}", StringComparison.Ordinal)), report.Status, StringComparison.Ordinal);
+        Assert.Contains("The disk is full", run.Error, StringComparison.Ordinal);
+        Assert.Equal(1, renamer.RevertCalls);
+    }
+
+    [Fact]
     public void Partly_25Skipped_DetailsCappedAt20()
     {
         var renamer = Revertable(CmdResults.PartlyReverted(1, 25), 26);
