@@ -66,7 +66,7 @@ IDs), not the rank: the rank is the row order.
 | 71 | [NS-71 Numbering panel: restart in each folder](NS-71-numberingrestart.md) | Done | NS-60, NS-61 |
 | 72 | [NS-72 Presets menu: save, load and delete](NS-72-presetmenu.md) | Done | NS-36, NS-15 |
 | 74 | [NS-74 Sub-folders: recursive, cancellable listing](NS-74-subfolderlisting.md) | Done | NS-33, NS-66, NS-73 |
-| 70 | [NS-70 Filter row above the file list](NS-70-filterrow.md) | In Progress | NS-33 |
+| 70 | [NS-70 Filter row above the file list](NS-70-filterrow.md) | In Review | NS-33 |
 | 37 | [NS-37 Remember last settings](NS-37-settings.md) | Ready | NS-36, NS-72 |
 | 42 | [NS-42 Command line: undo the last batch](NS-42-cliundo.md) | Done | NS-38, NS-9, NS-43 |
 | 39 | [NS-39 Command line: quiet and verbose output](NS-39-clidry.md) | Done | NS-38, NS-43, NS-42 |

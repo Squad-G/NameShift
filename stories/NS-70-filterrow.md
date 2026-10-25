@@ -1,6 +1,6 @@
 # NS-70: Filter row above the file list
 
-Status: In Progress
+Status: In Review
 Depends on: NS-33
 Area: app
 
@@ -112,3 +112,4 @@ Alt keys and access:
   `MainActions` filter reset and the filtered count rule; set Ready (po).
 - 2026-10-24: In Progress (builder).
 - 2026-10-24: AC 10 reworded to the decided Alt keys (option B: no Alt keys on the More line) (builder).
+- 2026-10-24: In Review (builder), PR #80.
