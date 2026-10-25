@@ -1,6 +1,6 @@
 # NS-39: Command line: quiet and verbose output
 
-Status: Ready
+Status: In Progress
 Depends on: NS-38, NS-43, NS-42
 Area: app
 
@@ -75,3 +75,4 @@ generic since NS-42 and are not touched here. Output today (NS-38): a real run p
 - 2026-10-24: NS-43 merged. Re-checked against its code: words go in `ApplyOptionWords`, the two conflict messages and
   the unchanged line chosen, the verbose nothing-to-rename case, the `-q`/`-v` guard effect and repeated aliases added;
   depends on NS-42 for the build order only; set Ready, second of NS-42, NS-39, NS-40, NS-69 (po).
+- 2026-10-24: In Progress (builder).
