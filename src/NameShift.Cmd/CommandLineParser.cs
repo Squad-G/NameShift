@@ -8,7 +8,9 @@ namespace NameShift.Cmd;
 /// lower|upper|title|sentence</c>, the Add panel's <c>--prefix</c>, <c>--suffix</c>, <c>--insert &lt;text&gt;
 /// &lt;pos&gt;</c>, <c>--from-end</c> and <c>--word-space</c>, the Numbering panel's <c>--number</c>, <c>--number-mode</c>,
 /// <c>--number-start</c>, <c>--number-step</c>, <c>--number-pad</c>, <c>--number-separator</c>,
-/// <c>--number-position</c>, <c>--number-system</c> and <c>--number-case</c>, <c>--preset &lt;name&gt;</c> (a saved
+/// <c>--number-position</c>, <c>--number-system</c> and <c>--number-case</c>, the Name panel's <c>--name-fixed</c>,
+/// <c>--name-empty</c> and <c>--name-reverse</c>, the Extension panel's five <c>--ext-...</c> flags, the Remove panel's
+/// eighteen <c>--remove-...</c> options, <c>--preset &lt;name&gt;</c> (a saved
 /// preset's rules), <c>--save-preset &lt;name&gt;</c> with <c>--overwrite</c>, and <c>--dry-run</c>,
 /// <c>--quiet|-q</c>, <c>--verbose|-v</c>; or <c>undo [--dry-run]</c>. Options of <c>apply</c> come in any order; the
 /// folder is the one argument that is neither an option nor an option's value. <c>undo</c> takes no folder. Words are
@@ -41,6 +43,15 @@ internal static class CommandLineParser
         NumberingReader.NumberOption, NumberingReader.NumberModeOption, NumberingReader.NumberStartOption,
         NumberingReader.NumberStepOption, NumberingReader.NumberPadOption, NumberingReader.NumberSeparatorOption,
         NumberingReader.NumberPositionOption, NumberingReader.NumberSystemOption, NumberingReader.NumberCaseOption,
+        NameReader.FixedOption, NameReader.EmptyOption, NameReader.ReverseOption,
+        ExtensionReader.LowerOption, ExtensionReader.UpperOption, ExtensionReader.FixedOption,
+        ExtensionReader.ExtraOption, ExtensionReader.RemoveOption,
+        RemoveReader.FirstOption, RemoveReader.LastOption, RemoveReader.FromOption, RemoveReader.ToOption,
+        RemoveReader.CharsOption, RemoveReader.TextOption, RemoveReader.BeforeOption, RemoveReader.AfterOption,
+        RemoveReader.WholeWordOption, RemoveReader.MatchCaseOption, RemoveReader.KeepMarkerOption,
+        RemoveReader.DigitsOption, RemoveReader.SymbolsOption, RemoveReader.AccentsOption,
+        RemoveReader.HighCharsOption, RemoveReader.TrimOption, RemoveReader.LeadingDotsOption,
+        RemoveReader.DoubleSpacesOption,
         PresetReader.PresetOption, PresetReader.SavePresetOption, PresetReader.OverwriteOption,
     };
 

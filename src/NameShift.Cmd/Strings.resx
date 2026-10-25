@@ -38,7 +38,17 @@
   <data name="PresetNameBlank" xml:space="preserve"><value>--save-preset needs a name.</value></data>
   <data name="PresetNameTooLong" xml:space="preserve"><value>A preset name has at most 100 characters.</value></data>
   <data name="OverwriteNeedsSave" xml:space="preserve"><value>--overwrite needs --save-preset.</value></data>
-  <data name="NumberingSkippedSentence" xml:space="preserve"><value>Until then numbering is skipped.</value></data>
+  <data name="SkipSentenceMarker" xml:space="preserve"><value>Until then</value></data>
+  <data name="OneModeOnly" xml:space="preserve"><value>Give only one of {0}.</value></data>
+  <data name="NeedsOption" xml:space="preserve"><value>{0} needs {1}.</value></data>
+  <data name="BlankText" xml:space="preserve"><value>The text of {0} cannot be empty or only spaces.</value></data>
+  <data name="BlankExtension" xml:space="preserve"><value>The text of {0} cannot be empty or only dots and spaces.</value></data>
+  <data name="EmptyOptionText" xml:space="preserve"><value>The text of {0} cannot be empty.</value></data>
+  <data name="NameModeOptions" xml:space="preserve"><value>--name-fixed, --name-empty or --name-reverse</value></data>
+  <data name="ExtensionModeOptions" xml:space="preserve"><value>--ext-lower, --ext-upper, --ext-fixed, --ext-extra or --ext-remove</value></data>
+  <data name="RemoveMatchCaseNeeds" xml:space="preserve"><value>--remove-chars, --remove-text, --remove-before or --remove-after</value></data>
+  <data name="RemoveKeepMarkerNeeds" xml:space="preserve"><value>--remove-before or --remove-after</value></data>
+  <data name="RemoveRangeOptions" xml:space="preserve"><value>--remove-from and --remove-to</value></data>
   <data name="QuoteInFolder" xml:space="preserve"><value>The folder {0} contains a quote: remove the backslash before the closing quote, as in "D:\Pics" instead of "D:\Pics\".</value></data>
   <data name="InvalidFolder" xml:space="preserve"><value>"{0}" is not a valid folder path.</value></data>
   <data name="FolderIsFile" xml:space="preserve"><value>{0} is a file, not a folder.</value></data>
@@ -101,6 +111,32 @@ Examples:
   --number-system decimal|hex|letters|roman
                              The kind of numbers written.
   --number-case upper|lower  Capital or small letters (not for decimal).
+  --name-fixed &lt;text&gt;        Replace the name (not the extension) with &lt;text&gt;.
+  --name-empty               Make the name empty (not the extension).
+  --name-reverse             Reverse the letters of the name.
+  --ext-lower                Write the extension in small letters.
+  --ext-upper                Write the extension in capital letters.
+  --ext-fixed &lt;text&gt;         Replace the extension with &lt;text&gt;.
+  --ext-extra &lt;text&gt;         Add &lt;text&gt; as a second extension (a.txt.bak).
+  --ext-remove               Remove the extension.
+  --remove-first &lt;n&gt;         Remove the first &lt;n&gt; characters.
+  --remove-last &lt;n&gt;          Remove the last &lt;n&gt; characters.
+  --remove-from &lt;n&gt;          Remove from character &lt;n&gt;; needs --remove-to.
+  --remove-to &lt;n&gt;            Remove up to character &lt;n&gt;; needs --remove-from.
+  --remove-chars &lt;text&gt;      Remove every one of the characters in &lt;text&gt;.
+  --remove-text &lt;text&gt;       Remove the text &lt;text&gt; wherever it is found.
+  --remove-before &lt;text&gt;     Remove everything before the first &lt;text&gt;.
+  --remove-after &lt;text&gt;      Remove everything after the first &lt;text&gt;.
+  --remove-whole-word        With --remove-text: only whole words.
+  --remove-match-case        Make the text options care about capitals.
+  --remove-keep-marker       Keep the marker text of before or after.
+  --remove-digits            Remove the digits.
+  --remove-symbols           Remove the symbols.
+  --remove-accents           Remove the accents from letters.
+  --remove-high-chars        Remove the characters that are not plain ASCII.
+  --remove-trim              Remove spaces at the start and the end.
+  --remove-leading-dots      Remove dots at the start.
+  --remove-double-spaces     Turn runs of spaces into one space.
   --preset &lt;name&gt;            Use the rules of a preset saved in the window.
   --save-preset &lt;name&gt;       Save the rules as a preset (also with --dry-run).
   --overwrite                Let --save-preset replace a preset of that name.

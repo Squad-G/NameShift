@@ -1,6 +1,6 @@
 # NS-75: Command line: Name, Extension and Remove options
 
-Status: Ready
+Status: Done
 Depends on: NS-40, NS-69, NS-79, NS-55, NS-30
 Area: app
 Build after NS-40, NS-69 and NS-79 are merged (all four change the parser, the help and `Strings.resx`), and before NS-76.
@@ -34,7 +34,7 @@ The five rules (the "option rules"):
   the last `Until then` (new string `SkipSentenceMarker` = `Until then`, replacing NS-40's `NumberingSkippedSentence`;
   the numbering messages read as before). The two tests that name the old key are edited to the new key and helper with the
   same asserted outputs: `CmdStringsTests` (the exact text of the key, line 55) and `CommandLineParserTests` (the expected
-  cut, lines 550-551). A test asserts that every window string
+  cut, lines 623-624). A test asserts that every window string
   the command line shows (NS-75 and NS-76 list them) contains the marker and that the cut text contains neither `Until` nor
   `skipped`.
 
@@ -135,3 +135,11 @@ Same as the window, and the rest:
 - 2026-10-24: NS-40 approved (review of its code): criteria written against its parser, `ApplyPanels` and help; the split of
   `ParseApply` is the chore NS-79, which this story follows; set Ready, to start after NS-40, NS-69 and NS-79 are merged (po).
 - 2026-10-24: PR #75 review applied: the two tests naming the old key are edited, blank counts refused, `README.md` example (po).
+- 2026-10-24: In Progress (builder).
+- 2026-10-24: story text corrected by the builder: the old-key lines in `CommandLineParserTests` are 623-624 (not 550-551); the Words and help-order tests also change (`ApplyHelp_ListsPresetOptions` now expects `--remove-double-spaces` before `--preset`).
+- 2026-10-24: In Review (builder), PR #78.
+- 2026-10-24: Done (tech-lead), PR #78 approved and squash-merged; review nits 1-3 folded (non-ASCII parity names as
+  `\u` escapes, a space in the word list, blank lines in a test file). Follow-up (nit 4, style): `NameReader.ReadOwn`
+  mixes `string.Equals` with `==` and a nested ternary for the mode, and `ExtensionReader` ignores the return of
+  `TryChoice`: one shared style (a small mode table) would read better; `RemoveReader.ReadOwn` (about 45 lines, several
+  `value!`) could split into `ReadCount` and `ReadText`.

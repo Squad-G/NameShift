@@ -52,8 +52,24 @@ public sealed class CmdStringsTests
         Assert.Equal("prefix, suffix or insert", Strings.NumberModeValues);
         Assert.Equal("decimal, hex, letters or roman", Strings.NumberSystemValues);
         Assert.Equal("upper or lower", Strings.NumberCaseValues);
-        Assert.Equal("Until then numbering is skipped.", Strings.NumberingSkippedSentence);
+        Assert.Equal("Until then", Strings.SkipSentenceMarker);
         Assert.Equal("Give at least one rule option, such as --replace or --case.", Strings.NoRule);
+    }
+
+    [Fact]
+    public void NameExtRemoveTexts()
+    {
+        Assert.Equal("Give only one of {0}.", Strings.OneModeOnly);
+        Assert.Equal("{0} needs {1}.", Strings.NeedsOption);
+        Assert.Equal("The text of {0} cannot be empty or only spaces.", Strings.BlankText);
+        Assert.Equal("The text of {0} cannot be empty or only dots and spaces.", Strings.BlankExtension);
+        Assert.Equal("The text of {0} cannot be empty.", Strings.EmptyOptionText);
+        Assert.Equal("Until then", Strings.SkipSentenceMarker);
+        Assert.Equal("--name-fixed, --name-empty or --name-reverse", Strings.NameModeOptions);
+        Assert.Equal("--ext-lower, --ext-upper, --ext-fixed, --ext-extra or --ext-remove", Strings.ExtensionModeOptions);
+        Assert.Equal("--remove-chars, --remove-text, --remove-before or --remove-after", Strings.RemoveMatchCaseNeeds);
+        Assert.Equal("--remove-before or --remove-after", Strings.RemoveKeepMarkerNeeds);
+        Assert.Equal("--remove-from and --remove-to", Strings.RemoveRangeOptions);
     }
 
     [Fact]

@@ -106,8 +106,38 @@ public static class Strings
     /// <summary>"upper or lower": the values of --number-case.</summary>
     public static string NumberCaseValues => Get(nameof(NumberCaseValues));
 
-    /// <summary>"Until then numbering is skipped.": the last sentence of the window's numbering error texts, removed from the command line's copy of them.</summary>
-    public static string NumberingSkippedSentence => Get(nameof(NumberingSkippedSentence));
+    /// <summary>"Until then": where the last sentence of the window's error texts starts; the command line cuts the text from there.</summary>
+    public static string SkipSentenceMarker => Get(nameof(SkipSentenceMarker));
+
+    /// <summary>Usage error: two flags of one rule's modes ({0} lists them).</summary>
+    public static string OneModeOnly => Get(nameof(OneModeOnly));
+
+    /// <summary>Usage error: "{0} needs {1}."</summary>
+    public static string NeedsOption => Get(nameof(NeedsOption));
+
+    /// <summary>Usage error: the text of {0} is empty or only spaces.</summary>
+    public static string BlankText => Get(nameof(BlankText));
+
+    /// <summary>Usage error: the text of {0} is empty or only dots and spaces.</summary>
+    public static string BlankExtension => Get(nameof(BlankExtension));
+
+    /// <summary>Usage error: the text of {0} is empty.</summary>
+    public static string EmptyOptionText => Get(nameof(EmptyOptionText));
+
+    /// <summary>The flags of the Name panel's modes.</summary>
+    public static string NameModeOptions => Get(nameof(NameModeOptions));
+
+    /// <summary>The flags of the Extension panel's modes.</summary>
+    public static string ExtensionModeOptions => Get(nameof(ExtensionModeOptions));
+
+    /// <summary>The options --remove-match-case needs one of.</summary>
+    public static string RemoveMatchCaseNeeds => Get(nameof(RemoveMatchCaseNeeds));
+
+    /// <summary>The options --remove-keep-marker needs one of.</summary>
+    public static string RemoveKeepMarkerNeeds => Get(nameof(RemoveKeepMarkerNeeds));
+
+    /// <summary>The label of the Remove range error.</summary>
+    public static string RemoveRangeOptions => Get(nameof(RemoveRangeOptions));
 
     /// <summary>"The folder {0} contains a quote: ...": what cmd makes of a quoted folder that ends with a backslash.</summary>
     public static string QuoteInFolder => Get(nameof(QuoteInFolder));
