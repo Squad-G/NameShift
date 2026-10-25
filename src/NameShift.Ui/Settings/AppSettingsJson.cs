@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Globalization;
 using System.IO;
 using System.Runtime.Serialization;
@@ -6,12 +8,13 @@ using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
+using NameShift.Core;
 
 namespace NameShift.Ui.Settings;
 
 /// <summary>
 /// The <c>settings.json</c> format, version 1: <c>{ "version": 1, "window": { "left", "top", "width", "height",
-/// "maximized" }, "mainSplit", "lastFolder" }</c>, UTF-8 without BOM, indented, null values left out. The reader is
+/// "maximized" }, "mainSplit", "lastFolder", "panels" (stage name to "collapsed" or "open") }</c>, UTF-8 without BOM, indented, null values left out. The reader is
 /// lenient: each value is read as text and parsed on its own, so one wrong value defaults alone and the others still
 /// load (the in-box serializer would fail the whole file on one wrong type). Unknown members are ignored.
 /// </summary>
@@ -47,13 +50,19 @@ internal static class AppSettingsJson
                 },
             MainSplit = s.MainSplit,
             LastFolder = s.LastFolder,
+            Panels = s.CollapsedPanels.Count == 0
+                ? null
+                : s.CollapsedPanels
+                    .OrderBy(pair => (int)pair.Key)
+                    .ToDictionary(pair => pair.Key.ToString(), pair => pair.Value ? "collapsed" : "open", StringComparer.Ordinal),
         };
 
         using var stream = new MemoryStream();
         using (var writer = JsonReaderWriterFactory.CreateJsonWriter(
             stream, new UTF8Encoding(false), ownsStream: false, indent: true, indentChars: "  "))
         {
-            new DataContractJsonSerializer(typeof(SettingsDto)).WriteObject(writer, dto);
+            new DataContractJsonSerializer(typeof(SettingsDto), new DataContractJsonSerializerSettings { UseSimpleDictionaryFormat = true })
+                .WriteObject(writer, dto);
             writer.Flush();
         }
 
@@ -97,7 +106,7 @@ internal static class AppSettingsJson
             string? lastFolder = folder != null && IsType(folder, "string") && !string.IsNullOrWhiteSpace(folder.Value)
                 ? folder.Value
                 : null;
-            return new AppSettings(ReadWindow(root.Element("window")), mainSplit, lastFolder);
+            return new AppSettings(ReadWindow(root.Element("window")), mainSplit, lastFolder, ReadPanels(root.Element("panels")));
         }
         catch (Exception)
         {
@@ -128,6 +137,43 @@ internal static class AppSettingsJson
         return new SavedWindow(left, top, width, height, maximized);
     }
 
+    /// <summary>The <c>panels</c> object: each entry is read on its own, and one with an unknown stage name or a state
+    /// text other than "collapsed" or "open" is skipped alone. A first repeated key wins.</summary>
+    private static IReadOnlyDictionary<RuleStage, bool> ReadPanels(XElement? element)
+    {
+        var result = new Dictionary<RuleStage, bool>();
+        if (element == null || !IsType(element, "object"))
+        {
+            return result;
+        }
+
+        foreach (XElement child in element.Elements())
+        {
+            // A key that is not a valid XML name arrives in an "item" attribute.
+            string key = (string?)child.Attribute("item") ?? child.Name.LocalName;
+            if (key.Length == 0
+                || key.All(char.IsDigit)
+                || !Enum.TryParse(key, ignoreCase: false, out RuleStage stage)
+                || !Enum.IsDefined(typeof(RuleStage), stage)
+                || result.ContainsKey(stage)
+                || !IsType(child, "string"))
+            {
+                continue;
+            }
+
+            if (string.Equals(child.Value, "collapsed", StringComparison.Ordinal))
+            {
+                result[stage] = true;
+            }
+            else if (string.Equals(child.Value, "open", StringComparison.Ordinal))
+            {
+                result[stage] = false;
+            }
+        }
+
+        return result;
+    }
+
     /// <summary>A whole number written as a JSON number or string; anything else (a fraction, an object, null) is not.</summary>
     private static bool TryInt(XElement? element, out int value)
     {
@@ -156,6 +202,9 @@ internal static class AppSettingsJson
 
         [DataMember(Name = "lastFolder", Order = 4, EmitDefaultValue = false)]
         public string? LastFolder { get; set; }
+
+        [DataMember(Name = "panels", Order = 10, EmitDefaultValue = false)]
+        public Dictionary<string, string>? Panels { get; set; }
     }
 
     [DataContract]

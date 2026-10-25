@@ -90,7 +90,7 @@ internal sealed class MainForm : Form
             RuleHost.ApplyPreset(rules);
         }
 
-        PanelCollapse = new PanelCollapseModel(RuleHost);
+        PanelCollapse = new PanelCollapseModel(RuleHost, _saved.CollapsedPanels);
         _stack = new RulePanelStack(RuleHost, entries, PanelCollapse) { Dock = DockStyle.Fill };
         _stack.LayoutNeeded += (_, _) => FitBottomArea();
         PanelHost.Controls.Add(_stack);
@@ -498,7 +498,7 @@ internal sealed class MainForm : Form
             int split = (int)Math.Round(_mainSplit.SplitterDistance / scale, MidpointRounding.AwayFromZero);
 
             // A start that never showed a folder keeps the one read at start instead of erasing it.
-            var settings = new AppSettings(window, split >= 0 ? split : null, _navigator.CurrentFolder ?? _saved.LastFolder);
+            var settings = new AppSettings(window, split >= 0 ? split : null, _navigator.CurrentFolder ?? _saved.LastFolder, PanelCollapse.States);
             _settingsStore.SaveWithin(
                 settings, Preset.FromPanels(AppSettingsStore.LastRulesName, RuleHost.Panels), AppSettingsStore.SaveLimit);
         }
