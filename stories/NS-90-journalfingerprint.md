@@ -46,7 +46,7 @@ Tests on net10.0 and net48 against real temp folders (as the NS-9 tests).
 11. Given `RevertSkipReason.Modified`, then `ActionText` (the one place that words a skip, `SkipLine`) has a case and a
     string for it (`SkipModified`: `{0} was changed after the rename and was not reverted.`), so the window and
     `NameShiftCmd undo` never throw after a revert that skipped a changed file. A test calls `ActionText.ForRevert` with a
-    result holding a `Modified` skip, and the existing test that every defined reason has a text still passes. This story is
+    result holding a `Modified` skip, and a new test asserts that every defined `RevertSkipReason` has a text (no such test exists today). This story is
     safe to merge before NS-45.
 12. Given `IFileSystem` gains the read of size and last write time, then it stays read-only (no delete, copy or attribute
    change, as its comment says).

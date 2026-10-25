@@ -1,7 +1,7 @@
 # NS-91: Settings, presets and history: deep files, leftover temp files, no profile folder
 
 Status: Ready
-Depends on: NS-37, NS-36
+Depends on: NS-37, NS-36, NS-9
 Area: app
 Chore: no visible change; three small hardening fixes from the NS-37 and NS-36 reviews, one concern: the files NameShift keeps.
 

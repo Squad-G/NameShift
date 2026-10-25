@@ -39,8 +39,8 @@ a named pipe per user session). Names are indicative.
      closes is dropped and does not block the next request;
    - a message over 1 MiB, or with more than 2,000 paths (Windows gives a command line at most 32,000 characters), or one
      that cannot be read, is ignored without a crash;
-   - the disk is not asked once per path: only the first path goes through `OpenTarget.Resolve` (one folder check); the
-     others are cut into folder and name as text and matched against the loaded list (NS-88's `SelectNames`), so a request
+   - the disk is not asked once per path: only the first path goes through `OpenTarget.Resolve` (one folder check; if it does not exist, NS-88 AC3 applies to the request as a whole: the first existing path decides, checked in order, still one check per tried path); the
+     others get the same normalisation as NS-88 (as text only), are cut into folder and name and matched against the loaded list (NS-88's `SelectNames`), so a request
      of 2,000 paths on a slow share costs one check;
    - a request never renames anything.
 8. Given the running window does not answer within 3 s (hung, or a crashed owner left the mutex), then the new process
