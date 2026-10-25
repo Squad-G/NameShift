@@ -154,42 +154,19 @@ public sealed class AppStyleScanTests
         Assert.True(failures.Count == 0, string.Join(Environment.NewLine, failures));
     }
 
-    private static string RepositoryRoot()
-    {
-        string start = AppContext.BaseDirectory;
-        var directory = new DirectoryInfo(start);
-        while (directory != null)
-        {
-            if (File.Exists(Path.Combine(directory.FullName, "NameShift.slnx")))
-            {
-                return directory.FullName;
-            }
-
-            directory = directory.Parent;
-        }
-
-        throw new InvalidOperationException("NameShift.slnx not found above " + start);
-    }
-
-    private static string AppRoot() => Path.Combine(RepositoryRoot(), "src", "NameShift.App");
+    private static string AppRoot() => Path.Combine(RepositoryFiles.Root(), "src", "NameShift.App");
 
     private static IReadOnlyList<string> AppSources()
     {
         string root = AppRoot();
         List<string> files = Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories)
-            .Where(path => !IsBuildOutput(root, path))
+            .Where(path => !RepositoryFiles.IsBuildOutput(root, path))
             .OrderBy(path => path, StringComparer.Ordinal)
             .ToList();
         Assert.True(files.Count >= 20, "only " + files.Count + " .cs files found under " + root);
         return files;
     }
 
-    private static bool IsBuildOutput(string root, string path)
-    {
-        string[] parts = path.Substring(root.Length).Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        return parts.Any(part => part == "bin" || part == "obj");
-    }
-
     private static string Relative(string path) =>
-        path.Substring(RepositoryRoot().Length).TrimStart('\\', '/').Replace('\\', '/');
+        path.Substring(RepositoryFiles.Root().Length).TrimStart('\\', '/').Replace('\\', '/');
 }
