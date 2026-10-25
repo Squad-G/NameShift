@@ -584,6 +584,9 @@ public static class Strings
     /// <summary>"{0}: {1}".</summary>
     public static string SkipFailed => Get(nameof(SkipFailed));
 
+    /// <summary>"{0} was changed after the rename and was not reverted.".</summary>
+    public static string SkipModified => Get(nameof(SkipModified));
+
     /// <summary>"...and {0} more.".</summary>
     public static string DetailsMore => Get(nameof(DetailsMore));
 

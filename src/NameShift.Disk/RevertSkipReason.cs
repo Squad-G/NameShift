@@ -14,4 +14,7 @@ public enum RevertSkipReason
 
     /// <summary>The rename call itself failed (in use, access denied, ...).</summary>
     RenameFailed,
+
+    /// <summary>The file's size or last write time differs from the journal's.</summary>
+    Modified,
 }

@@ -207,6 +207,24 @@ public sealed class CommandRunnerUndoDiskTests : IDisposable
     }
 
     [Fact]
+    public void Undo_FileChangedAfterTheApply_SkippedWithItsLine_Exit4()
+    {
+        _temp.File("IMG_001.JPG");
+        _temp.File("IMG_002.JPG");
+        ApplyLower();
+        string changed = Path.Combine(_temp.Files, "img_001.JPG");
+        File.AppendAllText(changed, " edited");
+
+        var undo = Cmd.RunOnDisk(_temp, "undo");
+
+        Assert.Equal((int)ExitCode.NeedsAttention, undo.Code);
+        Assert.Equal("", undo.Output);
+        Assert.Contains(string.Format(CultureInfo.InvariantCulture, UiStrings.SkipModified, changed), undo.Error);
+        Assert.Equal(new[] { "IMG_002.JPG", "img_001.JPG" }, _temp.FileNames());
+        Assert.Equal(LastBatchState.Revertable, new JournaledRenamer(_temp.History).LoadLastBatch().State);
+    }
+
+    [Fact]
     public void ShellUndo_ThenWindowRevert_NothingToRevert()
     {
         _temp.File("IMG_001.JPG");

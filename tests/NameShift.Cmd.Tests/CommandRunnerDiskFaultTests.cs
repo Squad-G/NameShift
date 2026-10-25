@@ -113,6 +113,8 @@ public sealed class CommandRunnerDiskFaultTests : IDisposable
             return Result;
         }
 
-        public RevertResult Revert() => throw new NotSupportedException();
+        public RevertCheck CheckRevert() => throw new NotSupportedException();
+
+        public RevertResult Revert(bool includeModified = false) => throw new NotSupportedException();
     }
 }

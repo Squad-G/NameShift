@@ -121,12 +121,45 @@ public sealed class JournaledRenamer
             return new RenameRunResult(execution, diskAsJournaled ? DeletePending() : null);
         }
 
-        return new RenameRunResult(execution, Commit(id, isReverted: false, clock(), execution.Renamed));
+        return new RenameRunResult(execution, Commit(id, isReverted: false, clock(), WithFingerprints(execution.Renamed)));
+    }
+
+    /// <summary>The journal entries of a batch that succeeded: each file with its size and last write time at its new
+    /// path (one stat per file), folders without. A file that cannot be read gets none, and the batch still succeeds.</summary>
+    private IReadOnlyList<CompletedRename> WithFingerprints(IReadOnlyList<CompletedRename> renamed) =>
+        renamed
+            .Select(rename => rename.Kind == ItemKind.File
+                ? new CompletedRename(rename.OldPath, rename.NewPath, rename.Kind, fileSystem.TryGetFingerprint(rename.NewPath))
+                : rename)
+            .ToList();
+
+    /// <summary>What a default Revert would skip now, and whether it would revert anything: reads the journal and the
+    /// disk only. Never writes, moves or deletes anything, and never throws (any failure gives
+    /// <see cref="RevertCheck.Empty"/>). Empty when the journal is not revertable.</summary>
+    public RevertCheck CheckRevert()
+    {
+        try
+        {
+            var last = LoadLastBatch();
+            if (!last.CanRevert)
+            {
+                return RevertCheck.Empty;
+            }
+
+            var plan = RevertPlanner.Plan(last.Renames, fileSystem);
+            return new RevertCheck(plan.Skipped, anyRevertable: plan.Included.Count > 0);
+        }
+        catch (Exception)
+        {
+            // Any failure: a check never stops the caller; Revert itself plans again.
+            return RevertCheck.Empty;
+        }
     }
 
     /// <summary>Reverts the last batch: every entry that can safely go back gets its old name; the others are listed,
-    /// never overwritten, and stay revertable.</summary>
-    public RevertResult Revert()
+    /// never overwritten, and stay revertable. A file changed after the batch (size or last write time) is skipped as
+    /// Modified unless <paramref name="includeModified"/>; ItemMissing and NameTaken are always skipped.</summary>
+    public RevertResult Revert(bool includeModified = false)
     {
         var last = LoadLastBatch();
         if (!last.CanRevert)
@@ -134,7 +167,7 @@ public sealed class JournaledRenamer
             return new RevertResult(RevertOutcome.NothingToRevert);
         }
 
-        var plan = RevertPlanner.Plan(last.Renames, fileSystem);
+        var plan = RevertPlanner.Plan(last.Renames, fileSystem, includeModified);
         var included = plan.Included;
         if (included.Count == 0)
         {
@@ -226,7 +259,8 @@ public sealed class JournaledRenamer
     }
 
     /// <summary>Moves each skipped entry's NewPath into the folder's new place when a containing folder was reverted:
-    /// the deepest reverted folder's prefix is replaced, once (replacing again would break a folder swap).</summary>
+    /// the deepest reverted folder's prefix is replaced, once (replacing again would break a folder swap). The
+    /// fingerprint is kept.</summary>
     private static IReadOnlyList<CompletedRename> Rebase(IEnumerable<CompletedRename> entries, IReadOnlyList<CompletedRename> reverted)
     {
         var folderMoves = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -243,7 +277,7 @@ public sealed class JournaledRenamer
                 {
                     if (folderMoves.TryGetValue(folder, out var movedTo))
                     {
-                        return new CompletedRename(entry.OldPath, movedTo + path.Substring(folder.Length), entry.Kind);
+                        return entry.WithNewPath(movedTo + path.Substring(folder.Length));
                     }
                 }
 

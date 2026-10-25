@@ -26,6 +26,14 @@ internal sealed class FakeBatchRenamer : IBatchRenamer
 
     public RevertResult RevertResult { get; set; } = DiskResults.Revert(RevertOutcome.Reverted, DiskResults.Renames(3));
 
+    /// <summary>What CheckRevert returns.</summary>
+    public RevertCheck CheckResult { get; set; } = RevertCheck.Empty;
+
+    /// <summary>The includeModified of the last Revert call, or null before any.</summary>
+    public bool? LastIncludeModified { get; private set; }
+
+    public int CheckCalls { get; private set; }
+
     /// <summary>Runs inside Rename and Revert, after the gate.</summary>
     public Action? During { get; set; }
 
@@ -60,9 +68,16 @@ internal sealed class FakeBatchRenamer : IBatchRenamer
         return RenameResult;
     }
 
-    public RevertResult Revert()
+    public RevertCheck CheckRevert()
+    {
+        CheckCalls++;
+        return CheckResult;
+    }
+
+    public RevertResult Revert(bool includeModified = false)
     {
         Interlocked.Increment(ref _revertCalls);
+        LastIncludeModified = includeModified;
         Act();
         return RevertResult;
     }

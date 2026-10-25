@@ -258,6 +258,7 @@
   <data name="SkipNameTaken" xml:space="preserve"><value>{0}: {1} now has its old name.</value></data>
   <data name="SkipWaits" xml:space="preserve"><value>{0}: its old name is still used by {1}.</value></data>
   <data name="SkipFailed" xml:space="preserve"><value>{0}: {1}</value></data>
+  <data name="SkipModified" xml:space="preserve"><value>{0} was changed after the rename and was not reverted.</value></data>
   <data name="DetailsMore" xml:space="preserve"><value>...and {0} more.</value></data>
   <data name="ActionUnexpected" xml:space="preserve"><value>Something went wrong. Check the files in the folder before you continue.</value></data>
   <data name="PresetsMenu" xml:space="preserve"><value>&amp;Presets</value></data>

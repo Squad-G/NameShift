@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using NameShift.Core;
 
@@ -12,6 +13,23 @@ internal sealed class DiskFileSystem : IFileSystem
 
     /// <inheritdoc />
     public bool ExistsAny(string path) => File.Exists(path) || Directory.Exists(path);
+
+    /// <summary>The file's Length and LastWriteTimeUtc through a fresh FileInfo (one stat, no handle opened, nothing
+    /// written); null for a folder, a missing path or any error.</summary>
+    public FileFingerprint? TryGetFingerprint(string path)
+    {
+        try
+        {
+            var info = new FileInfo(path);
+            info.Refresh();
+            return info.Exists ? new FileFingerprint(info.Length, info.LastWriteTimeUtc) : null;
+        }
+        catch (Exception)
+        {
+            // Any failure (access denied, an invalid path, the file replaced mid-read): not readable.
+            return null;
+        }
+    }
 
     /// <summary>Renames the item. The two-argument File.Move and Directory.Move both throw when the target exists (file
     /// or folder, hidden and system included): neither ever replaces.</summary>

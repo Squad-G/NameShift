@@ -11,6 +11,7 @@ public sealed class PartialRevertTests : JournalTestBase
     public void Revert_OneFileRemoved_RevertsTheOthersAndKeepsIt()
     {
         RenameFiles(("a", "x"), ("b", "y"), ("c", "z"));
+        var written = File.GetLastWriteTimeUtc(Temp.Full("y"));
         File.Delete(Temp.Full("y"));
 
         var result = Renamer.Revert();
@@ -27,7 +28,9 @@ public sealed class PartialRevertTests : JournalTestBase
         Assert.Equal(Now, last.Time);
         Assert.Equal([(Temp.Full("b"), Temp.Full("y"))], Pairs(last.Renames));
 
+        // NS-90: the file comes back with the same size and last write time, so it is not Modified.
         Temp.File("y", "b");
+        File.SetLastWriteTimeUtc(Temp.Full("y"), written);
         Assert.Equal(RevertOutcome.Reverted, Renamer.Revert().Outcome);
         Assert.Equal(["a", "b", "c"], Temp.Listing());
         Assert.Equal("b", Temp.Content("b"));

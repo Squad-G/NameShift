@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using NameShift.Core;
 
 namespace NameShift.Disk;
 
@@ -9,8 +10,10 @@ internal static class RevertPlanner
 {
     /// <summary>Plans a revert of the entries (validated journal entries: unique sources and unique targets). A folder
     /// skipped with NameTaken does not block its children (they are reverted inside it); the children of a missing
-    /// folder are missing too.</summary>
-    public static RevertPlan Plan(IReadOnlyList<CompletedRename> entries, IFileSystem fileSystem)
+    /// folder are missing too. Unless <paramref name="includeModified"/>, a file whose size or last write time differs
+    /// from its fingerprint is skipped as Modified. One reason per entry, in this precedence: ItemMissing, NameTaken,
+    /// Modified, WaitsForSkippedItem.</summary>
+    public static RevertPlan Plan(IReadOnlyList<CompletedRename> entries, IFileSystem fileSystem, bool includeModified = false)
     {
         var plan = new RevertPlan(entries);
 
@@ -38,6 +41,27 @@ internal static class RevertPlanner
             if (!freedByTheBatch && fileSystem.ExistsAny(target))
             {
                 plan.Mark(i, RevertSkipReason.NameTaken, target);
+            }
+        }
+
+        // 2b. A file with a fingerprint must still be as the batch left it. A file that exists but cannot be read counts
+        // as changed: "unchanged" cannot be confirmed. Entries without a fingerprint (folders, old journals) are not
+        // checked.
+        if (!includeModified)
+        {
+            for (var i = 0; i < plan.Count; i++)
+            {
+                var entry = plan.Entry(i);
+                if (plan.SkipOf(i) != null || entry.Kind != ItemKind.File || entry.Fingerprint == null)
+                {
+                    continue;
+                }
+
+                var now = fileSystem.TryGetFingerprint(plan.Source(i));
+                if (now == null || !now.Equals(entry.Fingerprint))
+                {
+                    plan.Mark(i, RevertSkipReason.Modified);
+                }
             }
         }
 

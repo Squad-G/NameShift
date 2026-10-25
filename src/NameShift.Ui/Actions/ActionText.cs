@@ -227,6 +227,8 @@ public static class ActionText
                 return string.Format(culture, Strings.SkipWaits, item, Name(skip.BlockingPath!));
             case RevertSkipReason.RenameFailed:
                 return string.Format(culture, Strings.SkipFailed, item, Message(skip.SystemMessage));
+            case RevertSkipReason.Modified:
+                return string.Format(culture, Strings.SkipModified, item);
             default:
                 throw new ArgumentOutOfRangeException(nameof(skip), skip.Reason, "Unknown skip reason.");
         }

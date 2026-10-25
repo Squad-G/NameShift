@@ -8,6 +8,7 @@ namespace NameShift.Disk.Tests;
 internal sealed class FakeFileSystem : IFileSystem
 {
     private readonly Dictionary<string, ItemKind> entries = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, FileFingerprint> fingerprints = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>The number of Exists and ExistsAny calls.</summary>
     public int Reads { get; private set; }
@@ -29,6 +30,22 @@ internal sealed class FakeFileSystem : IFileSystem
     {
         Reads++;
         return entries.ContainsKey(path);
+    }
+
+    /// <summary>The number of TryGetFingerprint calls.</summary>
+    public int FingerprintReads { get; private set; }
+
+    /// <summary>Sets what TryGetFingerprint returns for a path (null by default: unreadable).</summary>
+    public FakeFileSystem WithFingerprint(string path, FileFingerprint fingerprint)
+    {
+        fingerprints[path] = fingerprint;
+        return this;
+    }
+
+    public FileFingerprint? TryGetFingerprint(string path)
+    {
+        FingerprintReads++;
+        return fingerprints.TryGetValue(path, out var found) ? found : null;
     }
 
     public void Move(string sourcePath, string targetPath, ItemKind kind) =>
