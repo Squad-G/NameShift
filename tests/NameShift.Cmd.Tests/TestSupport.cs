@@ -77,7 +77,8 @@ internal static class Cmd
         IReadOnlyList<string> args,
         IFileListSource? files = null,
         Func<ApplyOptions, IReadOnlyList<IRenameRule>>? buildRules = null,
-        string? presetsFolder = null)
+        string? presetsFolder = null,
+        PhotoDates? photoDates = null)
     {
         var output = new StringWriter(CultureInfo.InvariantCulture);
         var error = new StringWriter(CultureInfo.InvariantCulture);
@@ -86,6 +87,11 @@ internal static class Cmd
         if (buildRules != null)
         {
             runner.BuildRules = buildRules;
+        }
+
+        if (photoDates != null)
+        {
+            runner.PhotoDates = photoDates;
         }
 
         int code = runner.Run(args);

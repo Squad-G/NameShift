@@ -59,6 +59,9 @@ public sealed class CommandRunner
     /// --replace or --case).</summary>
     internal Func<ApplyOptions, IReadOnlyList<IRenameRule>>? BuildRules { get; set; }
 
+    /// <summary>For tests only: when set, reads the photo dates instead of a new real-disk instance per run.</summary>
+    internal PhotoDates? PhotoDates { get; set; }
+
     /// <summary>The real thing: the disk's listing, the journaled renamer with its history in
     /// <paramref name="historyRoot"/>, the presets in <paramref name="presetsFolder"/> (nothing is read until a preset
     /// option is used), and the current culture. <paramref name="version"/> is what <c>--version</c> prints.</summary>
@@ -236,7 +239,15 @@ public sealed class CommandRunner
             return (int)ExitCode.Success;
         }
 
-        RenamePlan plan = RenamePlanner.Plan(BuildRules?.Invoke(options) ?? host.Rules, items, listing.ExistingNamesByFolder, CancellationToken.None);
+        // The built rules decide (not the panel): only a Photo date rule opens any file, and only the files to be planned.
+        IReadOnlyList<IRenameRule> rules = BuildRules?.Invoke(options) ?? host.Rules;
+        if (PhotoDateNeed.In(rules))
+        {
+            items = (PhotoDates ?? new PhotoDates()).Fill(items, CancellationToken.None);
+            WritePhotoDateWarning(items);
+        }
+
+        RenamePlan plan = RenamePlanner.Plan(rules, items, listing.ExistingNamesByFolder, CancellationToken.None);
         switch (plan.Blocker)
         {
             case RenameBlocker.Conflicts:
@@ -259,6 +270,21 @@ public sealed class CommandRunner
                 return options.DryRun ? DryRun(plan, options.Output) : Rename(plan, options.Output);
             default:
                 throw new InvalidOperationException("Unknown blocker: " + plan.Blocker);
+        }
+    }
+
+    /// <summary>One line on the error stream (--quiet does not hide it) when planned files have no photo date; only files
+    /// are counted, a folder planned with --include-folders also uses its modified date but is not counted.</summary>
+    private void WritePhotoDateWarning(IReadOnlyList<RenameItem> items)
+    {
+        int missing = items.Count(i => i.Kind == ItemKind.File && !PhotoDateNeed.HasDate(i));
+        if (missing == 1)
+        {
+            _error.WriteLine(Strings.PhotoDateMissingOne);
+        }
+        else if (missing > 1)
+        {
+            _error.WriteLine(Format(Strings.PhotoDateMissingMany, missing.ToString("N0", _culture)));
         }
     }
 

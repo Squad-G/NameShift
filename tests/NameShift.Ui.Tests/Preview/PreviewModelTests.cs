@@ -380,7 +380,8 @@ public sealed class PreviewModelTests
 
         Assert.Throws<ArgumentNullException>(() => new PreviewModel(null!, _files, _delay.Delay));
         Assert.Throws<ArgumentNullException>(() => new PreviewModel(host, null!, _delay.Delay));
-        Assert.Throws<ArgumentNullException>(() => new PreviewModel(host, _files, null!));
+        Assert.Throws<ArgumentNullException>(() => new PreviewModel(host, _files, (Func<TimeSpan, CancellationToken, Task>)null!));
+        Assert.Throws<ArgumentNullException>(() => new PreviewModel(host, _files, (PhotoDates)null!));
     }
 
     [Fact]

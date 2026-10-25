@@ -49,7 +49,7 @@ public sealed class PreviewSnapshot
     }
 
     /// <summary>Creates a snapshot of a plan; there must be exactly one result per item of the batch.</summary>
-    internal PreviewSnapshot(FileBatch batch, RenamePlan plan)
+    internal PreviewSnapshot(FileBatch batch, RenamePlan plan, bool photoDatesRead = false)
     {
         if (batch == null)
         {
@@ -68,12 +68,18 @@ public sealed class PreviewSnapshot
 
         Batch = batch;
         Plan = plan;
+        PhotoDatesRead = photoDatesRead;
     }
 
     /// <summary>The batch the pipeline ran on, with the list it was taken from (compared with the file list's items).</summary>
     public FileBatch Batch { get; }
 
-    /// <summary>The exact list the pipeline ran on.</summary>
+    /// <summary>True when the run read the photo dates first (a Photo date rule was built): the planner then ran on copies
+    /// carrying them, and a result whose item has none used its modified date. False for every other run.</summary>
+    public bool PhotoDatesRead { get; }
+
+    /// <summary>The batch's items as listed. With photo dates read, the planner ran on copies carrying them: see each
+    /// result's <c>Item</c>.</summary>
     public IReadOnlyList<RenameItem> Items => Batch.Items;
 
     /// <summary>The plan of the batch: its results, conflicts, counts and Blocker.</summary>
