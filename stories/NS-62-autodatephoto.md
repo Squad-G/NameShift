@@ -1,6 +1,6 @@
 # NS-62: Auto date: the photo date in the engine
 
-Status: Ready
+Status: In Progress
 Depends on: NS-26, NS-27
 Area: engine
 
@@ -47,3 +47,4 @@ window or the command line changes until NS-86.
 ## Log
 - 2026-10-24: created when NS-27 was split: this is the rule and wiring part (po).
 - 2026-10-25: re-scoped to the engine only; reading and wiring moved to NS-85 and NS-86; fallback decided; set Ready (po).
+- 2026-10-25: In Progress (builder).
