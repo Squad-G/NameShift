@@ -101,15 +101,7 @@ public sealed class AppSettingsStore
     /// <exception cref="ArgumentNullException">The settings or the rules are null.</exception>
     public void Save(AppSettings settings, Preset rules)
     {
-        if (settings == null)
-        {
-            throw new ArgumentNullException(nameof(settings));
-        }
-
-        if (rules == null)
-        {
-            throw new ArgumentNullException(nameof(rules));
-        }
+        RejectNulls(settings, rules);
 
         try
         {
@@ -138,15 +130,7 @@ public sealed class AppSettingsStore
     /// <exception cref="ArgumentNullException">The settings or the rules are null.</exception>
     public bool SaveWithin(AppSettings settings, Preset rules, TimeSpan limit)
     {
-        if (settings == null)
-        {
-            throw new ArgumentNullException(nameof(settings));
-        }
-
-        if (rules == null)
-        {
-            throw new ArgumentNullException(nameof(rules));
-        }
+        RejectNulls(settings, rules);
 
         Task task = Task.Run(() => Save(settings, rules));
         try
@@ -174,6 +158,19 @@ public sealed class AppSettingsStore
         catch (Exception)
         {
             return null;
+        }
+    }
+
+    private static void RejectNulls(AppSettings settings, Preset rules)
+    {
+        if (settings == null)
+        {
+            throw new ArgumentNullException(nameof(settings));
+        }
+
+        if (rules == null)
+        {
+            throw new ArgumentNullException(nameof(rules));
         }
     }
 }
