@@ -85,7 +85,7 @@ internal sealed class DiskPresetFiles : IPresetFiles
         {
             var folder = Path.GetDirectoryName(path)!;
             var stem = Path.GetFileName(Path.ChangeExtension(path, null));
-            var ownTemp = new Regex("^" + Regex.Escape(stem) + @"\.[0-9a-f]{32}\.tmp$", RegexOptions.CultureInvariant);
+            var ownTemp = new Regex("^" + Regex.Escape(stem) + @"\.[0-9a-f]{32}\.tmp\z", RegexOptions.CultureInvariant);
             var cutoff = DateTime.UtcNow - StaleAge;
 
             // The wildcard can also match other names through an 8.3 short name, so each name is checked again.

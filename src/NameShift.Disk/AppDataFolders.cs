@@ -11,16 +11,6 @@ public static class AppDataFolders
     /// <summary>The name of NameShift's own folder inside a special folder.</summary>
     public const string AppFolderName = "NameShift";
 
-    /// <summary>%LOCALAPPDATA%\NameShift, or %TEMP%\NameShift when there is no usable local application data folder.
-    /// Only computed: reading it creates nothing.</summary>
-    public static string Local =>
-        Resolve(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Path.GetTempPath());
-
-    /// <summary>%APPDATA%\NameShift, or %TEMP%\NameShift when there is no usable roaming application data folder.
-    /// Only computed: reading it creates nothing.</summary>
-    public static string Roaming =>
-        Resolve(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Path.GetTempPath());
-
     /// <summary>&lt;specialFolderPath&gt;\NameShift when it is a fully qualified path (a drive letter, a colon and a
     /// separator, or a "\\server\share" path); otherwise &lt;tempPath&gt;\NameShift. Never throws for any special folder
     /// text.</summary>

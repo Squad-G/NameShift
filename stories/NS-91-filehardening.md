@@ -1,6 +1,6 @@
 # NS-91: Settings, presets and history: deep files, leftover temp files, no profile folder
 
-Status: In Review
+Status: Done
 Depends on: NS-37, NS-36, NS-9
 Area: app
 Chore: no visible change; three small hardening fixes from the NS-37 and NS-36 reviews, one concern: the files NameShift keeps.
@@ -67,3 +67,8 @@ and the three default folders change; nothing else.
 - 2026-10-25: In Progress (builder).
 - 2026-10-25: PR #90 review: the journal reader's quota gap added (criterion 8) (po).
 - 2026-10-25: created from the review follow-ups of NS-37 and NS-36; set Ready (po).
+- 2026-10-25: Done (tech-lead), PR #92 approved and squash-merged; review nits folded: the unused public
+  `AppDataFolders.Local` and `Roaming` removed; the temp-name regex ends with `\z` instead of `$`. Follow-ups:
+  `AppDataFolders.IsFullyQualified` accepts the bare two-character text `\\` (a UNC with no server; no real profile
+  returns it) (nit 3); `AppSettingsStore.DefaultFolder` has no test on the property itself, unlike the preset one; a
+  one-line test needs a way around `NoTestNamesTheUsersLocalFolder`, so it is left for a small chore (nit 2).
