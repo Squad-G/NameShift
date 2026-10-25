@@ -1,6 +1,6 @@
 # NS-82: Open a folder from the file list
 
-Status: In Progress
+Status: In Review
 Depends on: NS-10, NS-51, NS-78
 Area: app
 
@@ -67,3 +67,4 @@ point: `FolderNavigator` (`NavigateToTypedPathAsync`, `SelectFromTree`, its vers
 - 2026-10-24: PR #82 review applied: non-expanding entry point and its tests, status texts for every result, NS-78
   dependency (po).
 - 2026-10-25: In Progress (builder).
+- 2026-10-25: In Review (builder), PR #85.
