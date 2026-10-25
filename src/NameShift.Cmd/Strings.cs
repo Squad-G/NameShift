@@ -61,6 +61,36 @@ public static class Strings
     /// <summary>"{0} needs a value." ({0} is the option).</summary>
     public static string OptionNeedsValue => Get(nameof(OptionNeedsValue));
 
+    /// <summary>"{0}" is the name as typed, trimmed. Followed on the same line by SavedPresets or NoSavedPresets.</summary>
+    public static string PresetNotFound => Get(nameof(PresetNotFound));
+
+    /// <summary>{0} is the saved names in the store's order, joined by ", ".</summary>
+    public static string SavedPresets => Get(nameof(SavedPresets));
+
+    /// <summary>No preset is saved (or the folder cannot be read).</summary>
+    public static string NoSavedPresets => Get(nameof(NoSavedPresets));
+
+    /// <summary>No panel of the preset builds a rule.</summary>
+    public static string PresetHasNoRules => Get(nameof(PresetHasNoRules));
+
+    /// <summary>The success line of --save-preset.</summary>
+    public static string PresetSaved => Get(nameof(PresetSaved));
+
+    /// <summary>The name is taken and --overwrite is absent.</summary>
+    public static string PresetExists => Get(nameof(PresetExists));
+
+    /// <summary>{0} is the system message.</summary>
+    public static string PresetSaveFailed => Get(nameof(PresetSaveFailed));
+
+    /// <summary>Usage error.</summary>
+    public static string PresetNameBlank => Get(nameof(PresetNameBlank));
+
+    /// <summary>Usage error.</summary>
+    public static string PresetNameTooLong => Get(nameof(PresetNameTooLong));
+
+    /// <summary>Usage error.</summary>
+    public static string OverwriteNeedsSave => Get(nameof(OverwriteNeedsSave));
+
     /// <summary>"{0}: {1}": an option, then the window's own error text for its value.</summary>
     public static string OptionError => Get(nameof(OptionError));
 

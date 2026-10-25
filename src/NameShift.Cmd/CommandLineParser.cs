@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using NameShift.Core;
+using NameShift.Ui.Presets;
 using NameShift.Ui.Rules;
 
 namespace NameShift.Cmd;
@@ -11,7 +12,8 @@ namespace NameShift.Cmd;
 /// lower|upper|title|sentence</c>, the Add panel's <c>--prefix</c>, <c>--suffix</c>, <c>--insert &lt;text&gt;
 /// &lt;pos&gt;</c>, <c>--from-end</c> and <c>--word-space</c>, the Numbering panel's <c>--number</c>, <c>--number-mode</c>,
 /// <c>--number-start</c>, <c>--number-step</c>, <c>--number-pad</c>, <c>--number-separator</c>,
-/// <c>--number-position</c>, <c>--number-system</c> and <c>--number-case</c>, and <c>--dry-run</c>,
+/// <c>--number-position</c>, <c>--number-system</c> and <c>--number-case</c>, <c>--preset &lt;name&gt;</c> (a saved
+/// preset's rules), <c>--save-preset &lt;name&gt;</c> with <c>--overwrite</c>, and <c>--dry-run</c>,
 /// <c>--quiet|-q</c>, <c>--verbose|-v</c>; or <c>undo [--dry-run]</c>. Options of <c>apply</c> come in any order; the
 /// folder is the one argument that is neither an option nor an option's value. <c>undo</c> takes no folder. Words are
 /// compared ordinally, ignoring case.</summary>
@@ -50,6 +52,9 @@ internal static class CommandLineParser
     private const string NumberPositionOption = "--number-position";
     private const string NumberSystemOption = "--number-system";
     private const string NumberCaseOption = "--number-case";
+    private const string PresetOption = "--preset";
+    private const string SavePresetOption = "--save-preset";
+    private const string OverwriteOption = "--overwrite";
 
     private static readonly string[] GlobalWordList =
     {
@@ -61,7 +66,7 @@ internal static class CommandLineParser
         ReplaceOption, CaseOption, DryRunOption, QuietOption, QuietShortOption, VerboseOption, VerboseShortOption,
         PrefixOption, SuffixOption, InsertOption, FromEndOption, WordSpaceOption, NumberOption, NumberModeOption,
         NumberStartOption, NumberStepOption, NumberPadOption, NumberSeparatorOption, NumberPositionOption,
-        NumberSystemOption, NumberCaseOption,
+        NumberSystemOption, NumberCaseOption, PresetOption, SavePresetOption, OverwriteOption,
     };
 
     private static readonly string[] UndoOptionWordList = { DryRunOption };
@@ -212,6 +217,9 @@ internal static class CommandLineParser
         string? pad = null;
         string? separator = null;
         string? position = null;
+        string? presetName = null;
+        string? saveName = null;
+        bool overwrite = false;
         for (int i = 1; i < args.Count; i++)
         {
             string arg = args[i];
@@ -259,6 +267,59 @@ internal static class CommandLineParser
 
                 caseMode = parsedCase;
                 i += 1;
+            }
+            else if (Is(arg, PresetOption))
+            {
+                if (!TakeOne(args, ref i, PresetOption, out value, out error))
+                {
+                    return error!;
+                }
+
+                if (presetName != null)
+                {
+                    return Fail(Format(Strings.RepeatedOption, PresetOption));
+                }
+
+                if (value!.Trim().Length == 0)
+                {
+                    return Fail(Format(Strings.OptionNeedsValue, PresetOption));
+                }
+
+                presetName = value.Trim();
+            }
+            else if (Is(arg, SavePresetOption))
+            {
+                if (!TakeOne(args, ref i, SavePresetOption, out value, out error))
+                {
+                    return error!;
+                }
+
+                if (saveName != null)
+                {
+                    return Fail(Format(Strings.RepeatedOption, SavePresetOption));
+                }
+
+                PresetNameCheck check = PresetNames.Check(value);
+                if (check.Verdict == PresetNameVerdict.Empty)
+                {
+                    return Fail(Strings.PresetNameBlank);
+                }
+
+                if (check.Verdict == PresetNameVerdict.TooLong)
+                {
+                    return Fail(Strings.PresetNameTooLong);
+                }
+
+                saveName = check.Name;
+            }
+            else if (Is(arg, OverwriteOption))
+            {
+                if (overwrite)
+                {
+                    return Fail(Format(Strings.RepeatedOption, OverwriteOption));
+                }
+
+                overwrite = true;
             }
             else if (Is(arg, DryRunOption))
             {
@@ -513,6 +574,11 @@ internal static class CommandLineParser
             return Fail(Strings.QuietWithDryRun);
         }
 
+        if (overwrite && saveName == null)
+        {
+            return Fail(Strings.OverwriteNeedsSave);
+        }
+
         if (fromEnd && insertText == null)
         {
             return Fail(Strings.FromEndNeedsInsert);
@@ -619,14 +685,16 @@ internal static class CommandLineParser
 
         // A folder with a quote is what cmd makes of "D:\Pics\" --case lower: one argument that swallowed the options.
         // The runner says so (Strings.QuoteInFolder), which helps more than "give a rule".
-        if (find == null && !caseMode.HasValue && add == null && numbering == null && folder.IndexOf('"') < 0)
+        if (find == null && !caseMode.HasValue && add == null && numbering == null && presetName == null
+            && folder.IndexOf('"') < 0)
         {
             return Fail(Strings.NoRule);
         }
 
         OutputLevel output = quiet ? OutputLevel.Quiet : verbose ? OutputLevel.Verbose : OutputLevel.Normal;
         return ParsedCommand.Apply(new ApplyOptions(
-            folder, find, with, caseMode, dryRun, output, new ApplyPanels(add, numbering)));
+            folder, find, with, caseMode, dryRun, output, new ApplyPanels(add, numbering), presetName, saveName,
+            overwrite));
     }
 
     /// <summary>The one value after an option. A value that is an option word counts as missing (`--prefix --dry-run`

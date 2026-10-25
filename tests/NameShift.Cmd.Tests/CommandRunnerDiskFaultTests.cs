@@ -27,7 +27,7 @@ public sealed class CommandRunnerDiskFaultTests : IDisposable
         var renamer = new DeletingRenamer(vanishing, new JournaledBatchRenamer(new JournaledRenamer(_temp.History)));
         var output = new StringWriter(CultureInfo.InvariantCulture);
         var error = new StringWriter(CultureInfo.InvariantCulture);
-        var runner = new CommandRunner(output, error, _temp.Files, renamer, new DiskFileListSource(), Cmd.EnUs, "1.2.3");
+        var runner = new CommandRunner(output, error, _temp.Files, renamer, new DiskFileListSource(), Cmd.EnUs, "1.2.3", Cmd.UnusedPresets());
 
         int code = runner.Run(new[] { "apply", _temp.Files, "--case", "lower" });
 
@@ -46,7 +46,7 @@ public sealed class CommandRunnerDiskFaultTests : IDisposable
         var renamer = new DeletingRenamer(null, new JournaledBatchRenamer(new JournaledRenamer(_temp.History)));
         var output = new StringWriter(CultureInfo.InvariantCulture);
         var error = new StringWriter(CultureInfo.InvariantCulture);
-        var runner = new CommandRunner(output, error, _temp.Files, renamer, new DiskFileListSource(), Cmd.EnUs, "1.2.3");
+        var runner = new CommandRunner(output, error, _temp.Files, renamer, new DiskFileListSource(), Cmd.EnUs, "1.2.3", Cmd.UnusedPresets());
         int code;
         using (new FileStream(Path.Combine(_temp.Files, "IMG_001.JPG"), FileMode.Open, FileAccess.ReadWrite, FileShare.None))
         {
@@ -72,7 +72,7 @@ public sealed class CommandRunnerDiskFaultTests : IDisposable
         var renamer = new DeletingRenamer(null, new JournaledBatchRenamer(new JournaledRenamer(Path.Combine(blocker, "history"))));
         var output = new StringWriter(CultureInfo.InvariantCulture);
         var error = new StringWriter(CultureInfo.InvariantCulture);
-        var runner = new CommandRunner(output, error, _temp.Files, renamer, new DiskFileListSource(), Cmd.EnUs, "1.2.3");
+        var runner = new CommandRunner(output, error, _temp.Files, renamer, new DiskFileListSource(), Cmd.EnUs, "1.2.3", Cmd.UnusedPresets());
 
         int code = runner.Run(new[] { "apply", _temp.Files, "--case", "lower" });
 

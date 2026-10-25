@@ -57,6 +57,21 @@ public sealed class CmdStringsTests
     }
 
     [Fact]
+    public void PresetTexts()
+    {
+        Assert.Equal("Preset \"{0}\" was not found.", Strings.PresetNotFound);
+        Assert.Equal("Saved presets: {0}.", Strings.SavedPresets);
+        Assert.Equal("There are no saved presets.", Strings.NoSavedPresets);
+        Assert.Equal("The preset \"{0}\" has no rules.", Strings.PresetHasNoRules);
+        Assert.Equal("Preset \"{0}\" saved.", Strings.PresetSaved);
+        Assert.Equal("A preset named \"{0}\" exists. Add --overwrite to replace it.", Strings.PresetExists);
+        Assert.Equal("The preset could not be saved: {0}", Strings.PresetSaveFailed);
+        Assert.Equal("--save-preset needs a name.", Strings.PresetNameBlank);
+        Assert.Equal("A preset name has at most 100 characters.", Strings.PresetNameTooLong);
+        Assert.Equal("--overwrite needs --save-preset.", Strings.OverwriteNeedsSave);
+    }
+
+    [Fact]
     public void QuoteInFolder_ShowsTheBackslashes()
     {
         string text = string.Format(CultureInfo.InvariantCulture, Strings.QuoteInFolder, "D:\\Pics\"");

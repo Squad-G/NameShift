@@ -111,4 +111,45 @@ public sealed class CmdSourceScanTests
         Assert.Contains("JournaledRenamer.DefaultHistoryRoot", text, StringComparison.Ordinal);
         Assert.Contains("CommandRunner.ForDisk", text, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void ExeUsesTheWindowsPresets()
+    {
+        string path = Path.Combine(FindRoot(), "src", "NameShift.Cmd.Exe", "Program.cs");
+        Assert.True(File.Exists(path), path);
+
+        string text = File.ReadAllText(path);
+
+        Assert.Contains("PresetStore." + "Default" + "Folder", text, StringComparison.Ordinal);
+        Assert.Contains("CommandRunner.ForDisk", text, StringComparison.Ordinal);
+        Assert.Contains("JournaledRenamer.DefaultHistoryRoot", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TestsNeverUseTheRealPresetsFolder()
+    {
+        // The patterns are built by concatenation so that this file does not match itself.
+        string[] patterns = { "PresetStore." + "Default" + "Folder", "SpecialFolder." + "ApplicationData" };
+        string folder = Path.Combine(FindRoot(), "tests", "NameShift.Cmd.Tests");
+        var scanned = new List<string>();
+        var found = new List<string>();
+        foreach (string file in Directory.GetFiles(folder, "*.cs", SearchOption.AllDirectories))
+        {
+            string[] segments = file.Substring(folder.Length).Split('\\', '/');
+            if (segments.Contains("bin") || segments.Contains("obj"))
+            {
+                continue;
+            }
+
+            scanned.Add(file);
+            string text = File.ReadAllText(file);
+            if (patterns.Any(pattern => text.Contains(pattern)))
+            {
+                found.Add(file);
+            }
+        }
+
+        Assert.True(scanned.Count >= 5, "Only " + scanned.Count + " test files were scanned under " + folder);
+        Assert.Empty(found);
+    }
 }

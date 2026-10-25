@@ -73,7 +73,7 @@ IDs), not the rank: the rank is the row order.
 | 40 | [NS-40 Command line: Add and Numbering options](NS-40-clirules.md) | Done | NS-38, NS-12, NS-53, NS-61, NS-43, NS-42, NS-39 |
 | 80 | [NS-80 Fix raw control characters in a test and guard against them](NS-80-controlchars.md) | Ready | |
 | 81 | [NS-81 Pin the exit code of a refused undo that leaves the history unusable](NS-81-undoexit.md) | Ready | NS-42 |
-| 69 | [NS-69 Command line: use a saved preset](NS-69-clipreset.md) | Ready | NS-38, NS-36, NS-43, NS-72, NS-42, NS-39, NS-40 |
+| 69 | [NS-69 Command line: use a saved preset](NS-69-clipreset.md) | Done | NS-38, NS-36, NS-43, NS-72, NS-42, NS-39, NS-40 |
 | 78 | [NS-78 Sub-folders box and Folder column](NS-78-subfolderbox.md) | Ready | NS-70, NS-74 |
 | 79 | [NS-79 Command line: split the apply parser by panel](NS-79-parseapplysplit.md) | Ready | NS-40, NS-69 |
 | 75 | [NS-75 Command line: Name, Extension and Remove options](NS-75-clirules2.md) | Ready | NS-40, NS-69, NS-79, NS-55, NS-30 |
