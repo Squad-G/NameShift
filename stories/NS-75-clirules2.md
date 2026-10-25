@@ -32,7 +32,9 @@ The five rules (the "option rules"):
 - **R5 The window's own text.** A number or a pattern that is refused gives `OptionError` = `{0}: {1}` with the window's
   string for it, minus its last sentence (`Until then ... is skipped.`). The cut is one helper that removes everything from
   the last `Until then` (new string `SkipSentenceMarker` = `Until then`, replacing NS-40's `NumberingSkippedSentence`;
-  the numbering messages read as before, NS-40's tests unchanged), trimmed. A test asserts that every window string
+  the numbering messages read as before). The two tests that name the old key are edited to the new key and helper with the
+  same asserted outputs: `CmdStringsTests` (the exact text of the key, line 55) and `CommandLineParserTests` (the expected
+  cut, lines 550-551), trimmed. A test asserts that every window string
   the command line shows (NS-75 and NS-76 list them) contains the marker and that the cut text contains neither `Until` nor
   `skipped`.
 
@@ -51,8 +53,8 @@ Extension (the Extension panel):
 3. Given `--ext-lower`, `--ext-upper`, `--ext-fixed <text>`, `--ext-extra <text>`, `--ext-remove` (modes Lower, Upper, Fixed,
    Extra, Remove), then: `IMG_001.JPG` with `--ext-lower` gives `IMG_001.jpg`; `a.txt` with `--ext-upper` gives `a.TXT`;
    `a.jpg` with `--ext-fixed jpeg` or `--ext-fixed .jpeg` gives `a.jpeg` (the rule trims dots and spaces at both ends);
-   `a.txt` with `--ext-extra bak` gives `a.txt.bak`; `a.txt` with `--ext-remove` gives `a`; a file with no extension and
-   `--ext-fixed md` gets `.md`. Folders are never touched (files only, NS-38).
+   `a.txt` with `--ext-extra bak` gives `a.txt.bak`; `a.txt` with `--ext-remove` gives `a`; `README` (no extension) with
+   `--ext-fixed md` becomes `README.md`. Folders are never touched (files only, NS-38).
 4. Given two of the five flags, then `OneModeOnly` with `--ext-lower, --ext-upper, --ext-fixed, --ext-extra or
    --ext-remove`. Given `--ext-fixed` or `--ext-extra` with a text that is empty or only dots and spaces (the rule would
    skip it), then the new `BlankExtension` = `The text of {0} cannot be empty or only dots and spaces.`.
@@ -68,17 +70,20 @@ Remove (the Remove panel; the options are named after its settings, and every fl
    `--remove-text img` gives `_001.JPG` (ignoring case, the window's default), `--remove-text img --remove-match-case`
    changes nothing; on `abcdef.txt`, `--remove-from 2 --remove-to 3` gives `adef.txt` (both ends counted); on
    `Trip - a.txt`, `--remove-before " - "` gives `a.txt` and with `--remove-keep-marker` gives ` - a.txt`.
-6. Given a count or a range the window would mark red, then R5: `--remove-first 0` or `--remove-first x` gives
-   `--remove-first: Type a whole number from 1.` (`Strings.RemovePositionInvalid` cut), the same for `--remove-last`;
-   `--remove-from` without `--remove-to` (or the reverse), or From after To, gives `--remove-from and --remove-to: Type two
+6. Given a count or a range the window would mark red, or leaves blank (the models flag a typed bad value only, so the
+   parser also checks that the value is not empty or white space), then R5: `--remove-first 0`, `--remove-first x`,
+   `--remove-first ""` or `--remove-first " "` gives `--remove-first: Type a whole number from 1.`
+   (`Strings.RemovePositionInvalid` cut), the same for `--remove-last`;
+   `--remove-from` without `--remove-to` (or the reverse), either one blank (also both blank), or From after To, gives `--remove-from and --remove-to: Type two
    whole numbers from 1, From not after To.` (`Strings.RemoveRangeInvalid` cut; the label is a new string
    `RemoveRangeOptions`). Given `--remove-chars`, `--remove-text`, `--remove-before` or `--remove-after` with an empty text
    (the rule skips it), then the new `EmptyOptionText` = `The text of {0} cannot be empty.` (a single space is a valid text).
 7. Given a modifier without its option (R2), then `NeedsOption`: `--remove-whole-word` needs `--remove-text`;
    `--remove-match-case` needs `--remove-chars, --remove-text, --remove-before or --remove-after`;
    `--remove-keep-marker` needs `--remove-before or --remove-after`. With its option present, the modifier is accepted
-   (R3 does not apply: the panel enables it). Because of R2 and R4, any Remove option given builds a rule: a test asserts
-   `BuildRule()` is never null for a model the parser returns, over the table of cases.
+   (R3 does not apply: the panel enables it). Because of R2 and R4 (blank counts and texts are refused in criterion 6), any
+   Remove option the parser accepts builds a rule: a test asserts `BuildRule()` is never null for a model the parser
+   returns, over the table of accepted cases, and that each refused blank case of criterion 6 is an error.
 
 Same as the window, and the rest:
 8. Given each of criteria 1, 3 and 5 (a table of cases covering every option, each switch alone and in a pair), then a parity
@@ -129,3 +134,4 @@ Same as the window, and the rest:
 - 2026-10-24: created (po); Draft until NS-40 is merged, so the option pattern is settled by the first PR.
 - 2026-10-24: NS-40 approved (review of its code): criteria written against its parser, `ApplyPanels` and help; the split of
   `ParseApply` is the chore NS-79, which this story follows; set Ready, to start after NS-40, NS-69 and NS-79 are merged (po).
+- 2026-10-24: PR #75 review applied: the two tests naming the old key are edited, blank counts refused, `README.md` example (po).

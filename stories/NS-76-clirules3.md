@@ -39,7 +39,9 @@ words, not twelve):
    `abcdefabc.txt`, `--move 3 --move-from end --move-to start` gives `defabc.txt`. The position and the separator
    examples are left to the parity test (the oracle).
 4. Given both `--move` and `--copy`, then `OneModeOnly` with `--move or --copy`. Given any of the four modifiers without
-   `--move` or `--copy`, then `NeedsOption` with `--move or --copy`. Given a count that is not a whole number from 1,
+   `--move` or `--copy`, then `NeedsOption` with `--move or --copy`. Given a count that is not a whole number from 1
+   (`0`, `x`, and also empty or white space: `MoveCopyPanelModel.CountInvalid` flags a typed value only, so the parser checks
+   blank itself, with a test row for `--move ""` and `--copy " "`),
    then `--move: Type a whole number from 1.` (or `--copy:`, the flag given; `Strings.MoveCopyNumberInvalid` cut). Given
    `--move-to position` with no usable `--move-position` (absent, `0`, `x`), then `--move-position: Type a whole number
    from 1.` (the same string; `PositionInvalid` is true when the position applies). Given `--move-position` and a target
@@ -93,8 +95,8 @@ Same as the window, and the rest:
     its exact text: `RegexNeedsValues`, `MoveFromValues`, `MoveToValues`, `DateSourceValues`, `PlacementValues`, and
     the shared ones of NS-75 with these options. The R5 guard of NS-75 lists the four window strings of this story.
 13. Given every panel of the window now has options, then a reflection test over the `NameShift.Ui` assembly checks that each
-    non-abstract `RulePanelModel` subclass is either `ReplacePanelModel` or `CasePanelModel` (which `ApplyOptions` builds
-    itself) or the type of a property of `ApplyPanels`, failing with the type's name, so a future panel cannot be added to
+    non-abstract `RulePanelModel` subclass is either `ReplacePanelModel` or `CasePanelModel` (built from the `--replace` and `--case`
+    options as NS-69 leaves them: fields of `ApplyOptions` or models, the test follows what NS-69 did) or the type of a property of `ApplyPanels`, failing with the type's name, so a future panel cannot be added to
     the window and forgotten on the command line.
 
 ## Out of scope
@@ -123,3 +125,4 @@ Same as the window, and the rest:
 - 2026-10-24: created (po); Draft until NS-40 is merged.
 - 2026-10-24: NS-40 approved. Criteria written from the panel models (every setting an option, the window's error text cut),
   after NS-75 settles the five option rules; set Ready, to start after NS-75 is merged (po).
+- 2026-10-24: PR #75 review applied: blank `--move` count refused, Replace and Case worded as NS-69 leaves them (po).

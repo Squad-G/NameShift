@@ -15,7 +15,9 @@ Tick one box to list and rename the files of all sub-folders, and see which fold
 (NS-74:3), `FileListText.RelativeFolder` (NS-74:14), `FileListModel.FindRow` (NS-74:12). Names are indicative.
 1. Given the row, then a check box `Sub-folders` sits at the end of the first line, after `Hidden` and before the More
    toggle, unticked at start, with the Alt key `Su&b-folders` (B). The letters in use are the panel titles and the menu (R C
-   M X E G V D F A N P) and NS-70's first line (K L S H O): B is free, and so is U. `WindowMnemonicTests.TitleLetters_Distinct`
+   M X E G V D F A N P) and NS-70's first line (K L S H O): B is free among these top-level texts (inside the Remove panel `Crop &before` also uses B, which the
+   existing tests allow: a panel's own letters are separate), and so is U. NS-70's list of free letters still contains B:
+   it is reserved for this box, and NS-70 must not give it to the More line (the NS-70 brief is updated for this). `WindowMnemonicTests.TitleLetters_Distinct`
    gets the new string `FilterSubfolders` (and fails if the letter repeats); its accessible name is the text without `&`.
    Ticking sets `FilterPanelModel.IncludeSubfolders` at once: `FilterTyping.Flush()` first (so a mask being typed applies
    before, as for every check box in NS-70), then the model, with no typing delay.
@@ -80,6 +82,7 @@ Tick one box to list and rename the files of all sub-folders, and see which fold
 
 ## Log
 - 2026-10-24: created when NS-70 was split (po); Draft until NS-70 and NS-74 are merged.
+- 2026-10-24: PR #75 review applied: B is free among top-level texts only, and reserved for this box in NS-70's list (po).
 - 2026-10-24: NS-74 merged. Re-checked against its API and the NS-70 brief (first-line Alt keys K L S H O, FilterBinding,
   FilterTyping): Alt key B chosen, the column map and the skipped-folders notice moved to tested `Ui` classes, the Reset
   case and the disposal added; set Ready, to start after NS-70 is merged (po).

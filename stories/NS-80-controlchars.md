@@ -6,8 +6,8 @@ Area: app
 Chore: no product change.
 
 ## Why
-`tests/NameShift.Ui.Tests/Actions/MainActionsTests.cs`, test `Rename_NeedsAttention_LocksRename` (lines 1114 and 1115 at
-`dev` `a87633e`), holds a raw backspace byte (0x08) in `@"C:\A.txt"` of the `Failure` and a raw bell byte (0x07) in the
+`tests/NameShift.Ui.Tests/Actions/MainActionsTests.cs`, test `Rename_NeedsAttention_LocksRename` (lines 1114 and 1115 when the story was
+written), holds a raw backspace byte (0x08) in `@"C:\A.txt"` of the `Failure` and a raw bell byte (0x07) in the
 `@"C:\A.txt"` of the `Stranded` call. A verbatim string `@"C:\A\b.txt"` was meant, and `@"C:\A\a.txt"`: an editor or a
 paste turned the `\b` and `\a` into the control characters, so the paths read `C:\A.txt` on screen and are not the paths
 the test means. Nothing fails today; the next person to edit the line will not see what is there.
@@ -17,10 +17,12 @@ the test means. Nothing fails today; the next person to edit the line will not s
    `@"C:\A\a.txt"` (the second argument of `DiskResults.Stranded`), written with printable characters only (the
    backslash-letter pairs, not escapes that the verbatim string would not process). The test still passes on net10.0 and
    net48; if an assertion depended on the old strings, it is updated to the new paths and the PR says so.
-2. Given a guard, then a Ui test (next to `AppStyleScanTests`, reusing the repository scan helper it uses) reads every `.cs`,
+2. Given a guard, then a Ui test (next to `AppStyleScanTests`) reads every `.cs`,
    `.resx`, `.csproj`, `.md`, `.iss`, `.json` and `.props` file under `src`, `tests`, `docs`, `stories` and `installer`
-   and fails, naming `file:line` and the code point, for any control character other than tab, line feed and carriage
-   return (U+0000 to U+0008, U+000B, U+000C, U+000E to U+001F, U+007F). Files under `bin` and `obj` are not scanned.
+   (a folder that does not exist, such as `installer` today, is skipped) and fails, naming `file:line` and the code point, for any control character other than tab, line feed and carriage
+   return (U+0000 to U+0008, U+000B, U+000C, U+000E to U+001F, U+007F). Files under `bin` and `obj` are not scanned. The repository-root finder is private to `AppStyleScanTests`
+   today (`RepositoryRoot()`): the builder extracts it into a shared internal test helper used by both scans, with no change
+   in what `AppStyleScanTests` checks.
 3. Given the scanning logic, then it is a small pure function (text in, list of line and code point out) with its own tests
    that build the offending text from `\u0008`, `\u0007`, `\u0000`, `\u007F` escapes (never raw bytes in the test file,
    which would fail the guard itself) and check: a clean text gives nothing; one finding per control character with the right
@@ -39,4 +41,5 @@ the test means. Nothing fails today; the next person to edit the line will not s
 - Which paths in the test? **Decision:** `C:\A\b.txt` and `C:\A\a.txt`, as the owner of the test meant (po, 2026-10-24).
 
 ## Log
-- 2026-10-24: created and set Ready (po). The task note gave lines 1081-1082; at `a87633e` the bytes are on 1114 and 1115.
+- 2026-10-24: created and set Ready (po). The task note gave lines 1081-1082; the bytes are on 1114 and 1115.
+- 2026-10-24: PR #75 review applied: missing folders skipped, the root finder is extracted, stale commit id dropped (po).

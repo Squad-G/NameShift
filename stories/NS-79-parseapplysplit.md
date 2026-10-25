@@ -18,7 +18,7 @@ Code in `src/NameShift.Cmd` only; no change in `Strings.resx`, the help, `NameSh
    own, the builder first adds a characterization test that passes on the old code (the PR lists them), then does the split.
 2. Given the split, then `ParseApply` is a short loop (at most 120 lines) that asks each panel reader in turn whether the
    argument is its own, and the rest of the file is the verbs, `Fail`, `Format` and the help dispatch. One internal reader
-   per option group, in `src/NameShift.Cmd`: Replace and Case (the old fields stay in `ApplyOptions`), Add, Numbering, the
+   per option group, in `src/NameShift.Cmd`: Replace and Case (stored as NS-69 leaves them, fields of `ApplyOptions` or models), Add, Numbering, the
    output and run switches (`--dry-run`, `--quiet`, `--verbose`) and, after NS-69, the preset options. The tech lead's brief
    picks the exact shape; it must have these properties:
    - a reader owns its words (constants) and its state, reads one argument and the values after it, and says whether the

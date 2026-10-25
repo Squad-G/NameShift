@@ -21,9 +21,16 @@ review asked whether this run should exit 3 or 4. Nothing pins the answer: `Exit
    stream, and the error stream has the window's `ActionText.ForRevert` text, whose status line ends with the journal-issue
    sentence (as for any `AfterFinish`), so a person reading it learns that the history file could not be cleaned. A test checks
    the exit code and that the text holds the issue's system message.
-3. Given the same situation on a real temp history (a `pending.json` the test cannot delete: open with no sharing, or a read-only
-   attribute on the folder's file), then the first `undo` exits 3 with that text, and a second `undo` exits 3 with
-   `UndoHistoryUnusable` and does not call `Revert()`; both write nothing in the output stream. The test fails with the
+3. Given the same situation on a real temp history, then the first `undo` exits 3 with that text, and a second `undo` exits 3
+   with `UndoHistoryUnusable` and does not call `Revert()`; both write nothing in the output stream. `pending.json` is
+   written by `Revert` itself just before the executor runs, so it cannot be locked beforehand (that would make the history
+   Interrupted or the write fail: `NotStarted`). The scenario is built from two things: (a) a batch made earlier in the temp
+   folder, then one of its renamed files held open with `FileShare.None`, so that every planned rename fails after the plan
+   (an empty plan would return `NothingReverted` before any pending file is written, with no issue); (b) a
+   `JournaledBatchRenamer` built over the internal `JournaledRenamer` constructor with an injected `IJournalFiles` whose
+   `Delete("pending.json")` throws (as `HookedJournalFiles` with `FailDelete` does in `Disk.Tests`; `InternalsVisibleTo`
+   gives `NameShift.Cmd.Tests` the constructor), the `CommandRunner` built by the test with that renamer (`ForDisk` takes
+   only a history root). The second `undo` uses a renamer over the same root without the hook. The test fails with the
    command's output if the scenario cannot be built (it never skips) and releases the file in `Dispose`.
 4. Given `PartlyReverted` with an `AfterFinish` issue, then the exit code stays 4 (some files were restored: look at the disk);
    a row pins it.
@@ -42,3 +49,4 @@ review asked whether this run should exit 3 or 4. Nothing pins the answer: `Exit
 
 ## Log
 - 2026-10-24: created and set Ready (po), from the NS-42 review question.
+- 2026-10-24: PR #75 review applied: criterion 3 rebuilt around a locked file and an injected `IJournalFiles` (po).
