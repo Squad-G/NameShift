@@ -147,13 +147,13 @@ Examples:
                              Replace regex matches; $1 and ${name} work.
   --regex-ignore-case        With --regex: ignore capitals when matching.
   --regex-extension          With --regex: also change the extension.
-  --move &lt;n&gt;                 Move the first &lt;n&gt; characters of the name.
-  --copy &lt;n&gt;                 Copy the first &lt;n&gt; characters of the name.
-  --move-from start|end      Take the characters from the start or the end.
+  --move &lt;n&gt;                 Move &lt;n&gt; characters of the name elsewhere.
+  --copy &lt;n&gt;                 Copy &lt;n&gt; characters of the name elsewhere.
+  --move-from start|end      With --move or --copy: take from the start or end.
   --move-to start|end|position
-                             Where they go; position needs --move-position.
-  --move-position &lt;n&gt;        The character they go at (--move-to position).
-  --move-separator &lt;text&gt;    Text between the moved characters and the name.
+                             With --move or --copy: where they go.
+  --move-position &lt;n&gt;        With --move or --copy: the character for position.
+  --move-separator &lt;text&gt;    With --move or --copy: text between the parts.
   --date                     Add the file date: modified, yyyy-MM-dd, prefix.
   --date-source modified|created
                              Which date of the file to use.

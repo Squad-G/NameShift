@@ -42,7 +42,7 @@ public sealed class WindowParityRegexMoveDateFolderTests
         yield return RegexRow(Plain, "--regex|-|_", m => { m.Pattern = "-"; m.Replacement = "_"; });
 
         // Move and copy.
-        string[] words = { "abcdef.txt", "caf00E9.txt", "README" };
+        string[] words = { "abcdef.txt", "caf\u00E9.txt", "README" };
         yield return MoveRow(words, "--move|3", m => { m.Mode = MoveCopyMode.Move; m.CountText = "3"; });
         yield return MoveRow(words, "--copy|3", m => { m.Mode = MoveCopyMode.Copy; m.CountText = "3"; });
         yield return MoveRow(words, "--move|3|--move-from|end|--move-to|start", m =>
@@ -80,7 +80,7 @@ public sealed class WindowParityRegexMoveDateFolderTests
             m.Target = MoveCopyTarget.Start;
             m.PositionText = "x";
         });
-        yield return MoveRow(new[] { "caf00E9.txt" }, "--move|1", m => m.CountText = "1");
+        yield return MoveRow(new[] { "caf\u00E9.txt" }, "--move|1", m => m.CountText = "1");
         yield return MoveRow(new[] { "\U0001F600abc.txt" }, "--move|1", m => m.CountText = "1");
         yield return MoveRow(new[] { "\U0001F600abc.txt" }, "--copy|1|--move-from|start|--move-to|end", m =>
         {
