@@ -501,24 +501,17 @@ internal sealed class MainForm : Form
         }
     }
 
-    /// <summary>Saves the window facts and the rules (NS-37) at close: on the pool, waiting at most 2 seconds, silent.
-    /// Nothing of the filters, the sort, the selection, the sub-folders box, the collapse state or the lock is read.</summary>
+    /// <summary>Saves the window, the splitter, the last folder, the collapsed panels and the rules (NS-37, NS-84) at
+    /// close: on the pool, waiting at most 2 seconds, silent. Nothing of the filters, the sort, the selection, the
+    /// sub-folders box or the lock is read.</summary>
     private void SaveSettings()
     {
         try
         {
-            Rectangle b = WindowState == FormWindowState.Normal ? Bounds : RestoreBounds;
-            bool maximized = WindowState == FormWindowState.Maximized
-                || (WindowState == FormWindowState.Minimized && _maximizedBeforeMinimize);
-            double scale = DeviceDpi / 96.0;
-            SavedWindow? window = b.Width > 0 && b.Height > 0
-                ? WindowPlacement.ToSaved(b.Left, b.Top, b.Width, b.Height, scale, maximized)
-                : null;
-            int split = (int)Math.Round(_mainSplit.SplitterDistance / scale, MidpointRounding.AwayFromZero);
-
-            // A start that never showed a folder keeps the one read at start instead of erasing it.
-            var settings = new AppSettings(
-                window, split >= 0 ? split : null, _navigator.CurrentFolder ?? _saved.LastFolder, PanelCollapse.States);
+            var facts = new SettingsFacts(
+                ShowState(WindowState), Device(Bounds), Device(RestoreBounds), _maximizedBeforeMinimize, DeviceDpi / 96.0,
+                _mainSplit.SplitterDistance, _navigator.CurrentFolder, _saved.LastFolder, PanelCollapse.States);
+            AppSettings settings = SettingsCapture.Capture(facts);
             _settingsStore.SaveWithin(
                 settings, Preset.FromPanels(AppSettingsStore.LastRulesName, RuleHost.Panels), AppSettingsStore.SaveLimit);
         }
@@ -527,6 +520,21 @@ internal sealed class MainForm : Form
             // A close must never crash, and a failure to save is silent.
         }
     }
+
+    private static WindowShowState ShowState(FormWindowState state)
+    {
+        switch (state)
+        {
+            case FormWindowState.Maximized:
+                return WindowShowState.Maximized;
+            case FormWindowState.Minimized:
+                return WindowShowState.Minimized;
+            default:
+                return WindowShowState.Normal;
+        }
+    }
+
+    private static DeviceRect Device(Rectangle r) => new DeviceRect(r.Left, r.Top, r.Width, r.Height);
 
     /// <summary>Opens the folder shown at the last close (NS-37 AC 8): checked off the UI thread; a folder that is gone
     /// falls back to the start folder with no message. A click in the tree or a typed path meanwhile wins (its
