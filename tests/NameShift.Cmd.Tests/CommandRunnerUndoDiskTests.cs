@@ -199,7 +199,7 @@ public sealed class CommandRunnerUndoDiskTests : IDisposable
         var output = new StringWriter(CultureInfo.InvariantCulture);
         var error = new StringWriter(CultureInfo.InvariantCulture);
 
-        int code = CommandRunner.ForDisk(output, error, other, _temp.History, "1.2.3").Run(new[] { "undo" });
+        int code = CommandRunner.ForDisk(output, error, other, _temp.History, _temp.Presets, "1.2.3").Run(new[] { "undo" });
 
         Assert.Equal(0, code);
         Assert.Equal("", error.ToString());

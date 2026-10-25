@@ -9,7 +9,9 @@ using NameShift.Disk;
 using NameShift.Ui;
 using NameShift.Ui.Actions;
 using NameShift.Ui.Files;
+using NameShift.Ui.Presets;
 using NameShift.Ui.Preview;
+using NameShift.Ui.Rules;
 
 namespace NameShift.Cmd;
 
@@ -25,6 +27,7 @@ public sealed class CommandRunner
     private readonly IFileListSource _files;
     private readonly CultureInfo _culture;
     private readonly string _version;
+    private readonly PresetStore _presets;
     private bool _renamerCalled;
     private bool _undoing;
 
@@ -35,8 +38,9 @@ public sealed class CommandRunner
     /// <param name="files">Lists the folder.</param>
     /// <param name="culture">Formats the counts of the window's sentences.</param>
     /// <param name="version">The text <c>--version</c> prints after <c>NameShift</c>.</param>
+    /// <param name="presets">The saved presets <c>--preset</c> reads and <c>--save-preset</c> writes.</param>
     public CommandRunner(TextWriter output, TextWriter error, string currentDirectory, IBatchRenamer renamer,
-        IFileListSource files, CultureInfo culture, string version)
+        IFileListSource files, CultureInfo culture, string version, PresetStore presets)
     {
         _output = output ?? throw new ArgumentNullException(nameof(output));
         _error = error ?? throw new ArgumentNullException(nameof(error));
@@ -45,16 +49,19 @@ public sealed class CommandRunner
         _files = files ?? throw new ArgumentNullException(nameof(files));
         _culture = culture ?? throw new ArgumentNullException(nameof(culture));
         _version = version ?? throw new ArgumentNullException(nameof(version));
+        _presets = presets ?? throw new ArgumentNullException(nameof(presets));
     }
 
-    /// <summary>For tests only: replaces <see cref="ApplyOptions.BuildRules"/> (a rule error cannot be produced by
+    /// <summary>For tests only: when set, replaces the rules of the panels (a rule error cannot be produced by
     /// --replace or --case).</summary>
-    internal Func<ApplyOptions, IReadOnlyList<IRenameRule>> BuildRules { get; set; } = o => o.BuildRules();
+    internal Func<ApplyOptions, IReadOnlyList<IRenameRule>>? BuildRules { get; set; }
 
     /// <summary>The real thing: the disk's listing, the journaled renamer with its history in
-    /// <paramref name="historyRoot"/>, and the current culture. <paramref name="version"/> is what <c>--version</c> prints.</summary>
+    /// <paramref name="historyRoot"/>, the presets in <paramref name="presetsFolder"/> (nothing is read until a preset
+    /// option is used), and the current culture. <paramref name="version"/> is what <c>--version</c> prints.</summary>
     public static CommandRunner ForDisk(
-        TextWriter output, TextWriter error, string currentDirectory, string historyRoot, string version) =>
+        TextWriter output, TextWriter error, string currentDirectory, string historyRoot, string presetsFolder,
+        string version) =>
         new CommandRunner(
             output,
             error,
@@ -62,7 +69,8 @@ public sealed class CommandRunner
             new JournaledBatchRenamer(new JournaledRenamer(historyRoot)),
             new DiskFileListSource(),
             CultureInfo.CurrentCulture,
-            version);
+            version,
+            new PresetStore(presetsFolder));
 
     /// <summary>Runs one command line; returns the exit code (an <see cref="ExitCode"/>), always 0 to 4.</summary>
     public int Run(IReadOnlyList<string> args)
@@ -143,6 +151,50 @@ public sealed class CommandRunner
             return Fail(folderError, ExitCode.InputError);
         }
 
+        // The window's own panels: the preset first, then each rule option over its panel, whole.
+        var host = new RulePanelHostModel(RulePanelModels.CreateAll());
+        if (options.PresetName != null)
+        {
+            PresetLoadResult loaded = _presets.Load(options.PresetName);
+            if (loaded.Preset == null)
+            {
+                IReadOnlyList<PresetEntry> saved = _presets.List().Presets;
+                string known = saved.Count == 0
+                    ? Strings.NoSavedPresets
+                    : Format(Strings.SavedPresets, string.Join(", ", saved.Select(entry => entry.Name)));
+                return Fail(Format(Strings.PresetNotFound, options.PresetName) + " " + known, ExitCode.InputError);
+            }
+
+            host.ApplyPreset(loaded.Preset);
+            if (host.Rules.Count == 0)
+            {
+                return Fail(Format(Strings.PresetHasNoRules, options.PresetName), ExitCode.InputError);
+            }
+        }
+
+        options.ApplyTo(host);
+
+        if (options.SaveName != null)
+        {
+            PresetSaveResult saveResult = _presets.Save(Preset.FromPanels(options.SaveName, host.Panels), options.Overwrite);
+            switch (saveResult.Status)
+            {
+                case PresetSaveStatus.Saved:
+                    if (options.Output != OutputLevel.Quiet)
+                    {
+                        _output.WriteLine(Format(Strings.PresetSaved, options.SaveName));
+                    }
+
+                    break;
+                case PresetSaveStatus.Exists:
+                    return Fail(Format(Strings.PresetExists, options.SaveName), ExitCode.InputError);
+                case PresetSaveStatus.Failed:
+                    return Fail(Format(Strings.PresetSaveFailed, saveResult.SystemMessage ?? ""), ExitCode.NotRenamed);
+                default:
+                    throw new InvalidOperationException("The preset name was refused: " + saveResult.Status);
+            }
+        }
+
         FileListing listing = _files.ListEntries(folder, false, CancellationToken.None);
         if (listing.Problem != null)
         {
@@ -154,7 +206,7 @@ public sealed class CommandRunner
         var filter = new ItemFilter(includeFolders: false);
         RenameItem[] items = FileListOrder.Sort(listing.Items).Where(filter.Includes).ToArray();
 
-        RenamePlan plan = RenamePlanner.Plan(BuildRules(options), items, listing.ExistingNamesByFolder, CancellationToken.None);
+        RenamePlan plan = RenamePlanner.Plan(BuildRules?.Invoke(options) ?? host.Rules, items, listing.ExistingNamesByFolder, CancellationToken.None);
         switch (plan.Blocker)
         {
             case RenameBlocker.Conflicts:

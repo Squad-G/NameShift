@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using NameShift.Core;
+using NameShift.Ui.Presets;
 using NameShift.Ui.Files;
 using NameShift.Ui.Folders;
 using Xunit;
@@ -226,7 +227,7 @@ public sealed class CommandRunnerTests : IDisposable
         _temp.File("IMG_001.JPG");
         var renamer = new FakeBatchRenamer { Result = CmdResults.Succeeded(1) };
         var error = new StringWriter(CultureInfo.InvariantCulture);
-        var runner = new CommandRunner(new ThrowingWriter(), error, _temp.Files, renamer, new DiskFileListSource(), Cmd.EnUs, "1.2.3");
+        var runner = new CommandRunner(new ThrowingWriter(), error, _temp.Files, renamer, new DiskFileListSource(), Cmd.EnUs, "1.2.3", Cmd.UnusedPresets());
 
         int code = runner.Run(new[] { "apply", _temp.Files, "--case", "lower" });
 
@@ -239,7 +240,7 @@ public sealed class CommandRunnerTests : IDisposable
     public void BothStreamsFail_ListingThrows_Exit3()
     {
         var runner = new CommandRunner(
-            new ThrowingWriter(), new ThrowingWriter(), _temp.Files, new FakeBatchRenamer(), new ThrowingFileListSource(), Cmd.EnUs, "1.2.3");
+            new ThrowingWriter(), new ThrowingWriter(), _temp.Files, new FakeBatchRenamer(), new ThrowingFileListSource(), Cmd.EnUs, "1.2.3", Cmd.UnusedPresets());
 
         Assert.Equal(3, runner.Run(new[] { "apply", _temp.Files, "--case", "lower" }));
     }
@@ -250,7 +251,7 @@ public sealed class CommandRunnerTests : IDisposable
         _temp.File("IMG_001.JPG");
         var renamer = new FakeBatchRenamer { Throws = new InvalidOperationException("A bug in the renamer.") };
         var runner = new CommandRunner(
-            new StringWriter(CultureInfo.InvariantCulture), new ThrowingWriter(), _temp.Files, renamer, new DiskFileListSource(), Cmd.EnUs, "1.2.3");
+            new StringWriter(CultureInfo.InvariantCulture), new ThrowingWriter(), _temp.Files, renamer, new DiskFileListSource(), Cmd.EnUs, "1.2.3", Cmd.UnusedPresets());
 
         Assert.Equal(4, runner.Run(new[] { "apply", _temp.Files, "--case", "lower" }));
         Assert.Equal(1, renamer.RenameCalls);
@@ -263,7 +264,7 @@ public sealed class CommandRunnerTests : IDisposable
         _temp.File("IMG_001.JPG");
         var renamer = new FakeBatchRenamer();
         var error = new StringWriter(CultureInfo.InvariantCulture);
-        var runner = new CommandRunner(new ThrowingWriter(), error, _temp.Files, renamer, new DiskFileListSource(), Cmd.EnUs, "1.2.3");
+        var runner = new CommandRunner(new ThrowingWriter(), error, _temp.Files, renamer, new DiskFileListSource(), Cmd.EnUs, "1.2.3", Cmd.UnusedPresets());
 
         int code = runner.Run(new[] { "apply", _temp.Files, "--case", "lower", "--dry-run" });
 
@@ -517,13 +518,15 @@ public sealed class CommandRunnerTests : IDisposable
         var output = new StringWriter(CultureInfo.InvariantCulture);
         var renamer = new FakeBatchRenamer();
         var files = new DiskFileListSource();
-        Assert.Throws<ArgumentNullException>(() => new CommandRunner(null!, output, "C:\\", renamer, files, Cmd.EnUs, "1.2.3"));
-        Assert.Throws<ArgumentNullException>(() => new CommandRunner(output, null!, "C:\\", renamer, files, Cmd.EnUs, "1.2.3"));
-        Assert.Throws<ArgumentNullException>(() => new CommandRunner(output, output, null!, renamer, files, Cmd.EnUs, "1.2.3"));
-        Assert.Throws<ArgumentNullException>(() => new CommandRunner(output, output, "C:\\", null!, files, Cmd.EnUs, "1.2.3"));
-        Assert.Throws<ArgumentNullException>(() => new CommandRunner(output, output, "C:\\", renamer, null!, Cmd.EnUs, "1.2.3"));
-        Assert.Throws<ArgumentNullException>(() => new CommandRunner(output, output, "C:\\", renamer, files, null!, "1.2.3"));
-        Assert.Throws<ArgumentNullException>(() => new CommandRunner(output, output, "C:\\", renamer, files, Cmd.EnUs, null!));
-        Assert.Throws<ArgumentNullException>(() => new CommandRunner(output, output, "C:\\", renamer, files, Cmd.EnUs, "1.2.3").Run(null!));
+        PresetStore presets = Cmd.UnusedPresets();
+        Assert.Throws<ArgumentNullException>(() => new CommandRunner(null!, output, "C:\\", renamer, files, Cmd.EnUs, "1.2.3", presets));
+        Assert.Throws<ArgumentNullException>(() => new CommandRunner(output, null!, "C:\\", renamer, files, Cmd.EnUs, "1.2.3", presets));
+        Assert.Throws<ArgumentNullException>(() => new CommandRunner(output, output, null!, renamer, files, Cmd.EnUs, "1.2.3", presets));
+        Assert.Throws<ArgumentNullException>(() => new CommandRunner(output, output, "C:\\", null!, files, Cmd.EnUs, "1.2.3", presets));
+        Assert.Throws<ArgumentNullException>(() => new CommandRunner(output, output, "C:\\", renamer, null!, Cmd.EnUs, "1.2.3", presets));
+        Assert.Throws<ArgumentNullException>(() => new CommandRunner(output, output, "C:\\", renamer, files, null!, "1.2.3", presets));
+        Assert.Throws<ArgumentNullException>(() => new CommandRunner(output, output, "C:\\", renamer, files, Cmd.EnUs, null!, presets));
+        Assert.Throws<ArgumentNullException>(() => new CommandRunner(output, output, "C:\\", renamer, files, Cmd.EnUs, "1.2.3", null!));
+        Assert.Throws<ArgumentNullException>(() => new CommandRunner(output, output, "C:\\", renamer, files, Cmd.EnUs, "1.2.3", presets).Run(null!));
     }
 }

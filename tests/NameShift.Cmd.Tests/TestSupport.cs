@@ -8,6 +8,7 @@ using NameShift.Core;
 using NameShift.Disk;
 using NameShift.Ui.Actions;
 using NameShift.Ui.Files;
+using NameShift.Ui.Presets;
 
 namespace NameShift.Cmd.Tests;
 
@@ -28,6 +29,9 @@ internal sealed class TempFolder : IDisposable
     public string Files { get; }
 
     public string History { get; }
+
+    /// <summary>A presets folder that does not exist yet (the first save creates it; Dispose removes it with Root).</summary>
+    public string Presets => Path.Combine(Root, "presets");
 
     /// <summary>Creates a file in Files and returns its full path.</summary>
     public string File(string name, FileAttributes attributes = FileAttributes.Normal)
@@ -72,11 +76,13 @@ internal static class Cmd
         string currentDirectory,
         IReadOnlyList<string> args,
         IFileListSource? files = null,
-        Func<ApplyOptions, IReadOnlyList<IRenameRule>>? buildRules = null)
+        Func<ApplyOptions, IReadOnlyList<IRenameRule>>? buildRules = null,
+        string? presetsFolder = null)
     {
         var output = new StringWriter(CultureInfo.InvariantCulture);
         var error = new StringWriter(CultureInfo.InvariantCulture);
-        var runner = new CommandRunner(output, error, currentDirectory, renamer, files ?? new DiskFileListSource(), EnUs, "1.2.3");
+        var runner = new CommandRunner(output, error, currentDirectory, renamer, files ?? new DiskFileListSource(), EnUs, "1.2.3",
+            new PresetStore(presetsFolder ?? UnusedPresetsFolder()));
         if (buildRules != null)
         {
             runner.BuildRules = buildRules;
@@ -86,12 +92,19 @@ internal static class Cmd
         return (code, output.ToString(), error.ToString());
     }
 
+    /// <summary>A folder that no test creates and none holds presets: for tests that use no preset option.</summary>
+    public static string UnusedPresetsFolder() =>
+        Path.Combine(Path.GetTempPath(), "NameShift.Cmd.Tests", "unused-presets-" + Guid.NewGuid().ToString("N"));
+
+    /// <summary>A store over <see cref="UnusedPresetsFolder"/>.</summary>
+    public static PresetStore UnusedPresets() => new PresetStore(UnusedPresetsFolder());
+
     /// <summary>The real thing on a temp folder: the disk listing and a journaled renamer with the temp history root.</summary>
     public static (int Code, string Output, string Error) RunOnDisk(TempFolder temp, params string[] args)
     {
         var output = new StringWriter(CultureInfo.InvariantCulture);
         var error = new StringWriter(CultureInfo.InvariantCulture);
-        int code = CommandRunner.ForDisk(output, error, temp.Files, temp.History, "1.2.3").Run(args);
+        int code = CommandRunner.ForDisk(output, error, temp.Files, temp.History, temp.Presets, "1.2.3").Run(args);
         return (code, output.ToString(), error.ToString());
     }
 
@@ -314,4 +327,22 @@ internal sealed class RenameToRule : IRenameRule
 
     public NameParts Apply(NameParts name, ItemContext context) =>
         context.Index == _index ? NameParts.Split(_fullName, context.Item.Kind) : name;
+}
+
+/// <summary>A preset folder that is empty and whose every write fails like a full disk.</summary>
+internal sealed class FailingPresetFiles : IPresetFiles
+{
+    public bool FolderExists(string folder) => false;
+
+    public IReadOnlyList<string> ListJsonFiles(string folder) => Array.Empty<string>();
+
+    public bool EntryExists(string path) => false;
+
+    public long FileLength(string path) => 0;
+
+    public byte[] ReadAll(string path) => throw new IOException("No file.");
+
+    public void WriteAtomic(string path, byte[] content) => throw new IOException("Disk full.");
+
+    public void Delete(string path) => throw new NotSupportedException();
 }

@@ -170,6 +170,34 @@ public sealed class CommandRunnerHelpTests : IDisposable
         }
     }
 
+    [Fact]
+    public void ApplyHelp_ListsPresetOptions()
+    {
+        string[] expected =
+        {
+            "  --preset <name>            Use the rules of a preset saved in the window.",
+            "  --save-preset <name>       Save the rules as a preset (also with --dry-run).",
+            "  --overwrite                Let --save-preset replace a preset of that name.",
+        };
+
+        foreach (string[] lines in new[] { HelpText.Apply().ToArray(), HelpText.Main().ToArray() })
+        {
+            int first = Array.IndexOf(lines, expected[0]);
+            Assert.True(first >= 0);
+            Assert.Equal(expected, lines.Skip(first).Take(3).ToArray());
+            Assert.Equal(first - 1, Array.FindIndex(lines, line => line.StartsWith("  --number-case ", StringComparison.Ordinal)));
+        }
+    }
+
+    [Fact]
+    public void MainHelp_HasThePresetExample()
+    {
+        const string example = "  NameShiftCmd apply \"D:\\Pics\" --preset Photos --dry-run";
+
+        Assert.Single(HelpText.Main().ToArray(), line => line == example);
+        Assert.DoesNotContain(example, HelpText.Apply().ToArray());
+    }
+
     private static readonly string[] RuleOptionWords =
     {
         "--prefix", "--suffix", "--insert", "--from-end", "--word-space", "--number", "--number-mode", "--number-start",

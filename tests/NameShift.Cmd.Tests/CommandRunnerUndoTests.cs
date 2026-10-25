@@ -224,7 +224,7 @@ public sealed class CommandRunnerUndoTests
         var output = new StringWriter(CultureInfo.InvariantCulture);
         var error = new StringWriter(CultureInfo.InvariantCulture);
         var renamer = new FakeBatchRenamer { LastBatch = CmdResults.Batch(LastBatchState.None) };
-        var runner = new CommandRunner(output, error, Path.GetTempPath(), renamer, new ThrowingFileListSource(), Cmd.EnUs, "1.2.3");
+        var runner = new CommandRunner(output, error, Path.GetTempPath(), renamer, new ThrowingFileListSource(), Cmd.EnUs, "1.2.3", Cmd.UnusedPresets());
 
         Assert.Equal(0, runner.Run(Undo));
         int code = runner.Run(new[] { "apply", Path.GetTempPath(), "--case", "lower" });

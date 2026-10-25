@@ -28,6 +28,16 @@
   <data name="NumberModeValues" xml:space="preserve"><value>prefix, suffix or insert</value></data>
   <data name="NumberSystemValues" xml:space="preserve"><value>decimal, hex, letters or roman</value></data>
   <data name="NumberCaseValues" xml:space="preserve"><value>upper or lower</value></data>
+  <data name="PresetNotFound" xml:space="preserve"><value>Preset "{0}" was not found.</value></data>
+  <data name="SavedPresets" xml:space="preserve"><value>Saved presets: {0}.</value></data>
+  <data name="NoSavedPresets" xml:space="preserve"><value>There are no saved presets.</value></data>
+  <data name="PresetHasNoRules" xml:space="preserve"><value>The preset "{0}" has no rules.</value></data>
+  <data name="PresetSaved" xml:space="preserve"><value>Preset "{0}" saved.</value></data>
+  <data name="PresetExists" xml:space="preserve"><value>A preset named "{0}" exists. Add --overwrite to replace it.</value></data>
+  <data name="PresetSaveFailed" xml:space="preserve"><value>The preset could not be saved: {0}</value></data>
+  <data name="PresetNameBlank" xml:space="preserve"><value>--save-preset needs a name.</value></data>
+  <data name="PresetNameTooLong" xml:space="preserve"><value>A preset name has at most 100 characters.</value></data>
+  <data name="OverwriteNeedsSave" xml:space="preserve"><value>--overwrite needs --save-preset.</value></data>
   <data name="NumberingSkippedSentence" xml:space="preserve"><value>Until then numbering is skipped.</value></data>
   <data name="QuoteInFolder" xml:space="preserve"><value>The folder {0} contains a quote: remove the backslash before the closing quote, as in "D:\Pics" instead of "D:\Pics\".</value></data>
   <data name="InvalidFolder" xml:space="preserve"><value>"{0}" is not a valid folder path.</value></data>
@@ -69,6 +79,7 @@ Options:
 Examples:
   NameShiftCmd apply "D:\Pics" --replace IMG Trip --dry-run
   NameShiftCmd apply "D:\Pics" --case lower
+  NameShiftCmd apply "D:\Pics" --preset Photos --dry-run
   NameShiftCmd undo --dry-run
   NameShiftCmd apply --help</value></data>
   <data name="HelpApply" xml:space="preserve"><value>Options of apply:
@@ -90,6 +101,9 @@ Examples:
   --number-system decimal|hex|letters|roman
                              The kind of numbers written.
   --number-case upper|lower  Capital or small letters (not for decimal).
+  --preset &lt;name&gt;            Use the rules of a preset saved in the window.
+  --save-preset &lt;name&gt;       Save the rules as a preset (also with --dry-run).
+  --overwrite                Let --save-preset replace a preset of that name.
   --dry-run                  Only list the new names; rename nothing.
   --quiet, -q                Print nothing on success; errors are still shown.
   --verbose, -v              Also list the renamed and the unchanged files.

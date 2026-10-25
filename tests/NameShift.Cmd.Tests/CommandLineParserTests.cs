@@ -200,6 +200,18 @@ public sealed class CommandLineParserTests
         new object?[] { @"apply|D:\P|D:\Q|--case|lower", "TwoFolders", @"D:\P", @"D:\Q" },
         new object?[] { @"apply|--case|lower", "NoFolder", null, null },
         new object?[] { @"apply|D:\P", "NoRule", null, null },
+        new object?[] { @"apply|D:\P|--preset", "OptionNeedsValue", "--preset", null },
+        new object?[] { @"apply|D:\P|--preset|--dry-run", "OptionNeedsValue", "--preset", null },
+        new object?[] { @"apply|D:\P|--preset|  ", "OptionNeedsValue", "--preset", null },
+        new object?[] { @"apply|D:\P|--case|lower|--save-preset", "OptionNeedsValue", "--save-preset", null },
+        new object?[] { @"apply|D:\P|--case|lower|--save-preset|-q", "OptionNeedsValue", "--save-preset", null },
+        new object?[] { @"apply|D:\P|--case|lower|--save-preset|  ", "PresetNameBlank", null, null },
+        new object?[] { @"apply|D:\P|--case|lower|--save-preset|" + new string('x', 101), "PresetNameTooLong", null, null },
+        new object?[] { @"apply|D:\P|--case|lower|--overwrite", "OverwriteNeedsSave", null, null },
+        new object?[] { @"apply|D:\P|--save-preset|X", "NoRule", null, null },
+        new object?[] { @"apply|D:\P|--preset|A|--preset|B", "RepeatedOption", "--preset", null },
+        new object?[] { @"apply|D:\P|--case|lower|--save-preset|A|--save-preset|B", "RepeatedOption", "--save-preset", null },
+        new object?[] { @"apply|D:\P|--case|lower|--save-preset|A|--overwrite|--overwrite", "RepeatedOption", "--overwrite", null },
         new object?[] { @"apply|D:\P|--dry-run", "NoRule", null, null },
         new object?[] { @"apply|D:\P|-", "UnknownOption", "-", null },
         new object?[] { @"apply|D:\P|--x|--case", "UnknownOption", "--x", null },
@@ -294,10 +306,71 @@ public sealed class CommandLineParserTests
                 "apply", "undo", "help", "--help", "-h", "/?", "--version", "--replace", "--case", "--dry-run",
                 "--quiet", "-q", "--verbose", "-v", "--prefix", "--suffix", "--insert", "--from-end", "--word-space",
                 "--number", "--number-mode", "--number-start", "--number-step", "--number-pad", "--number-separator",
-                "--number-position", "--number-system", "--number-case",
+                "--number-position", "--number-system", "--number-case", "--preset", "--save-preset", "--overwrite",
             },
             CommandLineParser.Words);
         Assert.Equal(CommandLineParser.Words, CommandLineParser.GlobalWords.Concat(CommandLineParser.ApplyOptionWords));
+    }
+
+    [Fact]
+    public void Preset_Parsed()
+    {
+        ApplyOptions options = Applied(new[] { "apply", "--preset", "  Photos ", @"D:\P" });
+
+        Assert.Equal("Photos", options.PresetName);
+        Assert.Equal(@"D:\P", options.FolderText);
+        Assert.Null(options.SaveName);
+        Assert.False(options.Overwrite);
+        Assert.Null(options.Find);
+        Assert.Null(options.Case);
+        Assert.Empty(options.GivenPanels);
+    }
+
+    [Fact]
+    public void SavePreset_Trimmed()
+    {
+        ApplyOptions options = Applied(new[] { "apply", @"D:\P", "--case", "lower", "--save-preset", " Mine ", "--overwrite" });
+
+        Assert.Equal("Mine", options.SaveName);
+        Assert.True(options.Overwrite);
+        Assert.Null(options.PresetName);
+    }
+
+    [Fact]
+    public void SavePreset_100Chars_Ok()
+    {
+        string name = new string('n', 100);
+
+        ApplyOptions options = Applied(new[] { "apply", @"D:\P", "--case", "lower", "--save-preset", "  " + name + "  " });
+
+        Assert.Equal(name, options.SaveName);
+    }
+
+    [Fact]
+    public void Preset_SatisfiesRuleCheck()
+    {
+        Assert.Equal("X", Applied(new[] { "apply", @"D:\P", "--preset", "X" }).PresetName);
+    }
+
+    [Fact]
+    public void ReplaceAndCase_AreModels()
+    {
+        ApplyOptions options = Applied(new[] { "apply", @"D:\P", "--replace", "a", "b", "--case", "upper" });
+
+        Assert.Equal(2, options.GivenPanels.Count);
+        ReplacePanelModel replace = Assert.IsType<ReplacePanelModel>(options.GivenPanels[0]);
+        Assert.Equal("a", replace.Find);
+        Assert.Equal("b", replace.With);
+        Assert.True(replace.Enabled);
+        CasePanelModel casePanel = Assert.IsType<CasePanelModel>(options.GivenPanels[1]);
+        Assert.Equal(CaseMode.Upper, casePanel.Mode);
+        Assert.True(casePanel.Enabled);
+    }
+
+    [Fact]
+    public void Overwrite_WithoutSaveName_Throws()
+    {
+        Assert.Throws<ArgumentException>(() => new ApplyOptions(@"D:\P", null, null, CaseMode.Lower, false, overwrite: true));
     }
 
     [Fact]
