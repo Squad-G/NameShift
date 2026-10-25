@@ -38,13 +38,15 @@ Logic in `NameShift.Ui` and `NameShift.Cmd` with tests on net10.0 and net48; the
 4. Given that rule and a file row whose item has no photo date (not a JPEG, no Exif date, unreadable, a folder), then the
    Status cell shows `No photo date: modified date used` (new string in `NameShift.Ui.Strings`; `StatusCell.IsConflict` is
    false), Rename is not blocked by it, and the new name uses the modified date (NS-62). A row that also has a conflict
-   shows the conflict text only. A row with a photo date shows nothing. The note shows only for a row the rule changes or
-   would change, not for a row the plan leaves out. In the list the cell uses `SystemColors.GrayText` (readable in a
+   shows the conflict text only. A row with a photo date shows nothing. The note shows for a row in the snapshot's batch
+   when an Auto date rule is enabled with source Photo date and the item has no photo date (nothing else decides it).
+   `PreviewSnapshot` carries that information (the filled items or a per-row flag), since `Batch` stays the original. In the list the cell uses `SystemColors.GrayText` (readable in a
    Windows contrast theme), never the conflict colour.
 5. Given `apply --date-source taken` on the command line, then it is accepted (`DateSourceValues` becomes `modified, created
    or taken`, in the style of the other values texts, and the apply help line reads `--date-source modified|created|taken`),
    the photo dates are filled before planning with the same class (after the filter, so only the files that will be
-   planned are read), and a name uses the photo date. A file without one uses its modified date and, once before the
+   planned are read), and a name uses the photo date. A file without one uses its modified date and, once (counting only
+   the files planned, not every file listed) before the
    rename or the dry run, one line goes to the error stream: `N files have no photo date; their modified date was used.`
    (one: `1 file has no photo date; its modified date was used.`). The exit code is not changed by the line and `--quiet`
    does not hide it (warnings are not success output; NS-41 decision).

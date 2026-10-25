@@ -19,34 +19,48 @@ folder is not read again at every keystroke. NS-62 is merged: `RenameItem.Taken`
   placeholder, so the real file access checks that itself (criterion 2).
 
 ## Acceptance criteria
-A class in `NameShift.Ui` (indicative name `PhotoDates`) over a small internal file-access seam, with tests on net10.0 and
-net48. It does nothing by itself: the listing code is not changed and nothing creates it yet (NS-86 does).
-1. Given `Fill(items, token)` (items an `IReadOnlyList<RenameItem>`), then it returns a new list in the same order. A file
+A class in `NameShift.Ui`, folder `Files/` next to `DiskFileListSource` (indicative name `PhotoDates`), over a small
+internal file-access seam, with tests on net10.0 and net48. It does nothing by itself: the listing code is not changed and
+nothing creates it yet (NS-86 does). The seam takes a path and answers one of three outcomes, so tests can fake each:
+a date; "no date from the bytes" (cached); "could not read" (not cached).
+1. Given `Fill(items, token)` (items an `IReadOnlyList<RenameItem>`; it may block, so callers use it off the UI thread,
+   as for `DiskFileListSource`), then it returns a new list in the same order. A file
    whose name ends in `.jpg` or `.jpeg` (ignoring case) comes back as `item.WithTaken(date)` where `date` is
    `PhotoDate.Read` of its start, or null. Every other item (other extensions, every folder, even a folder named `x.jpg`)
    comes back as the same instance and is never opened. The input list and its items are not changed. The date is stored
    as `PhotoDate.Read` returned it (no conversion).
 2. Given a file, then it is opened for reading with sharing for read, write and delete (a photo open elsewhere still
    reads), forward-only (no seek needed), and `PhotoDate.Read` is given the stream (it consumes at most 256 KiB, whatever
-   the file's size: a 2 GB file named `.jpg` costs the same as a small one). The real access first looks at the file's
-   attributes: a file marked Offline, RecallOnOpen or RecallOnDataAccess (an online-only cloud placeholder) is not opened,
-   so reading never makes a cloud service download it; it gives null and that null is not cached (criterion 3). An
+   the file's size: a 2 GB file named `.jpg` costs the same as a small one). The real access first reads the file's
+   attributes with `File.GetAttributes(path)` (a stat, which does not download). The placeholder test is
+   `((int)attributes & 0x441000) != 0`, from three raw values (named constants; `RecallOnOpen` and `RecallOnDataAccess`
+   are not `FileAttributes` members on net48): Offline 0x1000, RecallOnOpen 0x40000, RecallOnDataAccess 0x400000. A file
+   that matches is not opened, so reading never makes a cloud service download it; it gives "could not read" (null, not
+   cached, criterion 3). ReadOnly, Hidden, System and ReparsePoint alone do not skip a file (a cloud placeholder also
+   carries ReparsePoint, so that flag is not the test). The test is a pure internal function over `FileAttributes` (or a
+   second seam `Func<string, FileAttributes>`), and the tests check each of the three flags (not opened, not cached on
+   a second `Fill`) and a Hidden-only, a ReadOnly-only and a ReparsePoint-only file (still read). An
    IOException (a missing file included), UnauthorizedAccessException, SecurityException or NotSupportedException gives
    null for that file only and the next files are still read. A file that is not a JPEG, or is empty, gives null.
 3. Given the cache, then the key is the full path (ignoring case) with the size and the modified time (ticks) of the item
-   as listed. A second `Fill` of the same items opens no file (counted through the seam). A changed size or modified time
+   as listed. A second `Fill` of the same items touches no file (counted through the seam): a cache hit does neither the attribute
+   check nor the open. A changed size or modified time
    reads the file again. A null that came from the file's own bytes (not a JPEG, no Exif date, damaged) is cached too, so
    an item without a date is not reread. A null that came from a failure to read (the exceptions of criterion 2, a
    skipped placeholder) is not cached: the next `Fill` tries again, so a photo that was only locked is not marked "no date"
    until it changes.
 4. Given the cache is full at 50,000 entries, then it is emptied before the next entry is added (simple, bounded), and the
-   result of every `Fill` is still right. The cache is never written to disk and lives as long as the instance (the
+   result of every `Fill` is still right. The limit is a constructor parameter or internal constant a test can lower (or a
+   test runs 50,001 fake items through the fake seam). Known limit: one `Fill` of more than 50,000 photos clears the
+   cache mid-run, so the cache does not help that batch. The cache is never written to disk and lives as long as the instance (the
    window keeps one for the process).
 5. Given a cancelled token, then `Fill` throws `OperationCanceledException` before reading the next file (checked before
    each file, not once per 1,000); what was read stays cached.
 6. Given two `Fill` calls at the same time (a superseded preview run may still be finishing), then both return correct
    lists and the cache is not corrupted (lock; a test runs both from the pool over 2,000 items). The lock is not held
-   while a file is read (a slow file must not block the other call's cache hits).
+   while a file is read (a slow file must not block the other call's cache hits). A test checks it: the seam read of call
+   A blocks on an event, call B (cache hits, or other files) completes meanwhile, then A is released and finishes. Two
+   calls may read the same uncached file at once; that is harmless (no per-key lock).
 7. Given a real temp folder and a small JPEG built in the test (Exif block with `2023:07:01 10:00:00`, written as bytes),
    then the real file access returns 2023-07-01 10:00:00 on both runtimes; a file locked for writing by another stream
    still reads; a file locked with no sharing gives null, with no exception, and is read again once the lock is gone. A
@@ -65,7 +79,8 @@ net48. It does nothing by itself: the listing code is not changed and nothing cr
   opened by the preview. The common cases are covered and the rule stays one line (po, 2026-10-25).
 - How is a stale date avoided? **Decision:** the cache key holds size and modified time, so an edited photo is read again
   and an untouched one never (po, 2026-10-25).
-- Cache limit? **Decision:** 50,000 entries, emptied when full: a few MB at most, no eviction logic (po, 2026-10-25).
+- Cache limit? **Decision:** 50,000 entries, emptied when full: a few MB at most, no eviction logic. Known limit: one
+  `Fill` over more than 50,000 photos gets no help from the cache (po, 2026-10-25).
 - Disk or memory cache? **Decision:** memory only, for the process: nothing about the user's photos is stored (po,
   2026-10-25).
 - Which EXIF tag, in what order? **Decision:** DateTimeOriginal only, which `PhotoDate` already reads (NS-27); no second
@@ -87,5 +102,7 @@ net48. It does nothing by itself: the listing code is not changed and nothing cr
 
 ## Log
 - 2026-10-25: created from the second half of NS-62 (po).
+- 2026-10-25: PR #100 review fixes: raw attribute values and their tests, lock test, seam outcomes, cache-hit rule, cap
+  test, off-UI-thread note, location (po).
 - 2026-10-25: re-checked against dev after NS-62 (306e581): API facts recorded, cloud placeholders and failed-read caching
   decided, criteria tightened; set Ready (po).
