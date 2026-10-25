@@ -14,6 +14,8 @@ internal sealed class FakeFileListSource : IFileListSource
     public static readonly TimeSpan GateTimeout = TimeSpan.FromSeconds(10);
 
     private readonly Dictionary<string, FileListing> _listings = new Dictionary<string, FileListing>(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<(string Path, bool IncludeSubfolders), FileListing> _flagListings =
+        new Dictionary<(string Path, bool IncludeSubfolders), FileListing>(new FlagKeyComparer());
     private readonly Dictionary<string, Exception> _throwing = new Dictionary<string, Exception>(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, ManualResetEventSlim> _gates = new Dictionary<string, ManualResetEventSlim>(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _blockUntilCancelled = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -67,6 +69,11 @@ internal sealed class FakeFileListSource : IFileListSource
 
     public void SetListing(string path, FileListing listing) => _listings[path] = listing;
 
+    /// <summary>Declares the listing for one value of includeSubfolders; a call with the other value (or a path with no
+    /// entry for its flag) falls back to the listing set with <see cref="SetListing(string, FileListing)"/>.</summary>
+    public void SetListing(string path, bool includeSubfolders, FileListing listing) =>
+        _flagListings[(path, includeSubfolders)] = listing;
+
     public void SetThrows(string path, Exception exception) => _throwing[path] = exception;
 
     /// <summary>Makes the next listing of the folder (one call only) wait until its token is cancelled (at most
@@ -119,8 +126,22 @@ internal sealed class FakeFileListSource : IFileListSource
             throw exception;
         }
 
+        if (_flagListings.TryGetValue((folderPath, includeSubfolders), out FileListing? flagListing))
+        {
+            return flagListing;
+        }
+
         return _listings.TryGetValue(folderPath, out FileListing? listing)
             ? listing
             : FileListing.Ok(Array.Empty<RenameItem>());
+    }
+
+    private sealed class FlagKeyComparer : IEqualityComparer<(string Path, bool IncludeSubfolders)>
+    {
+        public bool Equals((string Path, bool IncludeSubfolders) x, (string Path, bool IncludeSubfolders) y) =>
+            x.IncludeSubfolders == y.IncludeSubfolders && StringComparer.OrdinalIgnoreCase.Equals(x.Path, y.Path);
+
+        public int GetHashCode((string Path, bool IncludeSubfolders) key) =>
+            StringComparer.OrdinalIgnoreCase.GetHashCode(key.Path) ^ (key.IncludeSubfolders ? 1 : 0);
     }
 }

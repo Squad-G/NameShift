@@ -85,4 +85,28 @@ public sealed class PathInputTests
     {
         Assert.Equal(expected, PathInput.SameFolder(a, b));
     }
+
+    [Theory]
+    [InlineData(@"\\.\pipe\x", PathInputResult.Invalid)]
+    [InlineData(@"\\.\C:\x", PathInputResult.Invalid)]
+    [InlineData(@"\\?\C:\x", PathInputResult.Invalid)]
+    [InlineData(@"\\?\UNC\server\share\x", PathInputResult.Invalid)]
+    [InlineData(@"\\server\share\x", PathInputResult.Ok)]
+    [InlineData(@"C:\x", PathInputResult.Ok)]
+    [InlineData(@"C:\A\""x""", PathInputResult.Invalid)]
+    public void TryExact_Prefixes(string path, PathInputResult expected)
+    {
+        Assert.Equal(expected, PathInput.TryExact(path, out string exact));
+        Assert.Equal(expected == PathInputResult.Ok ? path : "", exact);
+    }
+
+    [Theory]
+    [InlineData(@"C:\A\ x")]
+    [InlineData(@"C:\x\")]
+    [InlineData(@"\\server\share\x")]
+    public void TryExact_Ok_ReturnsUnchanged(string path)
+    {
+        Assert.Equal(PathInputResult.Ok, PathInput.TryExact(path, out string exact));
+        Assert.Equal(path, exact);
+    }
 }
