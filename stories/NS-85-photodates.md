@@ -1,6 +1,6 @@
 # NS-85: Read the photo dates of the listed files
 
-Status: Ready
+Status: Done
 Depends on: NS-62, NS-27
 Area: app
 
@@ -106,3 +106,6 @@ a date; "no date from the bytes" (cached); "could not read" (not cached).
   test, off-UI-thread note, location (po).
 - 2026-10-25: re-checked against dev after NS-62 (306e581): API facts recorded, cloud placeholders and failed-read caching
   decided, criteria tightened; set Ready (po).
+- 2026-10-25: In Progress (builder).
+- 2026-10-25: In Review: PhotoDates, DiskPhotoFile and the IPhotoFile seam in Ui/Files, 69 tests per runtime; not wired (NS-86) (builder).
+- 2026-10-25: Done (tech-lead), PR #103 approved and squash-merged. No hand check (nothing is wired until NS-86). Review nit folded: the Fill summary says it holds for items from a folder listing (a hand-built item with invalid path characters can throw ArgumentException on net48). For NS-86: the placeholder check is stat then open, so a file that becomes a placeholder in between is recalled, and a file symlink to a placeholder shows only ReparsePoint and is opened (neither fixable without a handle-level check; add both to NS-86's hand checks). The cache stamp is the listed item's, not the file's at read time: correct and self-healing, do not "fix" it.

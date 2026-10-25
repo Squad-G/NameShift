@@ -101,7 +101,7 @@ can be built at the same time).
 | 62 | [NS-62 Auto date: the photo date in the engine](NS-62-autodatephoto.md) | Done | NS-26, NS-27 |
 | 93 | [NS-93 Command line readers: remove the copies](NS-93-clireadercleanup.md) | Done | NS-40, NS-69, NS-75, NS-76 |
 | 41 | [NS-41 Command line: filters](NS-41-clifilters.md) | Done | NS-38, NS-32, NS-33, NS-70, NS-79, NS-76, NS-93 |
-| 85 | [NS-85 Read the photo dates of the listed files](NS-85-photodates.md) | Ready | NS-62, NS-27 |
+| 85 | [NS-85 Read the photo dates of the listed files](NS-85-photodates.md) | Done | NS-62, NS-27 |
 | 86 | [NS-86 Auto date panel: the Photo date choice](NS-86-autodatephotopanel.md) | Draft | NS-62, NS-85, NS-59, NS-76 |
 | 87 | [NS-87 Command line: --recurse](NS-87-clirecurse.md) | Ready | NS-41, NS-74, NS-78 |
 | 92 | [NS-92 Move the settings-saving logic out of MainForm into NameShift.Ui](NS-92-savesettingslogic.md) | Ready | NS-37, NS-84 |
