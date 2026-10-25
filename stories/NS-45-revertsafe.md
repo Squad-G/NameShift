@@ -1,6 +1,6 @@
 # NS-45: Safer Revert: detect changed files
 
-Status: In Progress
+Status: In Review
 Depends on: NS-90, NS-15, NS-42
 Area: app
 
@@ -57,3 +57,4 @@ every text in `Strings`. Names are indicative.
 - 2026-10-25: started (builder). Decisions in the brief, accepted by the po: `undo --dry-run` now checks the files, so
   `HelpUndo`'s second sentence becomes `Checks the files and the history; changes nothing.`; a `RenameFailed` reason, which
   a check cannot produce, has the word `could not be renamed` so nothing throws.
+- 2026-10-25: built; PR open, in review (builder).
