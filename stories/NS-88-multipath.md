@@ -1,6 +1,6 @@
 # NS-88: Start on several files: one folder, those items selected
 
-Status: In Review
+Status: Done
 Depends on: NS-47, NS-14
 Area: app
 
@@ -53,3 +53,12 @@ Logic in `NameShift.Ui` (`OpenTarget`, `FileListModel`) with tests on net10.0 an
 ## Log
 - 2026-10-25: created from NS-49's split (po).
 - 2026-10-25: built: ResolveMany, SelectNames, status line for unselected items; singular string NotSelectedOne added (tech lead).
+- 2026-10-25: Done (tech-lead), PR #96 approved and squash-merged. Hand checks for David (PR #96): two files of one
+  folder give "2 of M files" and Rename changes only those; a file plus a folder of the same parent are both selected;
+  with Sub-folders on, only the root rows are selected; one missing path gives `1 item was not selected: ...`, more
+  give `N items were not selected: ...`; no existing path shows the first path's message and opens as usual; a tree
+  click right after start wins over the pending selection. Follow-ups (review nits): `SelectRow` could call
+  `SelectRows`, but not as a pure refactor (an out-of-range row clears the selection in `SelectRows` and is ignored
+  by `SelectRow`; it also selects through another path), so it is left (nit 2); `OpenTarget.ParentOf` has dead
+  branches and a stale comment (nit 1); the one-or-many choice of the not-selected text belongs in a tested Ui
+  helper (nit 3); several drive roots and nothing else give no status message (nit 4).
