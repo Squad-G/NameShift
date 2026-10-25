@@ -1,6 +1,6 @@
 # NS-82: Open a folder from the file list
 
-Status: Ready
+Status: Done
 Depends on: NS-10, NS-51, NS-78
 Area: app
 
@@ -66,3 +66,14 @@ point: `FolderNavigator` (`NavigateToTypedPathAsync`, `SelectFromTree`, its vers
   the stories (no prior decision); set Ready, first after NS-78 (po).
 - 2026-10-24: PR #82 review applied: non-expanding entry point and its tests, status texts for every result, NS-78
   dependency (po).
+- 2026-10-25: In Progress (builder).
+- 2026-10-25: In Review (builder), PR #85.
+- 2026-10-25: Done (tech-lead), PR #85 approved and squash-merged; review nit 1 folded (a local for the awaited result
+  in `MainForm.OnFolderOpenRequested`). AC 4's quote case is tested as "never stripped, gives Invalid" (a quote cannot
+  be part of a Windows folder name and `HasForbiddenCharacter` refuses it), not "passed unchanged". Hand checks for
+  David: AC 1 (double-click a folder: path box, tree and list follow, status cleared), AC 2 (Enter on a folder; Enter
+  or double-click on a file, the header or empty space does nothing; Enter in the filter and path boxes unchanged),
+  AC 6 (the list is disabled during a Rename), AC 7 (selection, sort, filters and Sub-folders behave as for a tree
+  pick), AC 9 (a folder deleted after listing gives the status text; a folder named `100%`; a sub-level folder with
+  Sub-folders ticked; the tree follows). Follow-up (nit 2): `PathInputTests` has no direct `TryExact` rows for the
+  `\\?\` and `\\.\` prefixes (covered only through the mirror in `TryNormalize`).

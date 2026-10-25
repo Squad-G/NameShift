@@ -74,7 +74,7 @@ IDs), not the rank: the rank is the row order.
 | 75 | [NS-75 Command line: Name, Extension and Remove options](NS-75-clirules2.md) | Done | NS-40, NS-69, NS-79, NS-55, NS-30 |
 | 76 | [NS-76 Command line: RegEx, Move/Copy, Auto date and Folder name options](NS-76-clirules3.md) | Done | NS-75, NS-31, NS-59 |
 | 78 | [NS-78 Sub-folders box and Folder column](NS-78-subfolderbox.md) | Done | NS-70, NS-74 |
-| 82 | [NS-82 Open a folder from the file list](NS-82-openfolderrow.md) | Ready | NS-10, NS-51, NS-78 |
+| 82 | [NS-82 Open a folder from the file list](NS-82-openfolderrow.md) | Done | NS-10, NS-51, NS-78 |
 | 77 | [NS-77 Find and fix the occasional net48 failure in the Ui tests](NS-77-uitestsflake.md) | Done | |
 | 83 | [NS-83 Collapsible rule panels, and a bottom row that fits](NS-83-collapsepanels.md) | Ready | NS-11, NS-15 |
 | 37 | [NS-37 Remember last settings](NS-37-settings.md) | Ready | NS-36, NS-72, NS-83 |

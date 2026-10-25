@@ -69,6 +69,37 @@ public static class PathInput
         return PathInputResult.Ok;
     }
 
+    /// <summary>Checks the exact path of a listed row: no trim, no quote stripping, no <c>%VAR%</c>. Ok keeps it unchanged.</summary>
+    public static PathInputResult TryExact(string? path, out string exact)
+    {
+        exact = "";
+        if (path == null || path.Length == 0)
+        {
+            return PathInputResult.Empty;
+        }
+
+        if (HasForbiddenCharacter(path)
+            || path.StartsWith(@"\\?\", StringComparison.Ordinal)
+            || path.StartsWith(@"\\.\", StringComparison.Ordinal)
+            || !IsFullyQualified(path))
+        {
+            return PathInputResult.Invalid;
+        }
+
+        try
+        {
+            // Only a check: the path itself is used unchanged.
+            Path.GetFullPath(path);
+        }
+        catch (Exception e) when (e is ArgumentException || e is NotSupportedException || e is PathTooLongException)
+        {
+            return PathInputResult.Invalid;
+        }
+
+        exact = path;
+        return PathInputResult.Ok;
+    }
+
     /// <summary>Same folder: ordinal, case-insensitive, ignoring a trailing backslash (drive roots keep theirs).</summary>
     public static bool SameFolder(string a, string b) =>
         string.Equals(TrimTrailingSeparators(a), TrimTrailingSeparators(b), StringComparison.OrdinalIgnoreCase);
