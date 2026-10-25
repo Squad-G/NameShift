@@ -168,7 +168,7 @@ internal sealed class FakeBatchRenamer : IBatchRenamer
     }
 }
 
-/// <summary>Returns one fixed listing for every folder.</summary>
+/// <summary>Returns one fixed listing for every folder, and records how it was asked.</summary>
 internal sealed class FakeFileListSource : IFileListSource
 {
     private readonly FileListing _listing;
@@ -178,7 +178,14 @@ internal sealed class FakeFileListSource : IFileListSource
         _listing = listing;
     }
 
-    public FileListing ListEntries(string folderPath, bool includeSubfolders, CancellationToken cancellationToken) => _listing;
+    /// <summary>The includeSubfolders of every call, in order.</summary>
+    public List<bool> IncludeSubfolders { get; } = new List<bool>();
+
+    public FileListing ListEntries(string folderPath, bool includeSubfolders, CancellationToken cancellationToken)
+    {
+        IncludeSubfolders.Add(includeSubfolders);
+        return _listing;
+    }
 }
 
 /// <summary>Real Disk result objects, built through their validating internal constructors (a copy of the Ui tests'

@@ -259,20 +259,8 @@ public sealed class MainActions
 
     /// <summary>The shown folder, then every other folder of the batch's items (sub-folders listed) in order of first
     /// appearance; no duplicates (case-insensitive). One folder gives just the shown one.</summary>
-    private static IReadOnlyList<string> RenameFolders(string shown, IReadOnlyList<RenameItem> items)
-    {
-        var folders = new List<string> { shown };
-        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { shown };
-        foreach (RenameItem item in items)
-        {
-            if (seen.Add(item.FolderPath))
-            {
-                folders.Add(item.FolderPath);
-            }
-        }
-
-        return folders;
-    }
+    private static IReadOnlyList<string> RenameFolders(string shown, IReadOnlyList<RenameItem> items) =>
+        new[] { shown }.Concat(items.Select(item => item.FolderPath)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
 
     /// <summary>The batch's folders (a revertable batch always has them), then the shown folder; no duplicates (case-insensitive).</summary>
     private static IReadOnlyList<string> RevertFolders(LastBatch batch, string? shown)

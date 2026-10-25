@@ -376,6 +376,29 @@ public sealed class SubfolderListingTests
     }
 
     [Fact]
+    public void Cancel_InTheLastFolder_StillThrows()
+    {
+        // Cancelled inside the last folder, before any 1,000th entry: no per-folder check is left, the final one throws.
+        string folder1 = _tree.Folder(Root, "folder1");
+        _tree.File(folder1, "a.txt");
+        string last = _tree.Folder(Root, "folder2");
+        _tree.File(last, "b.txt");
+        _tree.File(last, "c.txt");
+        using var cts = new CancellationTokenSource();
+        _tree.OnEntry = (path, entry) =>
+        {
+            if (path == last && entry.Name == "b.txt")
+            {
+                cts.Cancel();
+            }
+        };
+
+        Assert.ThrowsAny<OperationCanceledException>(() => _source.ListEntries(Root, true, cts.Token));
+        Assert.Equal(new[] { Root, folder1, last }, _tree.Enumerated);
+        Assert.True(_tree.TotalYielded < 1000);
+    }
+
+    [Fact]
     public void Cancel_InFolder1_Folder2NeverEnumerated()
     {
         string folder1 = _tree.Folder(Root, "folder1");

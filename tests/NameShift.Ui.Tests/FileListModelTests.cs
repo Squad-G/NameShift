@@ -1673,13 +1673,14 @@ public sealed class FileListModelTests
     [Fact]
     public async Task FindRow_OnlyTheShownFolder()
     {
-        _source.SetEntries(@"C:\A", File("a.txt", folder: @"C:\A\x"), File("a.txt"), File("b.txt", folder: @"C:\A\x"));
+        // The shown folder's item is spelled in another case: the folder match ignores case.
+        _source.SetEntries(@"C:\A", File("a.txt", folder: @"C:\A\x"), File("a.txt", folder: @"c:\a"), File("b.txt", folder: @"C:\A\x"));
         await _model.LoadAsync(@"C:\A");
         Assert.Equal(@"C:\A\x", _model.Items[0].FolderPath);
 
         int row = _model.FindRow("A.TXT");
 
-        Assert.Equal(@"C:\A", _model.Items[row].FolderPath);
+        Assert.Equal(@"c:\a", _model.Items[row].FolderPath);
         Assert.Equal("a.txt", _model.Items[row].Name);
         Assert.Equal(-1, _model.FindRow("b.txt"));
     }

@@ -71,6 +71,6 @@ public sealed class JunctionTests
         Assert.True(process.ExitCode == 0, "mklink failed (" + process.ExitCode + "): " + said);
         Assert.True(Directory.Exists(link), "No junction after mklink: " + said);
         Assert.True((File.GetAttributes(link) & FileAttributes.ReparsePoint) != 0, "The link is not a reparse point: " + said);
-        Assert.True(Directory.EnumerateFileSystemEntries(link).Any(),"The junction does not show its target: " + said);
+        Assert.True(Directory.EnumerateFileSystemEntries(link).Any(), "The junction does not show its target: " + said);
     }
 }

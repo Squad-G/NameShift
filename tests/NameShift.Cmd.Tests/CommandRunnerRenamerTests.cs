@@ -51,6 +51,22 @@ public sealed class CommandRunnerRenamerTests : IDisposable
         }
     }
 
+    [Fact]
+    public void Rename_SubfolderFilesLeftOut()
+    {
+        // NS-74 AC 2: a matching file in a sub-folder is never part of the batch (recursion is NS-41).
+        _temp.File("IMG_001.JPG");
+        string sub = Path.Combine(_temp.Files, "sub");
+        Directory.CreateDirectory(sub);
+        File.WriteAllText(Path.Combine(sub, "IMG_002.JPG"), "in a sub-folder");
+        var renamer = new FakeBatchRenamer { Result = CmdResults.Succeeded(1) };
+
+        var run = Cmd.Run(renamer, _temp.Files, new[] { "apply", _temp.Files, "--replace", "IMG", "Trip" });
+
+        Assert.Equal(0, run.Code);
+        Assert.Equal(new[] { ("IMG_001.JPG", _temp.Files) }, renamer.Results!.Select(r => (r.Item.Name, r.Item.FolderPath)).ToArray());
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]

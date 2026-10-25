@@ -34,6 +34,7 @@ public sealed class MainActionsSubfolderDiskTests : IDisposable
 
     public void Dispose()
     {
+        _files.Dispose();
         foreach (string path in Directory.GetFileSystemEntries(_temp, "*", SearchOption.AllDirectories))
         {
             File.SetAttributes(path, FileAttributes.Normal);

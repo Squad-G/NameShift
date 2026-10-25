@@ -13,8 +13,8 @@ namespace NameShift.Ui.Files;
 /// The file list's data for the current folder: every entry (<see cref="AllItems"/>) and the entries the filter keeps
 /// (<see cref="Items"/>). Loads and filters off the calling thread; a newer load or filter supersedes an older one,
 /// and <see cref="Dispose"/> supersedes both. A new load, <see cref="SetIncludeSubfoldersAsync"/> and
-/// <see cref="Dispose"/> also cancel the folder walk in flight (through the load's token). All state is read and written on the calling (UI) thread; only the
-/// listing, the sort and the filter loop run on the pool.
+/// <see cref="Dispose"/> also cancel the folder walk in flight (through the load's token). All state is read and
+/// written on the calling (UI) thread; only the listing, the sort and the filter loop run on the pool.
 /// </summary>
 public sealed class FileListModel : IDisposable
 {
@@ -470,8 +470,8 @@ public sealed class FileListModel : IDisposable
     }
 
     /// <summary>Supersedes every pending load and filter run, and cancels the folder walk in flight: none applies and no
-    /// event is raised after this, and later loads and filters do nothing. The current state is kept (the window is closing). Safe to call more than
-    /// once.</summary>
+    /// event is raised after this, and later loads and filters do nothing. The current state is kept (the window is
+    /// closing). Safe to call more than once.</summary>
     public void Dispose()
     {
         if (_disposed)
