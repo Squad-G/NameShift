@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using NameShift.Ui.Folders;
+using NameShift.Ui.Tests.Files;
 
 namespace NameShift.Ui.Tests;
 
@@ -25,6 +26,10 @@ internal sealed class FakeFolderSource : IFolderSource
     /// <summary>When set, ListChildren and CheckFolder wait for it before answering.</summary>
     public ManualResetEventSlim? Gate { get; set; }
 
+    /// <summary>When set, called at the start of each ListChildren, before the gate: lets a test wait for a listing to
+    /// have started instead of sleeping.</summary>
+    public Action? Listing { get; set; }
+
     public int ListCalls => _listCalls;
 
     public int CheckCalls => _checkCalls;
@@ -46,7 +51,11 @@ internal sealed class FakeFolderSource : IFolderSource
     public FolderListing ListChildren(string folderPath)
     {
         Interlocked.Increment(ref _listCalls);
-        Gate?.Wait();
+        Listing?.Invoke();
+        if (Gate != null)
+        {
+            TestWait.Block(Gate);
+        }
         if (_throwing.TryGetValue(folderPath, out Exception? exception))
         {
             throw exception;
@@ -63,7 +72,10 @@ internal sealed class FakeFolderSource : IFolderSource
     public FolderCheck CheckFolder(string path)
     {
         Interlocked.Increment(ref _checkCalls);
-        Gate?.Wait();
+        if (Gate != null)
+        {
+            TestWait.Block(Gate);
+        }
         if (Folders.Contains(path))
         {
             return FolderCheck.Folder;

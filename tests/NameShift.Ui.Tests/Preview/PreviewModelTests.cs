@@ -928,16 +928,27 @@ public sealed class PreviewModelTests
     [Fact]
     public async Task Sort_OldSnapshotStopsAnsweringAtOnce()
     {
-        PreviewModel preview = await BuildLoaded(ReplacePanel("a"));
-        Assert.True(preview.IsCurrent);
+        var gate = new ManualResetEventSlim(true);
+        try
+        {
+            PreviewModel preview = await BuildLoaded(PanelOf(_ => new RenameToRule("x.txt", "a", gate), "x"));
+            Assert.True(preview.IsCurrent);
 
-        _files.SortBy(FileListColumn.Name);
+            // The sort's run is held: it has no debounce, and on a busy machine its snapshot landed on a pool thread
+            // before the checks below (NS-77).
+            gate.Reset();
+            _files.SortBy(FileListColumn.Name);
 
-        Assert.False(preview.IsCurrent);
-        Assert.Equal(PreviewCellKind.None, preview.CellForRow(0).Kind);
-        _delay.ReleaseAll();
-        await preview.Pending;
-        Assert.True(preview.IsCurrent);
+            Assert.False(preview.IsCurrent);
+            Assert.Equal(PreviewCellKind.None, preview.CellForRow(0).Kind);
+            gate.Set();
+            await preview.Pending;
+            Assert.True(preview.IsCurrent);
+        }
+        finally
+        {
+            gate.Set();
+        }
     }
 
     [Fact]

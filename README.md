@@ -25,6 +25,25 @@ dotnet build -c Release
 dotnet test -c Release --no-build
 ```
 
+### Reading a test run
+
+Run the tests so that a hang is named, and keep the whole output in a file outside the repository:
+
+```
+dotnet test -c Release --no-build --blame-hang-timeout 5m > <output file> 2>&1
+```
+
+- The run is green only when the exit code is 0 **and** each of the eight `Passed!` lines (four test projects, two
+  frameworks each) shows the full total. Compare the totals with the previous run, not just the `Failed:` column.
+- A hung test host is killed after the timeout and still prints `Passed!` with a **short total** and `Failed: 0`;
+  `Test Run Aborted` and `The test running when the crash occurred:` (the hung test) follow that line. The tests of
+  that class still queued after it are missing from the total.
+- A failed test is printed as `Failed <test name>` with its message and stack trace, before the summary lines.
+- To find a hang or a crash in one project, run it alone with the blame sequence file, for example
+  `dotnet test tests/NameShift.Ui.Tests -c Release --no-build -f net48 --blame-hang --blame-hang-timeout 120s --blame-crash --results-directory <folder>`:
+  the last test in `<folder>/<guid>/Sequence_*.xml` is the one that never finished. Add
+  `--logger "trx;LogFileName=run.trx"` to get every result by name.
+
 The app is `src/NameShift.App/bin/<Configuration>/net48/NameShift.exe`.
 The command line is `src/NameShift.Cmd.Exe/bin/<Configuration>/net48/NameShiftCmd.exe`.
 

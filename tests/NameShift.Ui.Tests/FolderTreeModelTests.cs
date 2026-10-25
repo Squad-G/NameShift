@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NameShift.Ui.Folders;
+using NameShift.Ui.Tests.Files;
 using Xunit;
 
 namespace NameShift.Ui.Tests;
@@ -36,7 +37,7 @@ public sealed class FolderTreeModelTests
     }
 
     [Fact]
-    public async Task ExpandAsync_ListsChildren_AsNotLoadedNodesWithTheirParent()
+    public void ExpandAsync_ListsChildren_AsNotLoadedNodesWithTheirParent() => UiThread.Run(async () =>
     {
         _source.SetChildren(@"C:\", "A", "B");
         var model = new FolderTreeModel(_source);
@@ -52,10 +53,10 @@ public sealed class FolderTreeModelTests
             Assert.Null(c.RootKind);
             Assert.Equal(FolderNodeState.NotLoaded, c.State);
         });
-    }
+    });
 
     [Fact]
-    public async Task RevealAsync_LoadsEachLevel_AndReturnsTheTarget()
+    public void RevealAsync_LoadsEachLevel_AndReturnsTheTarget() => UiThread.Run(async () =>
     {
         _source.SetChildren(@"C:\", "A");
         _source.SetChildren(@"C:\A", "B");
@@ -68,27 +69,27 @@ public sealed class FolderTreeModelTests
         Assert.Equal(FolderNodeState.Loaded, model.Roots[1].State);
         Assert.Equal(FolderNodeState.Loaded, model.Roots[1].Children[0].State);
         Assert.Equal(FolderNodeState.NotLoaded, node.State);
-    }
+    });
 
     [Fact]
-    public async Task RevealAsync_SegmentNotListed_ReturnsNull()
+    public void RevealAsync_SegmentNotListed_ReturnsNull() => UiThread.Run(async () =>
     {
         _source.SetChildren(@"C:\", "Visible");
         var model = new FolderTreeModel(_source);
 
         Assert.Null(await model.RevealAsync(@"C:\Hidden\X"));
-    }
+    });
 
     [Fact]
-    public async Task RevealAsync_PathOutsideEveryRoot_ReturnsNull()
+    public void RevealAsync_PathOutsideEveryRoot_ReturnsNull() => UiThread.Run(async () =>
     {
         var model = new FolderTreeModel(_source);
 
         Assert.Null(await model.RevealAsync(@"\\server\share"));
-    }
+    });
 
     [Fact]
-    public async Task RevealAsync_Root_ReturnsTheRootWithoutListing()
+    public void RevealAsync_Root_ReturnsTheRootWithoutListing() => UiThread.Run(async () =>
     {
         var model = new FolderTreeModel(_source);
 
@@ -96,10 +97,10 @@ public sealed class FolderTreeModelTests
 
         Assert.Same(model.Roots[1], node);
         Assert.Equal(0, _source.ListCalls);
-    }
+    });
 
     [Fact]
-    public async Task ExpandAsync_Problem_MarksNodeFailed_WithNoChildren()
+    public void ExpandAsync_Problem_MarksNodeFailed_WithNoChildren() => UiThread.Run(async () =>
     {
         _source.SetListing(@"C:\", FolderListing.Failed(FolderProblem.NotReady));
         var model = new FolderTreeModel(_source);
@@ -109,10 +110,10 @@ public sealed class FolderTreeModelTests
         Assert.Equal(FolderNodeState.Failed, model.Roots[1].State);
         Assert.Equal(FolderProblem.NotReady, model.Roots[1].Problem);
         Assert.Empty(model.Roots[1].Children);
-    }
+    });
 
     [Fact]
-    public async Task ExpandAsync_SourceThrows_IsUnavailable_NotAnException()
+    public void ExpandAsync_SourceThrows_IsUnavailable_NotAnException() => UiThread.Run(async () =>
     {
         _source.SetThrows(@"C:\", new InvalidOperationException("boom"));
         var model = new FolderTreeModel(_source);
@@ -121,10 +122,10 @@ public sealed class FolderTreeModelTests
 
         Assert.Equal(FolderNodeState.Failed, model.Roots[1].State);
         Assert.Equal(FolderProblem.Unavailable, model.Roots[1].Problem);
-    }
+    });
 
     [Fact]
-    public async Task ExpandAsync_AfterFailure_RetriesOnNextExpand()
+    public void ExpandAsync_AfterFailure_RetriesOnNextExpand() => UiThread.Run(async () =>
     {
         _source.SetListing(
             @"C:\",
@@ -139,10 +140,10 @@ public sealed class FolderTreeModelTests
         Assert.Null(model.Roots[1].Problem);
         Assert.Single(model.Roots[1].Children);
         Assert.Equal(2, _source.ListCalls);
-    }
+    });
 
     [Fact]
-    public async Task ExpandAsync_WhileLoading_ListsOnlyOnce()
+    public void ExpandAsync_WhileLoading_ListsOnlyOnce() => UiThread.Run(async () =>
     {
         _source.SetChildren(@"C:\", "A");
         using var gate = new ManualResetEventSlim(false);
@@ -158,10 +159,10 @@ public sealed class FolderTreeModelTests
 
         Assert.Equal(1, _source.ListCalls);
         Assert.Equal(FolderNodeState.Loaded, model.Roots[1].State);
-    }
+    });
 
     [Fact]
-    public async Task ExpandAsync_EmptyFolder_HasNoChildrenGlyph()
+    public void ExpandAsync_EmptyFolder_HasNoChildrenGlyph() => UiThread.Run(async () =>
     {
         _source.SetChildren(@"C:\");
         var model = new FolderTreeModel(_source);
@@ -169,10 +170,10 @@ public sealed class FolderTreeModelTests
         await model.ExpandAsync(model.Roots[1]);
 
         Assert.False(model.Roots[1].MayHaveChildren);
-    }
+    });
 
     [Fact]
-    public async Task ExpandAsync_Loaded_DoesNotListAgain()
+    public void ExpandAsync_Loaded_DoesNotListAgain() => UiThread.Run(async () =>
     {
         _source.SetChildren(@"C:\", "A");
         var model = new FolderTreeModel(_source);
@@ -181,7 +182,7 @@ public sealed class FolderTreeModelTests
         await model.ExpandAsync(model.Roots[1]);
 
         Assert.Equal(1, _source.ListCalls);
-    }
+    });
 
     // NS-56: refresh
 
@@ -203,7 +204,7 @@ public sealed class FolderTreeModelTests
     }
 
     [Fact]
-    public async Task RefreshAsync_RenamedChild_ListsNewNames_InSourceOrder()
+    public void RefreshAsync_RenamedChild_ListsNewNames_InSourceOrder() => UiThread.Run(async () =>
     {
         (FolderTreeModel model, FolderNode photos) = await PhotosAsync();
         _source.SetChildren(@"C:\Photos", "Keep", "New");
@@ -212,10 +213,10 @@ public sealed class FolderTreeModelTests
 
         Assert.Equal(new[] { "Keep", "New" }, photos.Children.Select(c => c.Name));
         Assert.DoesNotContain(photos.Children, c => c.Name == "Old");
-    }
+    });
 
     [Fact]
-    public async Task RefreshAsync_SurvivingChild_IsTheSameObject_NewChildNotLoaded()
+    public void RefreshAsync_SurvivingChild_IsTheSameObject_NewChildNotLoaded() => UiThread.Run(async () =>
     {
         (FolderTreeModel model, FolderNode photos) = await PhotosAsync();
         _source.SetChildren(@"C:\Photos\Keep", "Inner");
@@ -230,10 +231,10 @@ public sealed class FolderTreeModelTests
         Assert.Equal(FolderNodeState.Loaded, newKeep.State);
         Assert.Equal(new[] { "Inner" }, newKeep.Children.Select(c => c.Name));
         Assert.Equal(FolderNodeState.NotLoaded, photos.Children.Single(c => c.Name == "New").State);
-    }
+    });
 
     [Fact]
-    public async Task RefreshAsync_RenamedLoadedChild_IsFreshNotLoaded()
+    public void RefreshAsync_RenamedLoadedChild_IsFreshNotLoaded() => UiThread.Run(async () =>
     {
         (FolderTreeModel model, FolderNode photos) = await PhotosAsync();
         _source.SetChildren(@"C:\Photos\Old", "Deep");
@@ -246,10 +247,10 @@ public sealed class FolderTreeModelTests
         Assert.Equal(FolderNodeState.NotLoaded, renamed.State);
         Assert.Empty(renamed.Children);
         Assert.Null(model.FindHeld(@"C:\Photos\Old\Deep"));
-    }
+    });
 
     [Fact]
-    public async Task RefreshAsync_CaseOnlyRename_ReplacesNode_WithDiskSpelling()
+    public void RefreshAsync_CaseOnlyRename_ReplacesNode_WithDiskSpelling() => UiThread.Run(async () =>
     {
         _source.SetChildren(@"C:\", "Photos");
         var model = new FolderTreeModel(_source);
@@ -263,10 +264,10 @@ public sealed class FolderTreeModelTests
         Assert.NotSame(before, after);
         Assert.Equal("photos", after.Name);
         Assert.Equal(@"C:\photos", after.FullPath);
-    }
+    });
 
     [Fact]
-    public async Task RefreshAsync_NotLoadedNode_ListsNothing_ReturnsNull()
+    public void RefreshAsync_NotLoadedNode_ListsNothing_ReturnsNull() => UiThread.Run(async () =>
     {
         _source.SetChildren(@"C:\", "A");
         var model = new FolderTreeModel(_source);
@@ -278,13 +279,13 @@ public sealed class FolderTreeModelTests
         Assert.Null(result);
         Assert.Equal(calls, _source.ListCalls);
         Assert.Equal(FolderNodeState.NotLoaded, root.Children[0].State);
-    }
+    });
 
     [Theory]
     [InlineData(@"\\server\share")]
     [InlineData(@"C:\A\B")]
     [InlineData(@"C:\Missing")]
-    public async Task RefreshAsync_PathNotHeld_ChangesNothing_ReturnsNull(string path)
+    public void RefreshAsync_PathNotHeld_ChangesNothing_ReturnsNull(string path) => UiThread.Run(async () =>
     {
         _source.SetChildren(@"C:\", "A");
         var model = new FolderTreeModel(_source);
@@ -293,18 +294,18 @@ public sealed class FolderTreeModelTests
 
         Assert.Null(await model.RefreshAsync(path));
         Assert.Equal(calls, _source.ListCalls);
-    }
+    });
 
     [Fact]
-    public async Task RefreshAsync_ListsFine_ReturnsOwnPath()
+    public void RefreshAsync_ListsFine_ReturnsOwnPath() => UiThread.Run(async () =>
     {
         (FolderTreeModel model, _) = await PhotosAsync();
 
         Assert.Equal(@"C:\Photos", await model.RefreshAsync(@"C:\Photos"));
-    }
+    });
 
     [Fact]
-    public async Task RefreshAsync_RootWithProblem_MarkedFailed_ReturnsNull()
+    public void RefreshAsync_RootWithProblem_MarkedFailed_ReturnsNull() => UiThread.Run(async () =>
     {
         _source.SetChildren(@"C:\", "A");
         var model = new FolderTreeModel(_source);
@@ -317,10 +318,10 @@ public sealed class FolderTreeModelTests
         Assert.Equal(FolderNodeState.Failed, root.State);
         Assert.Equal(FolderProblem.NotReady, root.Problem);
         Assert.Empty(root.Children);
-    }
+    });
 
     [Fact]
-    public async Task RefreshAsync_FolderGone_RemovedFromParent_ReturnsParent()
+    public void RefreshAsync_FolderGone_RemovedFromParent_ReturnsParent() => UiThread.Run(async () =>
     {
         (FolderTreeModel model, _) = await PhotosAsync();
         _source.SetListing(@"C:\Photos", FolderListing.Failed(FolderProblem.NotFound));
@@ -330,10 +331,10 @@ public sealed class FolderTreeModelTests
 
         Assert.Equal(@"C:\", result);
         Assert.DoesNotContain(model.Roots[1].Children, c => c.Name == "Photos");
-    }
+    });
 
     [Fact]
-    public async Task RefreshAsync_GoneTwoLevels_ClimbsToNearestExisting()
+    public void RefreshAsync_GoneTwoLevels_ClimbsToNearestExisting() => UiThread.Run(async () =>
     {
         _source.SetChildren(@"C:\", "A");
         _source.SetChildren(@"C:\A", "B");
@@ -347,10 +348,10 @@ public sealed class FolderTreeModelTests
 
         Assert.Equal(@"C:\", result);
         Assert.DoesNotContain(model.Roots[1].Children, c => c.Name == "A");
-    }
+    });
 
     [Fact]
-    public async Task RefreshAsync_AccessDeniedButStillListed_KeptFailed_ReturnsOwnPath()
+    public void RefreshAsync_AccessDeniedButStillListed_KeptFailed_ReturnsOwnPath() => UiThread.Run(async () =>
     {
         (FolderTreeModel model, FolderNode photos) = await PhotosAsync();
         _source.SetListing(@"C:\Photos", FolderListing.Failed(FolderProblem.AccessDenied));
@@ -361,10 +362,10 @@ public sealed class FolderTreeModelTests
         Assert.Same(photos, model.Roots[1].Children.Single());
         Assert.Equal(FolderNodeState.Failed, photos.State);
         Assert.Equal(FolderProblem.AccessDenied, photos.Problem);
-    }
+    });
 
     [Fact]
-    public async Task RefreshAsync_FailedNodeNowLists_BecomesLoaded_ProblemCleared()
+    public void RefreshAsync_FailedNodeNowLists_BecomesLoaded_ProblemCleared() => UiThread.Run(async () =>
     {
         _source.SetChildren(@"C:\", "Photos");
         _source.SetListing(@"C:\Photos", FolderListing.Failed(FolderProblem.AccessDenied), FolderListing.Ok(new[] { new FolderEntry("A", @"C:\Photos\A") }));
@@ -378,10 +379,10 @@ public sealed class FolderTreeModelTests
         Assert.Equal(FolderNodeState.Loaded, photos.State);
         Assert.Equal(new[] { "A" }, photos.Children.Select(c => c.Name));
         Assert.Null(photos.Problem);
-    }
+    });
 
     [Fact]
-    public async Task RefreshAsync_NoSubFolderLeft_MayHaveChildrenFalse()
+    public void RefreshAsync_NoSubFolderLeft_MayHaveChildrenFalse() => UiThread.Run(async () =>
     {
         _source.SetChildren(@"C:\", "A");
         var model = new FolderTreeModel(_source);
@@ -392,10 +393,10 @@ public sealed class FolderTreeModelTests
         await model.RefreshAsync(@"C:\");
 
         Assert.False(root.MayHaveChildren);
-    }
+    });
 
     [Fact]
-    public async Task RefreshAsync_SubFolderAppeared_MayHaveChildrenTrue()
+    public void RefreshAsync_SubFolderAppeared_MayHaveChildrenTrue() => UiThread.Run(async () =>
     {
         _source.SetChildren(@"C:\");
         var model = new FolderTreeModel(_source);
@@ -406,10 +407,10 @@ public sealed class FolderTreeModelTests
         await model.RefreshAsync(@"C:\");
 
         Assert.True(root.MayHaveChildren);
-    }
+    });
 
     [Fact]
-    public async Task RefreshAsync_WhileRefreshing_ReturnsSameTask()
+    public void RefreshAsync_WhileRefreshing_ReturnsSameTask() => UiThread.Run(async () =>
     {
         (FolderTreeModel model, _) = await PhotosAsync();
         int calls = _source.ListCalls;
@@ -423,22 +424,25 @@ public sealed class FolderTreeModelTests
 
         Assert.Same(first, second);
         Assert.Equal(calls + 1, _source.ListCalls);
-    }
+    });
 
     [Fact]
-    public async Task RefreshAsync_WhileExpanding_WaitsThenLists()
+    public void RefreshAsync_WhileExpanding_WaitsThenLists() => UiThread.Run(async () =>
     {
         _source.SetChildren(@"C:\", "A");
         var model = new FolderTreeModel(_source);
         using var gate = new ManualResetEventSlim(false);
         _source.Gate = gate;
+        var listing = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _source.Listing = () => listing.TrySetResult(true);
         Task expand = model.ExpandAsync(model.Roots[1]);
         Assert.Equal(FolderNodeState.Loading, model.Roots[1].State);
 
         Task<string?> refresh = model.RefreshAsync(@"C:\");
-        await Task.Delay(100);
+        await TestWait.Within(listing.Task);
 
-        // The expand's listing is held at the gate: the refresh must not have listed yet (it waits for the expand).
+        // The expand's listing is held at the gate (waited for above, not slept for: NS-77). The refresh reached its
+        // wait for the expand before RefreshAsync returned, so it must not have listed.
         Assert.Equal(1, _source.ListCalls);
         Assert.False(refresh.IsCompleted);
         gate.Set();
@@ -447,10 +451,10 @@ public sealed class FolderTreeModelTests
 
         Assert.Equal(FolderNodeState.Loaded, model.Roots[1].State);
         Assert.Equal(2, _source.ListCalls);
-    }
+    });
 
     [Fact]
-    public async Task RefreshAsync_SourceThrows_NeverEscapes_NodeFailedUnavailable()
+    public void RefreshAsync_SourceThrows_NeverEscapes_NodeFailedUnavailable() => UiThread.Run(async () =>
     {
         (FolderTreeModel model, FolderNode photos) = await PhotosAsync();
         _source.SetThrows(@"C:\Photos", new InvalidOperationException("boom"));
@@ -460,10 +464,10 @@ public sealed class FolderTreeModelTests
         Assert.Equal(@"C:\Photos", result);
         Assert.Equal(FolderNodeState.Failed, photos.State);
         Assert.Equal(FolderProblem.Unavailable, photos.Problem);
-    }
+    });
 
     [Fact]
-    public async Task RefreshAsync_DuringRefresh_NodeStaysLoaded()
+    public void RefreshAsync_DuringRefresh_NodeStaysLoaded() => UiThread.Run(async () =>
     {
         (FolderTreeModel model, FolderNode photos) = await PhotosAsync();
         using var gate = new ManualResetEventSlim(false);
@@ -475,10 +479,10 @@ public sealed class FolderTreeModelTests
         Assert.Equal(2, photos.Children.Count);
         gate.Set();
         await refresh;
-    }
+    });
 
     [Fact]
-    public async Task RefreshAllAsync_TwoFolders_RefreshesBoth_ReturnsBothPaths()
+    public void RefreshAllAsync_TwoFolders_RefreshesBoth_ReturnsBothPaths() => UiThread.Run(async () =>
     {
         _source.SetChildren(@"C:\", "A", "B");
         var model = new FolderTreeModel(_source);
@@ -490,10 +494,10 @@ public sealed class FolderTreeModelTests
 
         Assert.Equal(new[] { @"C:\A", @"C:\B" }, result);
         Assert.Equal(calls + 2, _source.ListCalls);
-    }
+    });
 
     [Fact]
-    public async Task RefreshAllAsync_OneNotHeld_OtherStillRefreshed()
+    public void RefreshAllAsync_OneNotHeld_OtherStillRefreshed() => UiThread.Run(async () =>
     {
         _source.SetChildren(@"C:\", "A", "B");
         var model = new FolderTreeModel(_source);
@@ -504,10 +508,10 @@ public sealed class FolderTreeModelTests
 
         Assert.Equal(new[] { @"C:\B" }, result);
         Assert.Equal(new[] { "New" }, model.FindHeld(@"C:\B")!.Children.Select(c => c.Name));
-    }
+    });
 
     [Fact]
-    public async Task RefreshAllAsync_OneSourceThrows_OtherStillRefreshed()
+    public void RefreshAllAsync_OneSourceThrows_OtherStillRefreshed() => UiThread.Run(async () =>
     {
         _source.SetChildren(@"C:\", "A", "B");
         var model = new FolderTreeModel(_source);
@@ -521,10 +525,10 @@ public sealed class FolderTreeModelTests
         Assert.Equal(FolderNodeState.Failed, model.Roots[1].Children.Single(c => c.Name == "A").State);
         Assert.Contains(@"C:\B", result);
         Assert.Equal(new[] { "New" }, model.FindHeld(@"C:\B")!.Children.Select(c => c.Name));
-    }
+    });
 
     [Fact]
-    public async Task RefreshAllAsync_DuplicatePaths_ReturnedOnce()
+    public void RefreshAllAsync_DuplicatePaths_ReturnedOnce() => UiThread.Run(async () =>
     {
         _source.SetChildren(@"C:\", "A");
         var model = new FolderTreeModel(_source);
@@ -533,20 +537,20 @@ public sealed class FolderTreeModelTests
         IReadOnlyList<string> result = await model.RefreshAllAsync(new[] { @"C:\A", @"c:\a" });
 
         Assert.Single(result);
-    }
+    });
 
     [Fact]
-    public async Task FindReplacementFor_ChildRemoved_ReturnsLoadedAncestor()
+    public void FindReplacementFor_ChildRemoved_ReturnsLoadedAncestor() => UiThread.Run(async () =>
     {
         (FolderTreeModel model, _) = await PhotosAsync();
         _source.SetChildren(@"C:\Photos", "Keep", "New");
         await model.RefreshAsync(@"C:\Photos");
 
         Assert.Equal(@"C:\Photos", model.FindReplacementFor(@"C:\Photos\Old\X"));
-    }
+    });
 
     [Fact]
-    public async Task FindFallbackAsync_HiddenFolderThatExists_ReturnsNull()
+    public void FindFallbackAsync_HiddenFolderThatExists_ReturnsNull() => UiThread.Run(async () =>
     {
         _source.SetChildren(@"C:\", "Users");
         _source.SetChildren(@"C:\Users", "Public");
@@ -557,41 +561,41 @@ public sealed class FolderTreeModelTests
 
         Assert.Null(await model.FindFallbackAsync(@"C:\Users\AppData"));
         Assert.Equal(1, _source.CheckCalls);
-    }
+    });
 
     [Fact]
-    public async Task FindFallbackAsync_FolderCreatedAfterParentWasListed_ReturnsNull()
+    public void FindFallbackAsync_FolderCreatedAfterParentWasListed_ReturnsNull() => UiThread.Run(async () =>
     {
         (FolderTreeModel model, _) = await PhotosAsync();
         _source.Folders.Add(@"C:\Photos\Fresh");
 
         Assert.Null(await model.FindFallbackAsync(@"C:\Photos\Fresh"));
-    }
+    });
 
     [Fact]
-    public async Task FindFallbackAsync_FolderReallyGone_ReturnsLoadedAncestor()
+    public void FindFallbackAsync_FolderReallyGone_ReturnsLoadedAncestor() => UiThread.Run(async () =>
     {
         (FolderTreeModel model, _) = await PhotosAsync();
 
         Assert.Equal(@"C:\Photos", await model.FindFallbackAsync(@"C:\Photos\Missing"));
-    }
+    });
 
     [Fact]
-    public async Task FindFallbackAsync_NoSignItIsGone_DoesNotTouchTheDisk()
+    public void FindFallbackAsync_NoSignItIsGone_DoesNotTouchTheDisk() => UiThread.Run(async () =>
     {
         (FolderTreeModel model, _) = await PhotosAsync();
 
         Assert.Null(await model.FindFallbackAsync(@"C:\Photos\Keep"));
         Assert.Equal(0, _source.CheckCalls);
-    }
+    });
 
     [Fact]
-    public async Task FindReplacementFor_StillHeldOrUnknown_ReturnsNull()
+    public void FindReplacementFor_StillHeldOrUnknown_ReturnsNull() => UiThread.Run(async () =>
     {
         (FolderTreeModel model, _) = await PhotosAsync();
 
         Assert.Null(model.FindReplacementFor(@"C:\Photos\Keep"));
         Assert.Null(model.FindReplacementFor(@"C:\Photos\Keep\Below"));
         Assert.Null(model.FindReplacementFor(@"\\server\share"));
-    }
+    });
 }
