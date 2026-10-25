@@ -46,6 +46,13 @@ public sealed class CmdSourceScanTests
         AssertNoSourceMatches(text => text.Contains(pattern));
     }
 
+    // Inside NameShift.Cmd the name Strings means NameShift.Cmd.Strings: the window's texts go through the UiStrings alias.
+    [Fact]
+    public void CliSourceHasNoQualifiedUiStrings()
+    {
+        AssertNoSourceMatches(text => text.Contains("NameShift.Ui.Strings."));
+    }
+
     // Calls a literal pattern misses: new FileInfo(x).Delete(), or `using static System.IO.File;` then Move(a, b).
     // A name that merely ends in the word (Remove(, IsMoved() is not a match.
     [Theory]

@@ -109,7 +109,6 @@ public sealed class RegexMoveDateFolderParserTests
         yield return new object[] { "--move|1|--copy|1", Text("OneModeOnly", Strings.MoveModeOptions) };
         yield return new object[] { "--copy|1|--move|1", Text("OneModeOnly", Strings.MoveModeOptions) };
         yield return new object[] { "--move|1|--move|2", Text("RepeatedOption", "--move") };
-        yield return new object[] { "--copy|1|--copy|1", Text("RepeatedOption", "--copy") };
         yield return new object[] { "--move", Text("OptionNeedsValue", "--move") };
         yield return new object[] { "--move|--dry-run", Text("OptionNeedsValue", "--move") };
         foreach (string word in new[] { "--move", "--copy" })
@@ -193,6 +192,18 @@ public sealed class RegexMoveDateFolderParserTests
 
         Assert.Equal(CommandKind.Error, command.Kind);
         Assert.Equal(message + Tail, command.Error);
+    }
+
+    [Fact]
+    public void ErrorRows_HaveNoDuplicateOptions()
+    {
+        string[] duplicated = ErrorRows()
+            .GroupBy(row => (string)row[0], StringComparer.Ordinal)
+            .Where(group => group.Count() > 1)
+            .Select(group => group.Key)
+            .ToArray();
+
+        Assert.True(duplicated.Length == 0, "Rows yielded twice: " + string.Join(", ", duplicated));
     }
 
     [Fact]

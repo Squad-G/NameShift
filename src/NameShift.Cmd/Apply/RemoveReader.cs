@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NameShift.Core;
 using NameShift.Ui.Rules;
 using static NameShift.Cmd.OptionArgs;
+using UiStrings = NameShift.Ui.Strings;
 
 namespace NameShift.Cmd;
 
@@ -89,7 +90,7 @@ internal sealed class RemoveReader : ApplyOptionReader
             if ((word == FirstOption || word == LastOption) && TextPosition.Parse(value!) == null)
             {
                 return OptionRead.Failed(Fail(Format(Strings.OptionError, word,
-                    WithoutSkipSentence(NameShift.Ui.Strings.RemovePositionInvalid))));
+                    WithoutSkipSentence(UiStrings.RemovePositionInvalid))));
             }
 
             _counts[word] = value!;
@@ -137,7 +138,7 @@ internal sealed class RemoveReader : ApplyOptionReader
         if ((_counts.ContainsKey(FromOption) || _counts.ContainsKey(ToOption)) && !RangeIsValid())
         {
             return Fail(Format(Strings.OptionError, Strings.RemoveRangeOptions,
-                WithoutSkipSentence(NameShift.Ui.Strings.RemoveRangeInvalid)));
+                WithoutSkipSentence(UiStrings.RemoveRangeInvalid)));
         }
 
         draft.Panels.Add(BuildModel());

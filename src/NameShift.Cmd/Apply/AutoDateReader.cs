@@ -47,7 +47,7 @@ internal sealed class AutoDateReader : ApplyOptionReader
         bool ok;
         if (Is(word, DateOption))
         {
-            ok = ReadSwitch(out error);
+            ok = TakeSwitch(ref _date, DateOption, out error);
         }
         else if (Is(word, SourceOption))
         {
@@ -67,14 +67,7 @@ internal sealed class AutoDateReader : ApplyOptionReader
         }
 
         _any = true;
-        return ok ? OptionRead.Taken : OptionRead.Failed(error!);
-    }
-
-    private bool ReadSwitch(out ParsedCommand? error)
-    {
-        error = _date ? Fail(Format(Strings.RepeatedOption, DateOption)) : null;
-        _date = true;
-        return error == null;
+        return OptionRead.From(ok, error);
     }
 
     private bool ReadFormat(IReadOnlyList<string> args, ref int i, out ParsedCommand? error)
