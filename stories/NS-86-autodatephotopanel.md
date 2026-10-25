@@ -1,6 +1,6 @@
 # NS-86: Auto date panel: the Photo date choice
 
-Status: In Progress
+Status: In Review
 Depends on: NS-62, NS-85, NS-87, NS-59, NS-76
 Area: app
 
@@ -128,3 +128,4 @@ Logic in `NameShift.Ui` and `NameShift.Cmd` with tests on net10.0 and net48; the
   shows only ReparsePoint); items given to PhotoDates.Fill must come from a listing (tech-lead).
 - 2026-10-25: PR #104 re-review nits folded in: the command-line fact says the built rules decide (not the panel's
   Enabled and Source), and criterion 11 moved after 10 (tech-lead).
+- 2026-10-25: built (builder): Photo date in the panel (Sources, presets), PhotoDateNeed trigger, snapshot flag and grey Status note, `apply --date-source taken` with one error-stream line for planned files without a photo date; In Review.
