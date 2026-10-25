@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using NameShift.Ui.Tests.Files;
 
 namespace NameShift.Ui.Tests;
 
@@ -9,7 +10,9 @@ namespace NameShift.Ui.Tests;
 /// Runs a test body on the calling thread under a single-threaded, pumped <see cref="SynchronizationContext"/>, as the
 /// window's UI thread does: every await continuation is posted back and runs one at a time, so a continuation never
 /// runs in the middle of a synchronous event handler (NS-78: the filter run cannot land before the binding's reload
-/// has started).
+/// has started). FolderTreeModel's tests run here too (NS-77): its state is the UI thread's, and on pool threads two
+/// continuations wrote its dictionaries at once. A body with no post and no end for <see cref="TestWait.Timeout"/>
+/// fails with a TimeoutException instead of hanging the test host.
 /// </summary>
 internal static class UiThread
 {
@@ -77,7 +80,10 @@ internal static class UiThread
                 {
                     while (_queue.Count == 0 && !_completed)
                     {
-                        Monitor.Wait(_queue);
+                        if (!Monitor.Wait(_queue, TestWait.Timeout))
+                        {
+                            throw new TimeoutException("The test body did not finish in time.");
+                        }
                     }
 
                     if (_queue.Count == 0)
