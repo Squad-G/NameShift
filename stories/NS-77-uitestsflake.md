@@ -1,6 +1,6 @@
 # NS-77: Find and fix the occasional net48 failure in the Ui tests
 
-Status: Ready
+Status: In Progress
 Depends on:
 Area: app
 
@@ -79,3 +79,4 @@ no product change.
 
 ## Log
 - 2026-10-24: created and set Ready (po): occasional net48 failure, hang and early stop in the Ui tests.
+- 2026-10-24: In Progress (builder).
