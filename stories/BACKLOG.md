@@ -103,6 +103,6 @@ spec (NS-85, NS-86, NS-87) become Ready when the story they build on is merged.
 | 86 | [NS-86 Auto date panel: the Photo date choice](NS-86-autodatephotopanel.md) | Draft | NS-62, NS-85, NS-59, NS-76 |
 | 87 | [NS-87 Command line: --recurse](NS-87-clirecurse.md) | Draft | NS-41, NS-74, NS-78 |
 | 92 | [NS-92 Move the settings-saving logic out of MainForm into NameShift.Ui](NS-92-savesettingslogic.md) | Ready | NS-37, NS-84 |
-| 94 | [NS-94 Close gaps in the tests: PathInput prefixes, both orders of the list model, broken path literals](NS-94-testgaps.md) | Ready | NS-10, NS-70, NS-78, NS-80 |
+| 94 | [NS-94 Close gaps in the tests: PathInput prefixes, both orders of the list model, broken path literals](NS-94-testgaps.md) | In Progress | NS-10, NS-70, NS-78, NS-80 |
 | 49 | [NS-49 Explorer right-click entry "Bulk Rename Here": the registry keys](NS-49-explorer-entry.md) | Draft | NS-88, NS-89 |
 | 44 | [NS-44 Installer](NS-44-installer.md) | Draft | NS-15, NS-38, NS-49 |
