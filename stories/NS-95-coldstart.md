@@ -15,14 +15,23 @@ was already running or not. Found in the review of NS-49 (PR #107).
 Logic in `NameShift.Ui` with tests on net10.0 and net48 (the fake clock of NS-89's `RequestGatherer` tests); `MainForm` and
 `Program` only wire it. Names are indicative.
 1. Given the owner window starts with path arguments, then those arguments enter the same `RequestGatherer` as a request
-   (with the process's own current directory), as the first request, and are applied together with the requests that arrive
-   within the gathering time (300 ms of quiet, 3 s at most, NS-89 criterion 5). They are no longer opened directly.
+   (with the process's own current directory), as the first request, and are applied together with the requests that
+   arrive within the gathering time (300 ms of quiet, 3 s at most, NS-89 criterion 5). They are no longer opened
+   directly. The decision is made in `NameShift.Ui`: `StartFolderChoice.Pick` returns a new value (indicative `Gather`)
+   instead of `Argument` when the start has a path argument, and a Ui helper builds the owner's `InstanceRequest` from
+   the start arguments and the process's own current directory; `MainForm.OnShown` only calls `Add` and
+   `ScheduleGatherCheck` for it. Tests: `Pick` with an argument gives `Gather` (the old `Argument` value is gone, so the
+   test fails without the change), and the helper's request carries every argument and the current directory. The
+   gatherer's cap of 2,000 paths (NS-89) now applies to the owner's own arguments too: new behaviour, stated here
+   (before, NS-88 criterion 8 used every argument; a command line holds far fewer in practice).
 2. Given a cold start of 15 processes, each with one file of one folder (a test: the owner's start request followed by 14
    piped requests inside the quiet time), then the gathered result is one folder with all 15 files selected, the owner's file
    included. With a slow trickle cut at 3 s, the first batch contains the owner's request.
-3. Given the owner starts with one path and nothing else arrives, then the result is what NS-47 gives today (a folder opens,
-   a file opens its folder and selects it, messages as before); the only difference is the gathering delay of at most 300 ms
-   for a start with a path.
+3. Given the owner starts with one path and nothing else arrives, then the result is what NS-47 gives today (a folder
+   opens, a file opens its folder and selects it, messages as before); the only difference is the gathering delay of at
+   most 300 ms for a start with a path. While the gathering runs (up to 300 ms), the window neither calls
+   `_navigator.Start()` (Documents never flashes first) nor opens the remembered folder. A gathered batch that resolves
+   to nothing (path not found) ends as today: the message, then the start folder through `OpenAction.OpenStartFolder`.
 4. Given the owner starts with no path argument, then there is no gathering delay (NS-89 criterion 5, last sentence) and the
    window opens as usual (settings, last folder).
 5. Given the gathered requests of several folders, then the folder of the first request wins (the owner's), as NS-89 says.
@@ -45,3 +54,6 @@ Logic in `NameShift.Ui` with tests on net10.0 and net48 (the fake clock of NS-89
 ## Log
 - 2026-10-25: created from the review of PR #107 (blocker 2: NS-49 criterion 4 was not met by the merged NS-89 on a cold
   start) (po). Ready.
+- 2026-10-25: PR #107 re-review nits folded in: the gather decision in `NameShift.Ui` (`Pick` gives `Gather`, a helper
+  builds the owner's request, tests that fail without the change), nothing shown during the gathering and the not-found
+  end as today, the 2,000-path cap stated for the owner (tech-lead).

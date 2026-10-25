@@ -17,10 +17,11 @@ never need Inno Setup. Nothing in `tools/` or `docs/RELEASING.md` is changed by 
    folders, or the PATH; a clear message if missing) and produces `installer/Output/NameShift-Setup-<version>.exe` of at most
    3 MB (LZMA solid). The story adds the line `installer/Output/` to `.gitignore`: after a build, `git status --porcelain`
    is empty, so `tools/release.sh` still runs.
-2. Given install, then it is per user only: no admin rights and no UAC prompt (`PrivilegesRequired=lowest`), program files in
-   `%LocalAppData%\Programs\NameShift` (the user may choose another folder, but not `%LocalAppData%\NameShift` or
-   `%AppData%\NameShift`, which hold the user's data: setup refuses them), a Start menu shortcut, and an optional desktop
-   shortcut (off by default).
+2. Given install, then it is per user only: no admin rights and no UAC prompt (`PrivilegesRequired=lowest`), program
+   files in `%LocalAppData%\Programs\NameShift` (the user may choose another folder, but not `%LocalAppData%\NameShift`
+   or `%AppData%\NameShift`, which hold the user's data, nor a folder inside either: setup refuses them, because Yes on
+   the uninstall question deletes the data folders), a Start menu shortcut, and an optional desktop shortcut (off by
+   default).
 3. Given reinstall or a newer version over an old one, then it upgrades in place (fixed `AppId`, generated once and never
    changed), keeps the user's data and the choices of the tasks. If `NameShift.exe` is running, an interactive setup asks to
    close it and a silent one (`/SILENT`, `/VERYSILENT`) closes it (Inno's Restart Manager closing); a file in use is never
@@ -65,10 +66,11 @@ never need Inno Setup. Nothing in `tools/` or `docs/RELEASING.md` is changed by 
     not edit it.
 12. Given the root `README.md`, then its Layout line for `installer/` no longer says "planned, not there yet" and points to
     `installer/README.md`.
-13. By hand, written in the PR, on a clean Windows 10 or 11 user: install with all defaults; install with each task changed;
-    upgrade over an older build, also while NameShift is open (the window saves its settings at close); uninstall with No and
-    with Yes; uninstall while NameShift is open; silent install and uninstall; a `/DIR` of a data folder is refused;
-    `check-registry.ps1` after install and after uninstall; PATH (with `%USERPROFILE%` entries) before and after.
+13. By hand, written in the PR, on a clean Windows 10 or 11 user: install with all defaults; install with each task
+    changed; upgrade over an older build, also while NameShift is open (the window saves its settings at close);
+    uninstall with No and with Yes; uninstall while NameShift is open; silent install and uninstall; a `/DIR` of a data
+    folder, or of a folder inside one, is refused; `check-registry.ps1` after install and after uninstall; PATH (with
+    `%USERPROFILE%` entries) before and after.
 
 ## Out of scope
 - Code signing, Store, auto-update, a per-machine (all users) install, other languages of setup.
@@ -113,3 +115,5 @@ never need Inno Setup. Nothing in `tools/` or `docs/RELEASING.md` is changed by 
 - 2026-10-25: re-checked against RELEASING.md, tools/release.sh and the repo; Ready (po).
 - 2026-10-25: PR #107 review: order reversed (NS-44 first, no dependency on NS-49), `.gitignore`, pinned three-part version,
   silent-mode wording, PATH kind, data-folder guard, README Layout line, check script execution policy (po).
+- 2026-10-25: PR #107 re-review nit folded in: the `/DIR` guard also refuses a folder inside the two data folders
+  (criteria 2 and 13) (tech-lead).
