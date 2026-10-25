@@ -1,6 +1,6 @@
 # NS-74: Sub-folders: recursive, cancellable listing
 
-Status: In Progress
+Status: In Review
 Depends on: NS-33, NS-66, NS-73
 Area: app
 
@@ -138,3 +138,4 @@ Relative folder and rename:
   `IncludeSubfolders`/`SetIncludeSubfoldersAsync`, the tree refresh lists every folder; the controls moved to NS-78; set
   Ready (po).
 - 2026-10-24: In Progress (builder).
+- 2026-10-24: In Review (builder), PR #72.
