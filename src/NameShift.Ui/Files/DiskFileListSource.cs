@@ -21,9 +21,10 @@ namespace NameShift.Ui.Files;
 /// <item>A sub-folder that cannot be read (access denied, path too long, removed meanwhile, any I/O error), at the
 /// call or midway: skipped and counted in <see cref="FileListing.SkippedFolders"/>; the entries read before the error,
 /// and the sub-folders found among them, are kept. The chosen folder failing is a failed listing.</item>
-/// <item>Cancellation: the token is checked before the walk, once per folder and once per 1,000 entries; a cancelled
-/// walk throws <see cref="OperationCanceledException"/> and returns nothing. A read blocked on a dead share cannot be
-/// cancelled, only superseded: its thread waits for the disk, and the caller never applies its result.</item>
+/// <item>Cancellation: the token is checked before the walk, once per folder, once per 1,000 entries and at the
+/// end; a cancelled walk throws <see cref="OperationCanceledException"/> and returns nothing. A read blocked on a dead
+/// share cannot be cancelled, only superseded: its thread waits for the disk, and the caller never applies its
+/// result.</item>
 /// </list>
 /// </summary>
 public sealed class DiskFileListSource : IFileListSource
@@ -76,6 +77,8 @@ public sealed class DiskFileListSource : IFileListSource
                 walk.PushChildren();
             }
 
+            // Cancelled while the last folder was read: still no listing.
+            cancellationToken.ThrowIfCancellationRequested();
             return FileListing.Ok(walk.Items, walk.Skipped);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
