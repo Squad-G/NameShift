@@ -185,7 +185,7 @@ public sealed class CommandRunnerHelpTests : IDisposable
             int first = Array.IndexOf(lines, expected[0]);
             Assert.True(first >= 0);
             Assert.Equal(expected, lines.Skip(first).Take(3).ToArray());
-            Assert.Equal(first - 1, Array.FindIndex(lines, line => line.StartsWith("  --number-case ", StringComparison.Ordinal)));
+            Assert.Equal(first - 1, Array.FindIndex(lines, line => line.StartsWith("  --remove-double-spaces ", StringComparison.Ordinal)));
         }
     }
 

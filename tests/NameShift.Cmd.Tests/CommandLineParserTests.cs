@@ -306,7 +306,13 @@ public sealed class CommandLineParserTests
                 "apply", "undo", "help", "--help", "-h", "/?", "--version", "--replace", "--case", "--dry-run",
                 "--quiet", "-q", "--verbose", "-v", "--prefix", "--suffix", "--insert", "--from-end", "--word-space",
                 "--number", "--number-mode", "--number-start", "--number-step", "--number-pad", "--number-separator",
-                "--number-position", "--number-system", "--number-case", "--preset", "--save-preset", "--overwrite",
+                "--number-position", "--number-system", "--number-case", "--name-fixed", "--name-empty",
+                "--name-reverse", "--ext-lower", "--ext-upper", "--ext-fixed", "--ext-extra", "--ext-remove",
+                "--remove-first", "--remove-last", "--remove-from", "--remove-to", "--remove-chars", "--remove-text",
+                "--remove-before", "--remove-after", "--remove-whole-word", "--remove-match-case",
+                "--remove-keep-marker", "--remove-digits", "--remove-symbols", "--remove-accents",
+                "--remove-high-chars", "--remove-trim", "--remove-leading-dots", "--remove-double-spaces",
+                "--preset", "--save-preset", "--overwrite",
             },
             CommandLineParser.Words);
         Assert.Equal(CommandLineParser.Words, CommandLineParser.GlobalWords.Concat(CommandLineParser.ApplyOptionWords));
@@ -620,8 +626,9 @@ public sealed class CommandLineParserTests
         setup(model);
         string modelText = error(model);
         Assert.NotEmpty(modelText);
-        Assert.EndsWith(Strings.NumberingSkippedSentence, modelText, StringComparison.Ordinal);
-        string expected = modelText.Substring(0, modelText.Length - Strings.NumberingSkippedSentence.Length).TrimEnd();
+        Assert.Contains(Strings.SkipSentenceMarker, modelText, StringComparison.Ordinal);
+        string expected = modelText.Substring(0, modelText.LastIndexOf(Strings.SkipSentenceMarker, StringComparison.Ordinal))
+            .TrimEnd();
 
         ParsedCommand command = CommandLineParser.Parse(Args(@"apply|D:\P|" + options));
 

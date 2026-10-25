@@ -80,14 +80,12 @@ internal static class OptionArgs
         return false;
     }
 
-    /// <summary>The window's error texts end with a sentence that says numbering is skipped; on the command line the run
-    /// fails instead, so the sentence is removed.</summary>
+    /// <summary>The window's error texts end with a sentence that starts at <see cref="Strings.SkipSentenceMarker"/>
+    /// ("Until then ... is skipped."); on the command line the run fails instead, so the sentence is removed.</summary>
     public static string WithoutSkipSentence(string problem)
     {
-        string sentence = Strings.NumberingSkippedSentence;
-        return problem.EndsWith(sentence, StringComparison.Ordinal)
-            ? problem.Substring(0, problem.Length - sentence.Length).TrimEnd()
-            : problem;
+        int at = problem.LastIndexOf(Strings.SkipSentenceMarker, StringComparison.Ordinal);
+        return at < 0 ? problem : problem.Substring(0, at).TrimEnd();
     }
 
     public static string Format(string format, params object[] values) =>

@@ -34,7 +34,7 @@ The five rules (the "option rules"):
   the last `Until then` (new string `SkipSentenceMarker` = `Until then`, replacing NS-40's `NumberingSkippedSentence`;
   the numbering messages read as before). The two tests that name the old key are edited to the new key and helper with the
   same asserted outputs: `CmdStringsTests` (the exact text of the key, line 55) and `CommandLineParserTests` (the expected
-  cut, lines 550-551). A test asserts that every window string
+  cut, lines 623-624). A test asserts that every window string
   the command line shows (NS-75 and NS-76 list them) contains the marker and that the cut text contains neither `Until` nor
   `skipped`.
 
@@ -136,3 +136,4 @@ Same as the window, and the rest:
   `ParseApply` is the chore NS-79, which this story follows; set Ready, to start after NS-40, NS-69 and NS-79 are merged (po).
 - 2026-10-24: PR #75 review applied: the two tests naming the old key are edited, blank counts refused, `README.md` example (po).
 - 2026-10-24: In Progress (builder).
+- 2026-10-24: story text corrected by the builder: the old-key lines in `CommandLineParserTests` are 623-624 (not 550-551); the Words and help-order tests also change (`ApplyHelp_ListsPresetOptions` now expects `--remove-double-spaces` before `--preset`).
