@@ -40,8 +40,12 @@ Free, open-source, lightweight bulk file renamer for Windows (MIT). Owner: **Dav
 ## Checks (all must pass; warnings are errors)
 ```
 dotnet build -c Release
-dotnet test -c Release --no-build
+dotnet test -c Release --no-build --blame-hang-timeout 5m > <output file outside the repo> 2>&1
 ```
+Green means exit code 0 and all eight `Passed!` lines (four test projects, two frameworks) at their full totals. A
+short total with `Failed: 0` is a hung test host: read the `Test Run Aborted` lines below it (README, "Reading a test
+run").
+
 At least one test per acceptance criterion the engine can check. UI-only criteria are checked by hand and listed in
 the PR.
 
