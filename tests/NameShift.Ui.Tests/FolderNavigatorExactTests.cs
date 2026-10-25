@@ -56,6 +56,17 @@ public sealed class FolderNavigatorExactTests
     }
 
     [Fact]
+    public async Task Exact_SurroundingSpace_NotTrimmed()
+    {
+        _source.Folders.Add(@"C:\A");
+
+        PathBarResult result = await _navigator.NavigateToFolderAsync(@" C:\A");
+
+        Assert.Equal(PathBarResult.Invalid, result);
+        Assert.Equal(0, _source.CheckCalls);
+    }
+
+    [Fact]
     public async Task Exact_Quotes_NotStripped()
     {
         _source.Folders.Add(@"C:\A");
