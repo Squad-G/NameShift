@@ -160,14 +160,85 @@ public sealed class CommandRunnerHelpTests : IDisposable
     [Fact]
     public void ApplyHelp_ListsQuietAndVerbose()
     {
-        string[] quiet = { "  --quiet, -q              Print nothing on success; errors are still shown." };
-        string[] verbose = { "  --verbose, -v            Also list each renamed file and each unchanged file." };
+        const string quiet = "  --quiet, -q                Print nothing on success; errors are still shown.";
+        const string verbose = "  --verbose, -v              Also list the renamed and the unchanged files.";
 
         foreach (string[] lines in new[] { HelpText.Apply().ToArray(), HelpText.Main().ToArray() })
         {
-            Assert.Single(lines, line => line == quiet[0]);
-            Assert.Single(lines, line => line == verbose[0]);
+            Assert.Single(lines, line => line == quiet);
+            Assert.Single(lines, line => line == verbose);
         }
+    }
+
+    private static readonly string[] RuleOptionWords =
+    {
+        "--prefix", "--suffix", "--insert", "--from-end", "--word-space", "--number", "--number-mode", "--number-start",
+        "--number-step", "--number-pad", "--number-separator", "--number-position", "--number-system", "--number-case",
+    };
+
+    [Fact]
+    public void ApplyHelp_EveryRuleOptionHasItsLine()
+    {
+        foreach (string[] lines in new[] { HelpText.Apply().ToArray(), HelpText.Main().ToArray() })
+        {
+            foreach (string word in RuleOptionWords)
+            {
+                Assert.Contains(word, CommandLineParser.ApplyOptionWords);
+                Assert.Single(lines, line => line == "  " + word || line.StartsWith("  " + word + " ", StringComparison.Ordinal));
+            }
+
+            Assert.Contains("  --number-mode prefix|suffix|insert", lines);
+            Assert.Contains("  --number-system decimal|hex|letters|roman", lines);
+            Assert.Contains(lines, line => line.StartsWith("  --number-case upper|lower ", StringComparison.Ordinal));
+        }
+    }
+
+    private static int FirstNonSpace(string line)
+    {
+        int index = 0;
+        while (index < line.Length && line[index] == ' ')
+        {
+            index++;
+        }
+
+        return index;
+    }
+
+    [Fact]
+    public void ApplyHelp_DescriptionColumn()
+    {
+        string[] lines = HelpText.Apply().ToArray();
+        int first = Array.IndexOf(lines, "Options of apply:") + 1;
+        int last = Array.FindIndex(lines, first, line => line.StartsWith("Give at least one", StringComparison.Ordinal)) - 1;
+        Assert.InRange(first, 1, last);
+
+        for (int i = first; i <= last; i++)
+        {
+            string line = lines[i];
+            bool isOption = line.StartsWith("  --", StringComparison.Ordinal);
+            int gap = isOption ? line.IndexOf("  ", 2, StringComparison.Ordinal) : -1;
+            if (isOption && gap < 0)
+            {
+                // An option text too long for the column goes alone on its line; its sentence is the next line.
+                Assert.Equal(29, FirstNonSpace(lines[i + 1]));
+            }
+            else if (isOption)
+            {
+                Assert.True(gap < 29, line);
+                Assert.Equal(29, FirstNonSpace(line.Substring(gap)) + gap);
+            }
+            else
+            {
+                Assert.Equal(29, FirstNonSpace(line));
+            }
+        }
+    }
+
+    [Fact]
+    public void ApplyHelp_GenericRuleLine()
+    {
+        Assert.Contains("Give at least one rule option. Options can come in any order.", HelpText.Apply().ToArray());
+        Assert.Contains("Give at least one rule option. Options can come in any order.", HelpText.Main().ToArray());
     }
 
     [Fact]

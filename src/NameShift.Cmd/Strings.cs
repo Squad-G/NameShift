@@ -40,6 +40,45 @@ public static class Strings
 
     public static string NoRule => Get(nameof(NoRule));
 
+    /// <summary>The text of --prefix cannot be empty.</summary>
+    public static string EmptyPrefix => Get(nameof(EmptyPrefix));
+
+    /// <summary>The text of --suffix cannot be empty.</summary>
+    public static string EmptySuffix => Get(nameof(EmptySuffix));
+
+    /// <summary>The text of --insert cannot be empty.</summary>
+    public static string EmptyInsert => Get(nameof(EmptyInsert));
+
+    /// <summary>--insert needs two values: the text and the position.</summary>
+    public static string InsertNeedsValues => Get(nameof(InsertNeedsValues));
+
+    /// <summary>"{0}" is not a position of --insert: use a whole number from 1.</summary>
+    public static string BadInsertPosition => Get(nameof(BadInsertPosition));
+
+    /// <summary>--from-end needs --insert.</summary>
+    public static string FromEndNeedsInsert => Get(nameof(FromEndNeedsInsert));
+
+    /// <summary>"{0} needs a value." ({0} is the option).</summary>
+    public static string OptionNeedsValue => Get(nameof(OptionNeedsValue));
+
+    /// <summary>"{0}: {1}": an option, then the window's own error text for its value.</summary>
+    public static string OptionError => Get(nameof(OptionError));
+
+    /// <summary>"{0}" is not a value of {1}: use {2}. ({2} is one of the three value lists).</summary>
+    public static string BadChoice => Get(nameof(BadChoice));
+
+    /// <summary>"prefix, suffix or insert": the values of --number-mode.</summary>
+    public static string NumberModeValues => Get(nameof(NumberModeValues));
+
+    /// <summary>"decimal, hex, letters or roman": the values of --number-system.</summary>
+    public static string NumberSystemValues => Get(nameof(NumberSystemValues));
+
+    /// <summary>"upper or lower": the values of --number-case.</summary>
+    public static string NumberCaseValues => Get(nameof(NumberCaseValues));
+
+    /// <summary>"Until then numbering is skipped.": the last sentence of the window's numbering error texts, removed from the command line's copy of them.</summary>
+    public static string NumberingSkippedSentence => Get(nameof(NumberingSkippedSentence));
+
     /// <summary>"The folder {0} contains a quote: ...": what cmd makes of a quoted folder that ends with a backslash.</summary>
     public static string QuoteInFolder => Get(nameof(QuoteInFolder));
 

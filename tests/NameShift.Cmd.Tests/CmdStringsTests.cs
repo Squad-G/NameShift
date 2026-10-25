@@ -38,6 +38,25 @@ public sealed class CmdStringsTests
     }
 
     [Fact]
+    public void RuleOptionTexts()
+    {
+        Assert.Equal("The text of --prefix cannot be empty.", Strings.EmptyPrefix);
+        Assert.Equal("The text of --suffix cannot be empty.", Strings.EmptySuffix);
+        Assert.Equal("The text of --insert cannot be empty.", Strings.EmptyInsert);
+        Assert.Equal("--insert needs two values: the text and the position.", Strings.InsertNeedsValues);
+        Assert.Equal("\"{0}\" is not a position of --insert: use a whole number from 1.", Strings.BadInsertPosition);
+        Assert.Equal("--from-end needs --insert.", Strings.FromEndNeedsInsert);
+        Assert.Equal("{0} needs a value.", Strings.OptionNeedsValue);
+        Assert.Equal("{0}: {1}", Strings.OptionError);
+        Assert.Equal("\"{0}\" is not a value of {1}: use {2}.", Strings.BadChoice);
+        Assert.Equal("prefix, suffix or insert", Strings.NumberModeValues);
+        Assert.Equal("decimal, hex, letters or roman", Strings.NumberSystemValues);
+        Assert.Equal("upper or lower", Strings.NumberCaseValues);
+        Assert.Equal("Until then numbering is skipped.", Strings.NumberingSkippedSentence);
+        Assert.Equal("Give at least one rule option, such as --replace or --case.", Strings.NoRule);
+    }
+
+    [Fact]
     public void QuoteInFolder_ShowsTheBackslashes()
     {
         string text = string.Format(CultureInfo.InvariantCulture, Strings.QuoteInFolder, "D:\\Pics\"");
