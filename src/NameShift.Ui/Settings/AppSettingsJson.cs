@@ -9,6 +9,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using NameShift.Core;
+using NameShift.Disk;
 
 namespace NameShift.Ui.Settings;
 
@@ -84,7 +85,7 @@ internal static class AppSettingsJson
         try
         {
             XElement root;
-            using (XmlDictionaryReader reader = JsonReaderWriterFactory.CreateJsonReader(content, XmlDictionaryReaderQuotas.Max))
+            using (XmlDictionaryReader reader = JsonReaderWriterFactory.CreateJsonReader(content, JsonReaderQuotas.Create()))
             {
                 root = XElement.Load(reader);
             }

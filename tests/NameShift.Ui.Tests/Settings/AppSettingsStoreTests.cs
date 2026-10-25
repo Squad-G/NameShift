@@ -7,11 +7,13 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using NameShift.Core;
 using NameShift.Ui.Presets;
 using NameShift.Ui.Rules;
 using NameShift.Ui.Settings;
 using NameShift.Ui.Tests.Files;
+using NameShift.Ui.Tests.Presets;
 using Xunit;
 
 namespace NameShift.Ui.Tests.Settings;
@@ -573,6 +575,54 @@ public sealed class AppSettingsStoreTests : IDisposable
         Assert.Throws<ArgumentOutOfRangeException>(() => new AppSettings(null, -1, null));
         Assert.Null(new AppSettings(null, 0, "  ").LastFolder);
         Assert.Equal(0, new AppSettings(null, 0, null).MainSplit);
+    }
+
+    // NS-91 AC 1, 2: the settings reader's depth limit (JsonReaderQuotas, MaxDepth 32).
+
+    [Fact]
+    public async Task DeepNesting_Empty_Within5s()
+    {
+        byte[] content = PresetJsonTests.DeepNesting();
+
+        AppSettings settings = await PresetJsonTests.Within5s(() => AppSettingsJson.Read(content));
+
+        Assert.Same(AppSettings.Empty, settings);
+    }
+
+    /// <summary>A level is each "{" or "[" from the root, the root object being level 1, and a scalar is one level more
+    /// than its container (the same count as PresetJsonTests.NestedPreset): an unknown member "deep" holds depth - 1
+    /// nested containers, the innermost one empty.</summary>
+    [Fact]
+    public void Depth32_Reads_Depth33_Unreadable()
+    {
+        static byte[] Nested(int depth, bool arrays) => new UTF8Encoding(false).GetBytes(
+            "{\"version\":1,\"mainSplit\":300,\"deep\":" + PresetJsonTests.Nested(depth - 1, arrays) + "}");
+
+        foreach (bool arrays in new[] { false, true })
+        {
+            Assert.Equal(300, AppSettingsJson.Read(Nested(32, arrays)).MainSplit);
+            Assert.Same(AppSettings.Empty, AppSettingsJson.Read(Nested(33, arrays)));
+        }
+    }
+
+    // NS-91 AC 6: the default folder's pure part (the property itself is never read by a test).
+
+    [Theory]
+    [InlineData(@"C:\Users\u\AppData\Local")]
+    [InlineData(@"C:\Users\u\AppData\Local\")]
+    public void FolderFor_Normal_IsTodaysPath(string profileFolder)
+    {
+        Assert.Equal(@"C:\Users\u\AppData\Local\NameShift", AppSettingsStore.FolderFor(profileFolder, _root));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(null)]
+    [InlineData(@"relative\x")]
+    public void FolderFor_NoProfileFolder_IsTempFolder(string? profileFolder)
+    {
+        Assert.Equal(Path.Combine(_root, "NameShift"), AppSettingsStore.FolderFor(profileFolder, _root));
+        Assert.Empty(Directory.GetFileSystemEntries(_root));
     }
 
     /// <summary>AC 1, 11: no Ui test names the user's local application data folder; every store here gets a temp

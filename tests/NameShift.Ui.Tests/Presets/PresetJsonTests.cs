@@ -5,7 +5,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using NameShift.Core;
+using NameShift.Disk;
 using NameShift.Ui.Presets;
 using NameShift.Ui.Rules;
 using Xunit;
@@ -263,5 +265,129 @@ public sealed class PresetJsonTests
         var preset = new Preset("P", new[] { new PresetPanel(RuleStage.Add, true, empty), new PresetPanel(RuleStage.RegEx, true, empty) });
 
         Assert.Equal(new[] { RuleStage.RegEx, RuleStage.Add }, preset.Panels.Select(p => p.Stage).ToArray());
+    }
+
+    // NS-91 AC 1, 2: the reader's depth limit (JsonReaderQuotas, MaxDepth 32) and its copied Max quotas.
+
+    /// <summary>A valid preset with one unknown member, "deep", whose value nests containers so that the whole document
+    /// is <paramref name="depth"/> levels deep. How the readers count (the same in all three, found by probing): each "{"
+    /// or "[" from the root is one level, the root object being level 1, and a scalar value is one more level than the
+    /// container holding it. So "deep" holds depth - 1 nested containers, the innermost one empty.</summary>
+    internal static string NestedPreset(int depth, bool arrays = false) =>
+        "{\"version\":1,\"name\":\"P\",\"panels\":[],\"deep\":" + Nested(depth - 1, arrays) + "}";
+
+    /// <summary><paramref name="levels"/> nested containers: objects {"d":{"d":...{}...}} or arrays [[...[]...]].</summary>
+    internal static string Nested(int levels, bool arrays = false) => arrays
+        ? new string('[', levels) + new string(']', levels)
+        : string.Concat(Enumerable.Repeat("{\"d\":", levels - 1)) + "{}" + new string('}', levels - 1);
+
+    /// <summary>100,000 levels of {"a": (left open, as a damaged file would be), well under 1 MB.</summary>
+    internal static byte[] DeepNesting() => Utf8(string.Concat(Enumerable.Repeat("{\"a\":", 100000)));
+
+    /// <summary>Runs <paramref name="read"/> on a pool thread and fails the test when it does not finish in 5 seconds
+    /// (a failure, not a hang).</summary>
+    internal static async Task<T> Within5s<T>(Func<T> read)
+    {
+        Task<T> task = Task.Run(read);
+        Task first = await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(5)));
+        Assert.True(first == task, "The read did not finish in 5 seconds.");
+        return await task;
+    }
+
+    [Fact]
+    public async Task DeepNesting_Unreadable_Within5s()
+    {
+        byte[] content = DeepNesting();
+        Assert.True(content.Length < 1024 * 1024);
+
+        PresetRead read = await Within5s(() => PresetJson.Read(content));
+
+        Assert.Equal(PresetReadStatus.Unreadable, read.Status);
+    }
+
+    [Fact]
+    public void Depth32_Reads_Depth33_Unreadable()
+    {
+        Assert.Equal(32, JsonReaderQuotas.MaxDepth);
+
+        foreach (bool arrays in new[] { false, true })
+        {
+            PresetRead at32 = PresetJson.Read(Utf8(NestedPreset(32, arrays)));
+            PresetRead at33 = PresetJson.Read(Utf8(NestedPreset(33, arrays)));
+
+            Assert.Equal(PresetReadStatus.Ok, at32.Status);
+            Assert.Equal("P", at32.Preset!.Name);
+            Assert.Equal(PresetReadStatus.Unreadable, at33.Status);
+        }
+
+        // A scalar is one level more than its container: 31 containers and a number are 32 levels.
+        Assert.Equal(PresetReadStatus.Ok, PresetJson.Read(Utf8(NestedPreset(31).Replace("{}", "{\"d\":0}"))).Status);
+        Assert.Equal(PresetReadStatus.Unreadable, PresetJson.Read(Utf8(NestedPreset(32).Replace("{}", "{\"d\":0}"))).Status);
+    }
+
+    [Fact]
+    public void FullPreset_LongText_RoundTrips()
+    {
+        string longText = new string('x', 19991) + "\u00e9\u0130 \"\\/" + "end";
+        Assert.Equal(20000, longText.Length);
+        IReadOnlyList<IRulePanelModel> panels = RulePanelModels.CreateAll();
+        bool longTextUsed = false;
+        foreach (IRulePanelModel panel in panels)
+        {
+            IReadOnlyDictionary<string, string> defaults = panel.SaveSettings();
+            var changed = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (KeyValuePair<string, string> setting in defaults)
+            {
+                Type? type = panel.GetType().GetProperty(setting.Key)?.PropertyType;
+                string value;
+                if (type == typeof(bool))
+                {
+                    value = setting.Value == "true" ? "false" : "true";
+                }
+                else if (type != null && type.IsEnum)
+                {
+                    value = Enum.GetNames(type).First(name => name != setting.Value);
+                }
+                else if (!longTextUsed && panel is ReplacePanelModel && setting.Key == "Find")
+                {
+                    value = longText;
+                    longTextUsed = true;
+                }
+                else
+                {
+                    value = setting.Value + "7";
+                }
+
+                changed[setting.Key] = value;
+            }
+
+            panel.LoadSettings(changed);
+            panel.Enabled = true;
+            IReadOnlyDictionary<string, string> loaded = panel.SaveSettings();
+            Assert.False(panel.IsDefault, panel.Stage.ToString());
+            foreach (KeyValuePair<string, string> setting in defaults)
+            {
+                Assert.True(loaded[setting.Key] != setting.Value, panel.Stage + "." + setting.Key + " is still its default.");
+            }
+        }
+
+        Assert.True(longTextUsed);
+        Preset original = Preset.FromPanels("Full", panels);
+        Assert.Equal(panels.Count, original.Panels.Count);
+
+        PresetRead read = PresetJson.Read(PresetJson.Serialize(original));
+
+        Assert.Equal(PresetReadStatus.Ok, read.Status);
+        Preset preset = read.Preset!;
+        Assert.Equal(original.Panels.Select(p => p.Stage), preset.Panels.Select(p => p.Stage));
+        Assert.All(preset.Panels, p => Assert.True(p.Enabled));
+        for (int i = 0; i < original.Panels.Count; i++)
+        {
+            Assert.Equal(
+                original.Panels[i].Settings.OrderBy(p => p.Key, StringComparer.Ordinal),
+                preset.Panels[i].Settings.OrderBy(p => p.Key, StringComparer.Ordinal));
+        }
+
+        Assert.Equal(longText, preset.Panels.Single(p => p.Stage == RuleStage.Replace).Settings["Find"]);
     }
 }

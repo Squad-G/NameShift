@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using NameShift.Disk;
 using NameShift.Ui.Presets;
 
 namespace NameShift.Ui.Settings;
@@ -56,9 +57,14 @@ public sealed class AppSettingsStore
     }
 
     /// <summary>%LOCALAPPDATA%\NameShift: per machine, since a window position and a last folder belong to one screen
-    /// layout. Only computed, never created here; the first save creates it.</summary>
+    /// layout. Only computed, never created here; the first save creates it. Without a usable local application data
+    /// folder it is %TEMP%\NameShift (<see cref="AppDataFolders.Resolve"/>).</summary>
     public static string DefaultFolder =>
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NameShift");
+        FolderFor(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), Path.GetTempPath());
+
+    /// <summary>The settings folder for a local application data path and a temp path (the testable part of
+    /// <see cref="DefaultFolder"/>).</summary>
+    internal static string FolderFor(string? localAppData, string tempPath) => AppDataFolders.Resolve(localAppData, tempPath);
 
     /// <summary>The store's folder, a full path without a trailing separator.</summary>
     public string Folder { get; }

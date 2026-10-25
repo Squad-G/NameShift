@@ -494,6 +494,25 @@ public sealed class PresetStoreTests : IDisposable
         Assert.Equal(_folder, new PresetStore(_folder + Path.DirectorySeparatorChar).Folder);
     }
 
+    // NS-91 AC 6: the presets folder's pure part, with a fake temp path (nothing is written).
+
+    [Theory]
+    [InlineData(@"C:\Users\u\AppData\Roaming")]
+    [InlineData(@"C:\Users\u\AppData\Roaming\")]
+    public void FolderFor_Normal_IsTodaysPath(string profileFolder)
+    {
+        Assert.Equal(@"C:\Users\u\AppData\Roaming\NameShift\presets", PresetStore.FolderFor(profileFolder, _root));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(null)]
+    [InlineData(@"\foo")]
+    public void FolderFor_NoProfileFolder_IsTempFolder(string? profileFolder)
+    {
+        Assert.Equal(Path.Combine(_root, "NameShift", "presets"), PresetStore.FolderFor(profileFolder, _root));
+    }
+
     [Fact]
     public void DefaultFolder_IsRoamingAppData()
     {
