@@ -31,8 +31,8 @@ Code in `src/NameShift.Cmd` only; no change in `Strings.resx`, the help, `NameSh
    - no file is over 300 lines.
 3. Given the order in which errors are found, then it is unchanged: errors of one argument in argument order (a missing value,
    a repeat, an unknown option, the empty or blank folder, two folders), then after the loop the conflicts (`--quiet` with
-   `--verbose`, then `--quiet` with `--dry-run`), then each reader's cross-checks in the order Add, Numbering, then the
-   preset options (as NS-69 leaves them), then the missing folder, then the missing rule. A test with a command line that has
+   `--verbose`, then `--quiet` with `--dry-run`), then each reader's cross-checks in the order of the code NS-69 leaves: the
+   preset options (`--overwrite` without `--save-preset`), then Add (`--from-end` without `--insert`), then Numbering, then the missing folder, then the missing rule. A test with a command line that has
    several mistakes pins the winner for each pair that matters (at least six pairs).
 4. Given the words, then `CommandLineParser.Words`, `ApplyOptionWords` and `UndoOptionWords` hold exactly the same words in
    the same order as before, each built from the readers' constants, and a new test asserts that every word of
@@ -55,6 +55,9 @@ Code in `src/NameShift.Cmd` only; no change in `Strings.resx`, the help, `NameSh
   two PRs reshaping and extending the same 440 lines would conflict line by line; the split then covers the preset options
   too (po, 2026-10-24).
 - Which shape? **Decision:** left to the tech lead's brief, within the properties above (po, 2026-10-24).
+- AC3 check order: the story said "Add, Numbering, then the preset options", but the merged NS-69 code checks `--overwrite`
+  without `--save-preset` before `--from-end` without `--insert`. **Decision:** keep the code's order (the story's purpose is
+  the same errors); AC3 reworded to match and the pair is pinned by a test (lead, 2026-10-24).
 
 ## Log
 - 2026-10-24: created and set Ready (po), from the NS-40 review note about the size of `ParseApply`.
