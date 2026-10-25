@@ -1,6 +1,6 @@
 # NS-81: Pin the exit code of a refused undo that leaves the history unusable
 
-Status: Ready
+Status: In Progress
 Depends on: NS-42
 Area: app
 Test-only: no code change is expected. If a test fails, the code is fixed to match this story.
@@ -50,3 +50,4 @@ review asked whether this run should exit 3 or 4. Nothing pins the answer: `Exit
 ## Log
 - 2026-10-24: created and set Ready (po), from the NS-42 review question.
 - 2026-10-24: PR #75 review applied: criterion 3 rebuilt around a locked file and an injected `IJournalFiles` (po).
+- 2026-10-24: In Progress (builder).
