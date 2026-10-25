@@ -1,6 +1,6 @@
 # NS-85: Read the photo dates of the listed files
 
-Status: Ready
+Status: In Progress
 Depends on: NS-62, NS-27
 Area: app
 
@@ -106,3 +106,4 @@ a date; "no date from the bytes" (cached); "could not read" (not cached).
   test, off-UI-thread note, location (po).
 - 2026-10-25: re-checked against dev after NS-62 (306e581): API facts recorded, cloud placeholders and failed-read caching
   decided, criteria tightened; set Ready (po).
+- 2026-10-25: In Progress (builder).
