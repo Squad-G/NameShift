@@ -23,30 +23,22 @@ internal sealed class RunSwitchesReader : ApplyOptionReader
 
     protected override OptionRead ReadOwn(IReadOnlyList<string> args, ref int i, string word)
     {
+        ParsedCommand? error = null;
+        bool ok = true;
         if (Is(word, DryRunOption))
         {
             _dryRun = true;
         }
         else if (Is(word, QuietOption) || Is(word, QuietShortOption))
         {
-            if (_quiet)
-            {
-                return OptionRead.Failed(Fail(Format(Strings.RepeatedOption, QuietOption)));
-            }
-
-            _quiet = true;
+            ok = TakeSwitch(ref _quiet, QuietOption, out error);
         }
         else
         {
-            if (_verbose)
-            {
-                return OptionRead.Failed(Fail(Format(Strings.RepeatedOption, VerboseOption)));
-            }
-
-            _verbose = true;
+            ok = TakeSwitch(ref _verbose, VerboseOption, out error);
         }
 
-        return OptionRead.Taken;
+        return OptionRead.From(ok, error);
     }
 
     public override ParsedCommand? Finish(ApplyDraft draft)

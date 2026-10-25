@@ -65,6 +65,21 @@ internal static class OptionArgs
         return true;
     }
 
+    /// <summary>A switch that can be given once: sets <paramref name="target"/>; a second use is
+    /// <see cref="Strings.RepeatedOption"/> naming <paramref name="option"/>.</summary>
+    public static bool TakeSwitch(ref bool target, string option, out ParsedCommand? error)
+    {
+        if (target)
+        {
+            error = Fail(Format(Strings.RepeatedOption, option));
+            return false;
+        }
+
+        target = true;
+        error = null;
+        return true;
+    }
+
     public static bool TryChoice<T>(string text, KeyValuePair<string, T>[] values, out T result)
     {
         foreach (KeyValuePair<string, T> value in values)

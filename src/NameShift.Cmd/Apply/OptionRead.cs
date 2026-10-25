@@ -1,3 +1,5 @@
+using System;
+
 namespace NameShift.Cmd;
 
 /// <summary>The outcome of offering one argument to a reader.</summary>
@@ -17,6 +19,10 @@ internal sealed class OptionRead
 
     /// <summary>The reader's word, but its use is a usage error.</summary>
     public static OptionRead Failed(ParsedCommand error) => new OptionRead(true, error);
+
+    /// <summary><see cref="Taken"/> when <paramref name="ok"/>, else <see cref="Failed"/> with the error.</summary>
+    public static OptionRead From(bool ok, ParsedCommand? error) =>
+        ok ? Taken : Failed(error ?? throw new ArgumentNullException(nameof(error)));
 
     /// <summary>True when the word was this reader's (read or failed).</summary>
     public bool IsMine { get; }

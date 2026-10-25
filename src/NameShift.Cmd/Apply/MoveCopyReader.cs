@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using NameShift.Core;
 using NameShift.Ui.Rules;
 using static NameShift.Cmd.OptionArgs;
+using UiStrings = NameShift.Ui.Strings;
 
 namespace NameShift.Cmd;
 
@@ -68,7 +69,7 @@ internal sealed class MoveCopyReader : ApplyOptionReader
             ok = TakeText(args, ref i, word, ref _separator, out error);
         }
 
-        return ok ? OptionRead.Taken : OptionRead.Failed(error!);
+        return OptionRead.From(ok, error);
     }
 
     private bool ReadMode(IReadOnlyList<string> args, ref int i, string word, out ParsedCommand? error)
@@ -93,7 +94,7 @@ internal sealed class MoveCopyReader : ApplyOptionReader
         if (TextPosition.Parse(value!) == null)
         {
             error = Fail(Format(Strings.OptionError, word,
-                WithoutSkipSentence(NameShift.Ui.Strings.MoveCopyNumberInvalid)));
+                WithoutSkipSentence(UiStrings.MoveCopyNumberInvalid)));
             return false;
         }
 
@@ -112,7 +113,7 @@ internal sealed class MoveCopyReader : ApplyOptionReader
         if (_target == MoveCopyTarget.Position && (_position == null || TextPosition.Parse(_position) == null))
         {
             return Fail(Format(Strings.OptionError, PositionOption,
-                WithoutSkipSentence(NameShift.Ui.Strings.MoveCopyNumberInvalid)));
+                WithoutSkipSentence(UiStrings.MoveCopyNumberInvalid)));
         }
 
         var model = new MoveCopyPanelModel
