@@ -1,7 +1,7 @@
 # NS-83: Collapsible rule panels, and a bottom row that fits
 
 Status: Ready
-Depends on: NS-11
+Depends on: NS-11, NS-15
 Area: app
 
 ## Why
@@ -43,22 +43,35 @@ Model (`NameShift.Ui`, a `PanelCollapseModel` over the `RulePanelHostModel`; the
    (the tallest wins); two open in separate rows (heights add); collapsing the tallest shrinks its row to the next one;
    a narrower width wraps more rows and makes the total taller; a panel wider than the width; the cap and the scroll
    flag; the minimum; zero panels.
+   The width passed in is the usable width: the host's client width, minus the vertical scroll bar's width when one
+   is shown. `Measure` is run in two steps to settle the scroll bar and wrap loop: first with the full client width; if
+   the answer is "scroll", again with the client width minus the scroll bar width, and that second answer is final
+   (more narrowing can only add rows, so the cap is still hit and the scroll stays on; it cannot flip back). Tests: a
+   width where the first pass fits without scrolling; one where the first pass scrolls and the narrower second pass
+   wraps one more row; the boundary width (exactly the width of the panels) with and without the scroll bar width.
+   A panel wider than the usable width also makes the stack scroll horizontally (it is `AutoScroll`): kept as today, and
+   the horizontal bar's height is added to the total by the App (by hand).
 5. Given the keyboard, then each title has a focusable toggle (see 8) reached by Tab after the Reset button; Space and
    Enter toggle it (a `Button`'s normal behaviour). A pure Ui function gives its accessible name and the arrow: collapsed
-   `▸` with the name `Expand <title>`, open `▾` with `Collapse <title>`, where `<title>` is `RulePanelText.PlainTitle`
-   (no `&`), the texts in `Strings.resx`. A collapsed panel's content is not in the Tab order. Tests: the arrow and the
+   `▸` (U+25B8) with the name `Expand <title>`, open `▾` (U+25BE) with `Collapse <title>`, where `<title>` is
+   `RulePanelText.PlainTitle` (no `&`). The glyphs and the two name formats live in `Strings.resx` only (the Ui function
+   formats them). A collapsed panel's content is not in the Tab order. Tests: the arrow and the
    name for both states.
 
 Window (App; by hand, written in the PR, with a screenshot of each state):
 6. The panels keep the current layout: a wrapping `FlowLayoutPanel` (`WrapContents = true`) in pipeline order with a
    vertical scroll bar when needed. It is not changed to a single row. Each frame keeps the width it has when open, also
-   when collapsed.
+   when collapsed. Rule (frames are `AutoSize`, so they would shrink when the content is hidden): before the content is
+   hidden the frame measures its open width and sets `MinimumSize.Width` to it; that width is measured again after a
+   DPI or font change while open, and kept (not re-measured) while collapsed. Expanding clears nothing, the content
+   returns at that width. Checked by hand: toggle every panel and the panels to its right do not move sideways.
 7. A collapsed panel shows only its title line: the enable check box with the number and name, the Reset button (enabled
    by `CanReset` as today), and the arrow. The content is hidden. The active look (accent border, bold title) is kept
    when collapsed, so a collapsed panel that does something is still marked. A collapsed panel with its check box
    ticked still takes part in the rename; collapsing never changes the rules.
 8. The arrow is a flat `Button` at the right end of the title line, after Reset in the Tab order, with the accessible
-   name of 5 and no Alt key (the top-level Alt letters stay as they are: `WindowMnemonicTests` must still pass without a
+   name of 5, drawn with the window's UI font (the arrows fall back to a symbol font if the UI font lacks them: by hand,
+   a screenshot at 100 %, 125 % and 150 %, both glyphs readable), and no Alt key (the top-level Alt letters stay as they are: `WindowMnemonicTests` must still pass without a
    new letter). The title's check box keeps its mnemonic. A click on the arrow toggles; a click on the check box only
    ticks it (and opens it, 3).
 9. The bottom area's height (the `_rightSplit` bottom panel) is set from criterion 4 each time a panel opens or
@@ -68,9 +81,11 @@ Window (App; by hand, written in the PR, with a screenshot of each state):
    vertically instead of clipping (the file list keeps its 160 px minimum). The splitter between the list and the bottom
    area is no longer dragged by hand (`IsSplitterFixed`), since the height now follows the content. The action buttons
    (`ButtonsHost`) still fit in the bottom area when all panels are collapsed (the minimum of criterion 4 is their
-   height).
-10. Tab and focus: collapsing a panel while focus is inside its content moves focus to its arrow; a collapsed panel
-    never leaves focus in a hidden control.
+   preferred height). `_rightSplit.Panel2MinSize` (120 logical pixels in `MainForm.OnLoad` today) is removed, so it does
+   not hold the area open when everything is collapsed; `Panel1MinSize` (160) stays and gives the cap. The splitter
+   distance is set in code only (with `IsSplitterFixed`).
+10. Guard: whatever collapses a panel (the arrow, or code later), focus is never left in a hidden control: if focus is
+    inside the content, it moves to the arrow (by hand, with a keyboard-only pass).
 
 ## Out of scope
 - Saving the state (NS-84); collapse in presets (see decisions); a "collapse all" or "expand all" command; animation;
@@ -104,3 +119,5 @@ Window (App; by hand, written in the PR, with a screenshot of each state):
   a fixed 240 px bottom area, so the clipped Remove panel is part of this story. Set Ready, with persistence in NS-84 (po).
 - 2026-10-24: lead correction: keep the wrapping layout with vertical scroll (no single row); the bottom height is the
   wrapped rows' total, each row as tall as its tallest open panel, capped. Criteria 4, 6 and 9 reworked (po).
+- 2026-10-24: PR #82 review applied: usable width and the scroll bar loop, `Panel2MinSize` removed, how a collapsed frame
+  keeps its width, arrow glyphs in `Strings.resx` and the UI font, NS-15 dependency, criterion 10 kept as a guard (po).

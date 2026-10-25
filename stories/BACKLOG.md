@@ -74,13 +74,13 @@ IDs), not the rank: the rank is the row order.
 | 75 | [NS-75 Command line: Name, Extension and Remove options](NS-75-clirules2.md) | Done | NS-40, NS-69, NS-79, NS-55, NS-30 |
 | 76 | [NS-76 Command line: RegEx, Move/Copy, Auto date and Folder name options](NS-76-clirules3.md) | Done | NS-75, NS-31, NS-59 |
 | 78 | [NS-78 Sub-folders box and Folder column](NS-78-subfolderbox.md) | Ready | NS-70, NS-74 |
-| 82 | [NS-82 Open a folder from the file list](NS-82-openfolderrow.md) | Ready | NS-10, NS-51 |
-| 83 | [NS-83 Collapsible rule panels, and a bottom row that fits](NS-83-collapsepanels.md) | Ready | NS-11 |
-| 37 | [NS-37 Remember last settings](NS-37-settings.md) | Ready | NS-36, NS-72 |
+| 82 | [NS-82 Open a folder from the file list](NS-82-openfolderrow.md) | Ready | NS-10, NS-51, NS-78 |
+| 77 | [NS-77 Find and fix the occasional net48 failure in the Ui tests](NS-77-uitestsflake.md) | Ready | |
+| 83 | [NS-83 Collapsible rule panels, and a bottom row that fits](NS-83-collapsepanels.md) | Ready | NS-11, NS-15 |
+| 37 | [NS-37 Remember last settings](NS-37-settings.md) | Ready | NS-36, NS-72, NS-83 |
 | 84 | [NS-84 Remember which panels are collapsed](NS-84-collapsesaved.md) | Ready | NS-83, NS-37 |
 | 80 | [NS-80 Fix raw control characters in a test and guard against them](NS-80-controlchars.md) | Ready | |
 | 81 | [NS-81 Pin the exit code of a refused undo that leaves the history unusable](NS-81-undoexit.md) | Ready | NS-42 |
-| 77 | [NS-77 Find and fix the occasional net48 failure in the Ui tests](NS-77-uitestsflake.md) | Ready | |
 | 34 | [NS-34 Copy or move to another folder (engine and executor)](NS-34-copymove.md) | Cancelled | NS-8, NS-9 |
 | 35 | [NS-35 Copy/move to location panel](NS-35-copymoveui.md) | Cancelled | NS-34, NS-15 |
 | 41 | [NS-41 Command line: recursion and filters](NS-41-clifilters.md) | Draft | NS-38, NS-32, NS-33, NS-74 |

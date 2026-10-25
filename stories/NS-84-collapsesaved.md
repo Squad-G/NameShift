@@ -17,7 +17,12 @@ Logic in `NameShift.Ui` with tests on net10.0 and net48 against a temp folder. I
    unknown state text is ignored on its own and the other entries still load. A panel with no entry, or no file at all
    (the first run), uses the default of NS-83:1: collapsed when its check box is off, open when on. Tests: a round trip of
    all panels; a missing member; an entry with a wrong value; an unknown stage; a file of a newer version (defaults, as
-   NS-37:2).
+   NS-37:2). How: the in-box `DataContractJsonSerializer` fails a whole object on one wrong-typed value and writes a
+   dictionary as key/value pairs, so `panels` is not a typed dictionary member. As NS-37:2 says for the numbers, it is
+   read with a separate tolerant parse (a manual read of the `panels` object, or a string-keyed, string-valued map with
+   `UseSimpleDictionaryFormat` read on its own, so a bad `panels` cannot spoil the window values), and written as a plain
+   `"Stage": "collapsed"` object. Tests: `panels` of a wrong type (a number, an array); one entry with a number value
+   while the others load; a bad `panels` while `window` and `mainSplit` still load.
 3. Given saved states, then `PanelCollapseModel` (NS-83) is built from them, after the remembered rules are applied
    (NS-37:3), so a saved state wins over the check box default; a saved collapsed panel whose rules come back enabled
    stays collapsed (the saved state wins), and ticking it opens it (NS-83:3). Test: saved `collapsed` plus an enabled

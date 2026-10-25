@@ -1,7 +1,7 @@
 # NS-37: Remember last settings
 
 Status: Ready
-Depends on: NS-36, NS-72
+Depends on: NS-36, NS-72, NS-83
 Area: app
 
 ## Why

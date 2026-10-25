@@ -73,5 +73,9 @@ no product change.
 - Edit `CLAUDE.md`? **Decision:** not in this story (po cannot, and a builder must not); the builder proposes the
   line and the lead decides (po, 2026-10-24).
 
+- Where in the order? **Decision:** after NS-82 and before NS-83, NS-37 and NS-84: those three are Ui-test heavy and
+  touch `MainForm`, so a trustworthy net48 suite should exist before they land; NS-82 stays first after NS-78 because
+  David hit it while testing. It only moves up: the hunt itself is unchanged (po, 2026-10-24).
+
 ## Log
 - 2026-10-24: created and set Ready (po): occasional net48 failure, hang and early stop in the Ui tests.
