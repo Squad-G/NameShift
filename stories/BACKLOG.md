@@ -9,7 +9,8 @@ hardening, NS-90 and NS-45 safer Revert), then the Explorer launch path (NS-88, 
 NS-85 and NS-86) and the command line (NS-93 cleanup first, then NS-41 filters, then NS-87), then the small chores (NS-92, NS-94). NS-49 and
 NS-44 (the registry entry and the installer) are built together at the very end, just before the v1 release (David,
 2026-10-25); NS-44 is the last story of v1. NS-50 (Windows 11 compact menu) was cancelled by David on 2026-10-25. Stories marked Draft with a full
-spec (NS-85, NS-86, NS-87) become Ready when the story they build on is merged.
+spec (NS-86, NS-87) become Ready when the story they build on is merged (NS-86 after NS-85, NS-87 after NS-41); NS-85 is
+Ready (NS-62 merged). NS-86 and NS-87 both edit the command line's apply path: build them one after the other.
 
 | # | Story | Status | Depends on |
 |---|---|---|---|
@@ -99,7 +100,7 @@ spec (NS-85, NS-86, NS-87) become Ready when the story they build on is merged.
 | 62 | [NS-62 Auto date: the photo date in the engine](NS-62-autodatephoto.md) | Done | NS-26, NS-27 |
 | 93 | [NS-93 Command line readers: remove the copies](NS-93-clireadercleanup.md) | Ready | NS-40, NS-69, NS-75, NS-76 |
 | 41 | [NS-41 Command line: filters](NS-41-clifilters.md) | Ready | NS-38, NS-32, NS-33, NS-70, NS-79, NS-76, NS-93 |
-| 85 | [NS-85 Read the photo dates of the listed files](NS-85-photodates.md) | Draft | NS-62, NS-27 |
+| 85 | [NS-85 Read the photo dates of the listed files](NS-85-photodates.md) | Ready | NS-62, NS-27 |
 | 86 | [NS-86 Auto date panel: the Photo date choice](NS-86-autodatephotopanel.md) | Draft | NS-62, NS-85, NS-59, NS-76 |
 | 87 | [NS-87 Command line: --recurse](NS-87-clirecurse.md) | Draft | NS-41, NS-74, NS-78 |
 | 92 | [NS-92 Move the settings-saving logic out of MainForm into NameShift.Ui](NS-92-savesettingslogic.md) | Ready | NS-37, NS-84 |

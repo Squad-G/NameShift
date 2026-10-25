@@ -8,6 +8,16 @@ Area: app
 Rename the files of a whole tree from a script, as the Sub-folders box does in the window. Second wave: set to Ready when
 NS-41 is merged (it uses the filter in `CommandRunner`).
 
+## Facts checked against dev (2026-10-25)
+- `CommandRunner` calls `_files.ListEntries(folder, false, CancellationToken.None)` (one place), sorts with
+  `FileListOrder.Sort(listing.Items)`, filters with `new ItemFilter(includeFolders: false)` (NS-41 replaces this with the
+  `FilterPanelModel` filter), then `RenamePlanner.Plan(..., listing.ExistingNamesByFolder, ...)`.
+- `FileListing` has `Items`, `SkippedFolders` and `ExistingNamesByFolder`; the real source is `DiskFileListSource`
+  (NS-74: tree order, reparse points not entered). `SkippedFoldersNotice.Text(int skippedFolders, CultureInfo)` is a
+  static method returning the window's line (null for 0); `FileListText.RelativeFolder(rootFolder, item)` gives the
+  Folder column text (`""` for the root).
+- NS-86 also edits this spot (the photo-date fill after the filter): build them one after the other, not in parallel.
+
 ## Acceptance criteria
 Logic in `NameShift.Cmd`, tests on net10.0 and net48. `CommandRunner` passes the option to
 `IFileListSource.ListEntries(folder, includeSubfolders, token)` (today it always passes false).
@@ -46,3 +56,5 @@ Logic in `NameShift.Cmd`, tests on net10.0 and net48. `CommandRunner` passes the
 
 ## Log
 - 2026-10-25: split from NS-41 (po).
+- 2026-10-25: re-checked against dev (306e581) while NS-41 is not yet built: facts recorded, `SkippedFoldersNotice.Text`
+  signature noted, build order with NS-86 noted; stays Draft until NS-41 is merged (po).
