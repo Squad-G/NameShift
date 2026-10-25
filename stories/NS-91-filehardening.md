@@ -1,6 +1,6 @@
 # NS-91: Settings, presets and history: deep files, leftover temp files, no profile folder
 
-Status: Ready
+Status: In Progress
 Depends on: NS-37, NS-36, NS-9
 Area: app
 Chore: no visible change; three small hardening fixes from the NS-37 and NS-36 reviews, one concern: the files NameShift keeps.
@@ -63,5 +63,6 @@ and the three default folders change; nothing else.
   splitting would triple the review round trips; the builder may split into commits (po, 2026-10-25, PR #90 review).
 
 ## Log
+- 2026-10-25: In Progress (builder).
 - 2026-10-25: PR #90 review: the journal reader's quota gap added (criterion 8) (po).
 - 2026-10-25: created from the review follow-ups of NS-37 and NS-36; set Ready (po).
