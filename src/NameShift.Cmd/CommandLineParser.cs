@@ -12,9 +12,9 @@ namespace NameShift.Cmd;
 /// <c>--name-empty</c> and <c>--name-reverse</c>, the Extension panel's five <c>--ext-...</c> flags, the Remove panel's
 /// eighteen <c>--remove-...</c> options, the RegEx panel's <c>--regex</c> options, the Move or copy panel's
 /// <c>--move</c>, <c>--copy</c> and <c>--move-...</c> options, the Auto date panel's <c>--date</c> options, the Append
-/// folder name panel's <c>--folder-...</c> options, the filter options (<c>--mask</c>, <c>--filter-regex</c>, the
-/// kinds and more; the folder may end with a mask), <c>--recurse</c> (the sub-folders too), <c>--preset &lt;name&gt;</c> (a saved
-/// preset's rules), <c>--save-preset &lt;name&gt;</c> with <c>--overwrite</c>, and <c>--dry-run</c>,
+/// folder name panel's <c>--folder-...</c> options, the filter options (<c>--mask</c>, <c>--filter-regex</c>, the kinds
+/// and more; the folder may end with a mask), <c>--recurse</c> (the sub-folders too), <c>--preset &lt;name&gt;</c> (a
+/// saved preset's rules), <c>--save-preset &lt;name&gt;</c> with <c>--overwrite</c>, and <c>--dry-run</c>,
 /// <c>--quiet|-q</c>, <c>--verbose|-v</c>; or <c>undo [--dry-run]</c>. Options of <c>apply</c> come in any order; the
 /// folder is the one argument that is neither an option nor an option's value. <c>undo</c> takes no folder. Words are
 /// compared ordinally, ignoring case.</summary>

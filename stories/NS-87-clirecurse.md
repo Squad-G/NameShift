@@ -1,6 +1,6 @@
 # NS-87: Command line: --recurse
 
-Status: In Review
+Status: Done
 Depends on: NS-41, NS-74, NS-78
 Area: app
 
@@ -132,3 +132,9 @@ Logic in `NameShift.Cmd`, tests on net10.0 and net48. `--recurse` is a switch re
   left, the chosen folder itself is never tested (with a test), and the `--include-hidden` help line (tech-lead).
 - 2026-10-25: started (builder).
 - 2026-10-25: built; PR opened, In Review (builder).
+- 2026-10-25: Done (tech-lead), PR #105 approved and squash-merged. Review nit folded: the CommandLineParser class
+  summary re-wrapped. Note (NS-74 rule, no file lost): a junction is listed as a folder item and not entered, so
+  `--recurse --include-folders` renames the link itself (`link -> xlink`); worth a line in the docs or a future story.
+  Hand checks for David (PR #105): Ctrl+C during the listing of a large tree renames nothing (AC 8); a copy of a real
+  project with a `.git` folder lists nothing from `.git` with `--recurse`, and does with `--include-hidden`; a tree
+  with an unreadable sub-folder writes `N folders could not be read` on stderr only, exit code unchanged.
