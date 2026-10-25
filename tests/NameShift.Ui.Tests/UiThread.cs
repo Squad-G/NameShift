@@ -30,7 +30,13 @@ internal static class UiThread
         try
         {
             Task task = body();
-            task.ContinueWith(_ => context.Complete(), TaskScheduler.Default);
+            // Inline on the thread that ends the body (this one when it ended synchronously): no wait for a pool thread,
+            // which a starved pool can delay past the timeout below.
+            task.ContinueWith(
+                _ => context.Complete(),
+                CancellationToken.None,
+                TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default);
             context.Pump();
             task.GetAwaiter().GetResult();
         }
