@@ -16,6 +16,9 @@ namespace NameShift.App.Controls;
 /// <summary>Renders the file list model in a virtual-mode list: only the visible rows are ever built.</summary>
 internal sealed class FileList : UserControl
 {
+    /// <summary>Raised on the UI thread with the full path of a folder row to open (double-click or Enter).</summary>
+    internal event EventHandler<string>? FolderOpenRequested;
+
     private const int FolderImage = 0;
     private const int FileImage = 1;
 
@@ -167,6 +170,7 @@ internal sealed class FileList : UserControl
         _list.SelectedIndexChanged += (_, _) => ScheduleSelectionRead();
         _list.VirtualItemsSelectionRangeChanged += (_, _) => ScheduleSelectionRead();
         _list.KeyDown += OnListKeyDown;
+        _list.MouseDoubleClick += OnListDoubleClick;
 
         // Every header is created once; only the columns of the current map are added (Folder is not, at first).
         foreach (ShownColumn column in FileListColumns.For(true).Order)
@@ -450,6 +454,40 @@ internal sealed class FileList : UserControl
             SetAllRowsSelected(true);
             ScheduleSelectionRead();
             e.Handled = e.SuppressKeyPress = true;
+        }
+        else if (e.KeyCode == Keys.Enter && !e.Control && !e.Alt && !e.Shift)
+        {
+            RequestOpen(_list.FocusedItem?.Index ?? -1);
+            e.Handled = e.SuppressKeyPress = true;
+        }
+    }
+
+    private void OnListDoubleClick(object? sender, MouseEventArgs e)
+    {
+        if (e.Button != MouseButtons.Left)
+        {
+            return;
+        }
+
+        ListViewItem? item = _list.HitTest(e.Location).Item;
+        if (item != null)
+        {
+            RequestOpen(item.Index);
+        }
+    }
+
+    /// <summary>Asks to open the row when it is a folder. The index can be stale (a filter shrank the list): it is bounds-checked.</summary>
+    private void RequestOpen(int index)
+    {
+        if (IsDisposed || index < 0 || index >= _model.Items.Count)
+        {
+            return;
+        }
+
+        string? target = FolderRowTarget.Of(_model.Items[index]);
+        if (target != null)
+        {
+            FolderOpenRequested?.Invoke(this, target);
         }
     }
 

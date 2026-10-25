@@ -47,6 +47,28 @@ public sealed class FolderNavigator
                 return PathBarResult.Invalid;
         }
 
+        return await CheckAndChangeAsync(path);
+    }
+
+    /// <summary>
+    /// Navigates to the exact full path of a listed folder: no trimming, no quote stripping, no <c>%VAR%</c> expansion.
+    /// Shares the version counter, the off-thread disk check and the change step with the typed path.
+    /// </summary>
+    public async Task<PathBarResult> NavigateToFolderAsync(string fullPath)
+    {
+        switch (PathInput.TryExact(fullPath, out string exact))
+        {
+            case PathInputResult.Empty:
+                return PathBarResult.Empty;
+            case PathInputResult.Invalid:
+                return PathBarResult.Invalid;
+        }
+
+        return await CheckAndChangeAsync(exact);
+    }
+
+    private async Task<PathBarResult> CheckAndChangeAsync(string path)
+    {
         int version = ++_version;
         FolderCheck check = await Task.Run(() => _source.CheckFolder(path));
 

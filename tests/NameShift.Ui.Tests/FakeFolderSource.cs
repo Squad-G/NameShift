@@ -34,6 +34,9 @@ internal sealed class FakeFolderSource : IFolderSource
 
     public int CheckCalls => _checkCalls;
 
+    /// <summary>The path of the latest CheckFolder call, as it was given.</summary>
+    public string? LastChecked { get; private set; }
+
     /// <summary>Queues the answers for a folder: each call takes the next one, the last one repeats.</summary>
     public void SetListing(string path, params FolderListing[] answers) =>
         _listings[path] = new Queue<FolderListing>(answers);
@@ -72,6 +75,7 @@ internal sealed class FakeFolderSource : IFolderSource
     public FolderCheck CheckFolder(string path)
     {
         Interlocked.Increment(ref _checkCalls);
+        LastChecked = path;
         if (Gate != null)
         {
             TestWait.Block(Gate);

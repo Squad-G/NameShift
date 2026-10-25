@@ -93,6 +93,7 @@ internal sealed class MainForm : Form
 
         _folderTree.FolderSelected += (_, path) => _navigator.SelectFromTree(path);
         _pathBar.PathSubmitted += OnPathSubmitted;
+        _fileList.FolderOpenRequested += OnFolderOpenRequested;
         _navigator.FolderChanged += OnFolderChanged;
         Actions.Changed += (_, _) => OnActionsChanged();
         Actions.FolderContentsChanged += OnFolderContentsChanged;
@@ -524,6 +525,23 @@ internal sealed class MainForm : Form
         {
             PathBarResult result = await _navigator.NavigateToTypedPathAsync(text);
             ShowPathResult(result, text);
+        }
+        catch (Exception)
+        {
+            // An exception escaping an async void handler would end the process.
+            ShowStatus(Strings.SomethingWentWrong);
+        }
+    }
+
+    private async void OnFolderOpenRequested(object? sender, string path)
+    {
+        try
+        {
+            string? text = FolderOpenText.For(await _navigator.NavigateToFolderAsync(path), path, CultureInfo.CurrentCulture);
+            if (text != null)
+            {
+                ShowStatus(text);
+            }
         }
         catch (Exception)
         {
