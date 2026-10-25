@@ -158,7 +158,9 @@ public sealed class StartGatheringTests
         Assert.NotNull(many.Message);
         var opens = new OpenSequence();
         int ticket = opens.Begin();
-        Assert.Equal(OpenAction.OpenStartFolder, opens.Complete(ticket, many.Request, isBusy: false, folderShown: false));
+        Assert.Equal(
+            OpenAction.OpenStartFolder,
+            opens.Complete(ticket, many.Request, isBusy: false, folderShown: false));
     }
 
     [Fact]

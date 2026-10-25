@@ -16,8 +16,8 @@ public enum StartFolderSource
     StartFolder,
 }
 
-/// <summary>The start folder (NS-37 AC 8): path arguments are gathered and opened (NS-95), else the remembered folder when it still exists, then
-/// the usual start folder, with no message.</summary>
+/// <summary>The start folder (NS-37 AC 8): path arguments are gathered and opened (NS-95), else the remembered
+/// folder when it still exists, then the usual start folder, with no message.</summary>
 public static class StartFolderChoice
 {
     /// <summary>Gather when there is a path argument; else Remembered when it is not blank; else StartFolder.</summary>
