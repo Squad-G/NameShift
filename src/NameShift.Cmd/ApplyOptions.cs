@@ -8,7 +8,8 @@ namespace NameShift.Cmd;
 /// <summary>The options of one <c>apply</c> command line, as parsed. Immutable.</summary>
 internal sealed class ApplyOptions
 {
-    public ApplyOptions(string folderText, string? find, string? with, CaseMode? caseMode, bool dryRun)
+    public ApplyOptions(string folderText, string? find, string? with, CaseMode? caseMode, bool dryRun,
+        OutputLevel output = OutputLevel.Normal)
     {
         FolderText = folderText ?? throw new ArgumentNullException(nameof(folderText));
         if ((find == null) != (with == null))
@@ -16,10 +17,16 @@ internal sealed class ApplyOptions
             throw new ArgumentException("The find and with texts are given together or not at all.", nameof(with));
         }
 
+        if (!Enum.IsDefined(typeof(OutputLevel), output))
+        {
+            throw new ArgumentOutOfRangeException(nameof(output));
+        }
+
         Find = find;
         With = with;
         Case = caseMode;
         DryRun = dryRun;
+        Output = output;
     }
 
     /// <summary>The folder, as typed.</summary>
@@ -36,6 +43,9 @@ internal sealed class ApplyOptions
 
     /// <summary>True with --dry-run: list the new names, rename nothing.</summary>
     public bool DryRun { get; }
+
+    /// <summary>What a successful run writes: normal, nothing (--quiet) or each file too (--verbose).</summary>
+    public OutputLevel Output { get; }
 
     /// <summary>The rules, built by the window's own panel models, so the defaults are the window's by construction
     /// (Replace: ignore case, leave the extension; Case: no exceptions). The pipeline sorts them by stage.</summary>

@@ -7,7 +7,7 @@ namespace NameShift.Cmd;
 
 /// <summary>Reads a command line and dispatches on its first word: <c>help</c> (also <c>--help</c>, <c>-h</c>,
 /// <c>/?</c>), <c>--version</c>, <c>apply &lt;folder&gt; [--replace &lt;find&gt; &lt;with&gt;] [--case
-/// lower|upper|title|sentence] [--dry-run]</c>, or <c>undo [--dry-run]</c>. Options of <c>apply</c> come in any order;
+/// lower|upper|title|sentence] [--dry-run] [--quiet|-q] [--verbose|-v]</c>, or <c>undo [--dry-run]</c>. Options of <c>apply</c> come in any order;
 /// the folder is the one argument that is neither an option nor an option's value. <c>undo</c> takes no folder. Words
 /// are compared ordinally, ignoring case.</summary>
 internal static class CommandLineParser
@@ -27,13 +27,20 @@ internal static class CommandLineParser
     private const string ReplaceOption = "--replace";
     private const string CaseOption = "--case";
     private const string DryRunOption = "--dry-run";
+    private const string QuietOption = "--quiet";
+    private const string QuietShortOption = "-q";
+    private const string VerboseOption = "--verbose";
+    private const string VerboseShortOption = "-v";
 
     private static readonly string[] GlobalWordList =
     {
         ApplyCommand, UndoCommand, HelpWord, HelpOption, HelpShortOption, HelpSlashOption, VersionOption,
     };
 
-    private static readonly string[] ApplyOptionWordList = { ReplaceOption, CaseOption, DryRunOption };
+    private static readonly string[] ApplyOptionWordList =
+    {
+        ReplaceOption, CaseOption, DryRunOption, QuietOption, QuietShortOption, VerboseOption, VerboseShortOption,
+    };
 
     private static readonly string[] UndoOptionWordList = { DryRunOption };
 
@@ -142,6 +149,8 @@ internal static class CommandLineParser
         string? with = null;
         CaseMode? caseMode = null;
         bool dryRun = false;
+        bool quiet = false;
+        bool verbose = false;
         for (int i = 1; i < args.Count; i++)
         {
             string arg = args[i];
@@ -192,6 +201,24 @@ internal static class CommandLineParser
             {
                 dryRun = true;
             }
+            else if (Is(arg, QuietOption) || Is(arg, QuietShortOption))
+            {
+                if (quiet)
+                {
+                    return Fail(Format(Strings.RepeatedOption, QuietOption));
+                }
+
+                quiet = true;
+            }
+            else if (Is(arg, VerboseOption) || Is(arg, VerboseShortOption))
+            {
+                if (verbose)
+                {
+                    return Fail(Format(Strings.RepeatedOption, VerboseOption));
+                }
+
+                verbose = true;
+            }
             else if (arg.StartsWith("-", StringComparison.Ordinal))
             {
                 return Fail(Format(Strings.UnknownOption, arg));
@@ -211,6 +238,17 @@ internal static class CommandLineParser
             }
         }
 
+        // A conflict is reported before a missing folder or rule: it is the clearer mistake. --verbose wins the tie.
+        if (quiet && verbose)
+        {
+            return Fail(Strings.QuietWithVerbose);
+        }
+
+        if (quiet && dryRun)
+        {
+            return Fail(Strings.QuietWithDryRun);
+        }
+
         if (folder == null)
         {
             return Fail(Strings.NoFolder);
@@ -223,7 +261,8 @@ internal static class CommandLineParser
             return Fail(Strings.NoRule);
         }
 
-        return ParsedCommand.Apply(new ApplyOptions(folder, find, with, caseMode, dryRun));
+        return ParsedCommand.Apply(new ApplyOptions(
+            folder, find, with, caseMode, dryRun, quiet ? OutputLevel.Quiet : verbose ? OutputLevel.Verbose : OutputLevel.Normal));
     }
 
     private static bool TryCase(string text, out CaseMode mode)

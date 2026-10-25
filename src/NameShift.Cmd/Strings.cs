@@ -55,6 +55,15 @@ public static class Strings
     /// <summary>"Cannot list {0}: {1}": the folder, then the window's folder problem text.</summary>
     public static string CannotList => Get(nameof(CannotList));
 
+    /// <summary>"--quiet and --verbose cannot be used together."</summary>
+    public static string QuietWithVerbose => Get(nameof(QuietWithVerbose));
+
+    /// <summary>"--quiet and --dry-run cannot be used together."</summary>
+    public static string QuietWithDryRun => Get(nameof(QuietWithDryRun));
+
+    /// <summary>"{0}: unchanged": a file name the rules leave as it is (--verbose).</summary>
+    public static string UnchangedLine => Get(nameof(UnchangedLine));
+
     public static string NothingToRename => Get(nameof(NothingToRename));
 
     /// <summary>"{0} -&gt; {1}": the old and the new file name of a dry run.</summary>

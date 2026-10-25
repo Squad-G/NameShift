@@ -21,6 +21,9 @@
   <data name="FolderIsFile" xml:space="preserve"><value>{0} is a file, not a folder.</value></data>
   <data name="FolderNotFound" xml:space="preserve"><value>Folder not found: {0}</value></data>
   <data name="CannotList" xml:space="preserve"><value>Cannot list {0}: {1}</value></data>
+  <data name="QuietWithVerbose" xml:space="preserve"><value>--quiet and --verbose cannot be used together.</value></data>
+  <data name="QuietWithDryRun" xml:space="preserve"><value>--quiet and --dry-run cannot be used together.</value></data>
+  <data name="UnchangedLine" xml:space="preserve"><value>{0}: unchanged</value></data>
   <data name="NothingToRename" xml:space="preserve"><value>Nothing to rename.</value></data>
   <data name="DryRunLine" xml:space="preserve"><value>{0} -&gt; {1}</value></data>
   <data name="ItemLine" xml:space="preserve"><value>{0}: {1}</value></data>
@@ -59,6 +62,8 @@ Examples:
   --replace &lt;find&gt; &lt;with&gt;  Replace &lt;find&gt; with &lt;with&gt; in each file name.
   --case &lt;mode&gt;            Change the case: lower, upper, title or sentence.
   --dry-run                Only list the new names; rename nothing.
+  --quiet, -q              Print nothing on success; errors are still shown.
+  --verbose, -v            Also list each renamed file and each unchanged file.
   --help, -h, /?           Show this help.
 Give at least one of --replace and --case. Options can come in any order.
 
