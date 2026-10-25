@@ -475,6 +475,7 @@ public sealed class MainActionsTests
     {
         MainActions actions = await BuildLoaded(Prefix());
         var gate = new ManualResetEventSlim(false);
+        var startupReading = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         try
         {
             int reads = 0;
@@ -482,7 +483,8 @@ public sealed class MainActionsTests
             {
                 if (Interlocked.Increment(ref reads) == 1)
                 {
-                    gate.Wait();
+                    startupReading.SetResult(true);
+                    Assert.True(gate.Wait(TestWait.Timeout));
                     return DiskResults.Last(LastBatchState.None);
                 }
 
@@ -490,6 +492,9 @@ public sealed class MainActionsTests
             };
             Task startup = actions.LoadJournalAsync();
 
+            // The startup read must be the first read. Both reads run on pool threads, and under load the Rename's read
+            // can start first: it then took the held answer and the test waited on itself (NS-77).
+            await TestWait.Within(startupReading.Task);
             await Rename();
             Assert.True(actions.CanRevert);
             gate.Set();
