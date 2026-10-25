@@ -48,7 +48,7 @@ Numbering (the Numbering panel):
    the CLI sets `Numerals` before `UpperCase` and `StartText`, because the `Numerals` setter rewrites the start and
    resets the case to the system's usual one. A test for roman and for hex, each with `--number-case lower` given before
    `--number-system` (the lower case is kept: `--number-case lower --number-system hex` never gives capitals).
-6. Given a value the model refuses (`--number-start x`, `--number-pad 99`, `--number-system octal`,
+6. Given a value the model refuses (`--number-start x`, `--number-pad 256`, `--number-system octal`,
    `--number-position 0` in insert mode, a start the chosen system cannot write), then exit 1 with the model's own error
    text (`StartError`, `StepError`, `PadError`, `InsertPositionError`: new string `OptionError` = `{0}: {1}`, the option
    and the model's text) or, for an unknown word, new string `BadChoice` = `"{0}" is not a value of {1}: use {2}.` (the
@@ -118,3 +118,5 @@ Same as the window, and the rest:
 - 2026-10-25: Note for the po: criterion 6 gives `--number-pad 99` as a refused value, but the window's pad maximum is
   255 (`NumberingRule.MaxPad`), so 99 is accepted, as in the window. The tests use `--number-pad 256`; the example in
   criterion 6 could read `256` (tech-lead).
+- 2026-10-24: Criterion 6 example corrected to `--number-pad 256` (the pad maximum is 255, `NumberingRule.MaxPad`); the
+  split of `ParseApply` is the chore NS-79 (po).
