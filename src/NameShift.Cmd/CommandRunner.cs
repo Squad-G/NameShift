@@ -31,6 +31,8 @@ public sealed class CommandRunner
     private readonly PresetStore _presets;
     private bool _renamerCalled;
     private bool _undoing;
+    private string _root = "";
+    private bool _recurse;
 
     /// <param name="output">Results (exit code 0).</param>
     /// <param name="error">Errors and every other result.</param>
@@ -196,18 +198,35 @@ public sealed class CommandRunner
             }
         }
 
-        FileListing listing = _files.ListEntries(folder, false, CancellationToken.None);
+        _root = folder;
+        _recurse = options.Recurse;
+        FileListing listing = _files.ListEntries(folder, options.Recurse, CancellationToken.None);
         if (listing.Problem != null)
         {
             return Fail(Format(Strings.CannotList, folder, FolderProblemText.For(listing.Problem.Value)), ExitCode.InputError);
         }
 
+        // Sub-folders that could not be read: said once, on the error stream (--quiet does not hide it), before any
+        // other result line. The exit code is not changed.
+        if (options.Recurse)
+        {
+            string? notice = SkippedFoldersNotice.Text(listing.SkippedFolders, _culture);
+            if (notice != null)
+            {
+                _error.WriteLine(notice);
+            }
+        }
+
         // The window's default order, then files only (hidden and system out by the filter's default); every entry
         // name still counts. No UI thread here, so the filter runs in place.
         ItemFilter filter = options.Filter;
-        RenameItem[] items = FileListOrder.Sort(listing.Items).Where(filter.Includes).ToArray();
+        IReadOnlyList<RenameItem> items = FileListOrder.Sort(listing.Items).Where(filter.Includes).ToArray();
+        if (options.Recurse && !filter.IncludeHidden)
+        {
+            items = HiddenFolders.LeaveOut(folder, listing.Items, items);
+        }
 
-        if (options.Filtered && items.Length == 0)
+        if (options.Filtered && items.Count == 0)
         {
             if (options.Output != OutputLevel.Quiet)
             {
@@ -307,18 +326,31 @@ public sealed class CommandRunner
             RenameResult result = plan.Results[i];
             if (result.Status == RenameStatus.Error)
             {
-                _error.WriteLine(Format(Strings.ItemLine, items[i].Name, PreviewText.For(result).Text));
+                _error.WriteLine(Format(Strings.ItemLine, Shown(items[i]), PreviewText.For(result).Text));
             }
 
             IReadOnlyList<Conflict> conflicts = plan.Conflicts.ForItem(i);
             if (conflicts.Count > 0)
             {
-                _error.WriteLine(Format(Strings.ItemLine, items[i].Name, ConflictText.For(conflicts)));
+                _error.WriteLine(Format(Strings.ItemLine, Shown(items[i]), ConflictText.For(conflicts)));
             }
         }
 
         _error.WriteLine(ActionText.Hint(new PreviewSnapshot(items, plan.Results, plan.Conflicts)));
         return (int)ExitCode.Blocked;
+    }
+
+    /// <summary>The name an output line shows: the plain name, or with --recurse its folder under the chosen folder
+    /// and the name (nothing in front of the name for an item of the chosen folder itself).</summary>
+    private string Shown(RenameItem item)
+    {
+        if (!_recurse)
+        {
+            return item.Name;
+        }
+
+        string folder = FileListText.RelativeFolder(_root, item);
+        return folder.Length == 0 ? item.Name : folder + Path.DirectorySeparatorChar + item.Name;
     }
 
     /// <summary>"old -> new" for each changed file, in list order.</summary>
@@ -328,7 +360,7 @@ public sealed class CommandRunner
         {
             if (result.Status == RenameStatus.Changed)
             {
-                _output.WriteLine(Format(Strings.DryRunLine, result.Item.Name, result.NewName));
+                _output.WriteLine(Format(Strings.DryRunLine, Shown(result.Item), result.NewName));
             }
         }
     }
@@ -341,7 +373,7 @@ public sealed class CommandRunner
         {
             if (result.Status == RenameStatus.Unchanged)
             {
-                _output.WriteLine(Format(Strings.UnchangedLine, result.Item.Name));
+                _output.WriteLine(Format(Strings.UnchangedLine, Shown(result.Item)));
             }
         }
     }
