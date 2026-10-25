@@ -1,6 +1,6 @@
 # NS-84: Remember which panels are collapsed
 
-Status: Ready
+Status: Done
 Depends on: NS-83, NS-37
 Area: app
 
@@ -46,3 +46,12 @@ Logic in `NameShift.Ui` with tests on net10.0 and net48 against a temp folder. I
 ## Log
 - 2026-10-24: created; David asked for the state to be remembered with the settings. Depends on NS-37 for the store and
   on NS-83 for the model. Set Ready, to be built after both (po).
+- 2026-10-25: In Progress (builder).
+- 2026-10-25: In Review (builder), PR #88.
+- 2026-10-25: Done (tech-lead), PR #88 approved and squash-merged; review nits folded: a stage key must equal a
+  `RuleStage` name exactly (ordinal lookup in `Enum.GetNames`: `" Remove"` and `"+5"` are skipped, tested); for a
+  repeated key the first valid entry wins (documented and tested); the `using` order and the long lines of this PR
+  wrapped. Hand checks for David (PR #88): collapse some panels, close, reopen: they come back as left; a panel saved
+  collapsed whose rules come back ticked stays collapsed with the active look and opens when ticked again (this also
+  checks that `MainForm` builds the collapse model after `ApplyPreset`); first run with no `panels`: unticked panels
+  collapsed; a close refused during a Rename saves nothing; Reset, close, reopen: the states stay.

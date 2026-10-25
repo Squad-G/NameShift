@@ -1215,8 +1215,8 @@ public sealed class MainActionsTests
     {
         MainActions actions = await BuildLoaded(Prefix());
         _renamer.RenameResult = DiskResults.NeedsAttention(
-            DiskResults.Failure(FailureReason.RenameFailed, @"C:\A.txt", systemMessage: "Busy."),
-            DiskResults.Stranded(@"C:\A\~ns-1234.tmp", @"C:\A.txt"));
+            DiskResults.Failure(FailureReason.RenameFailed, @"C:\A\b.txt", systemMessage: "Busy."),
+            DiskResults.Stranded(@"C:\A\~ns-1234.tmp", @"C:\A\a.txt"));
 
         await Rename();
         await ApplyPreview();

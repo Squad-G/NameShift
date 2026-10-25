@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using NameShift.Core;
 
 namespace NameShift.Ui.Settings;
 
@@ -10,8 +12,13 @@ public sealed class AppSettings
     /// <param name="window">The placement, or null when there is none to use.</param>
     /// <param name="mainSplit">The folder tree's splitter in 96-DPI logical pixels, or null for the default.</param>
     /// <param name="lastFolder">The folder shown at close, or null.</param>
+    /// <param name="collapsedPanels">Each rule panel's stage and whether it was collapsed (NS-84), or null for none.</param>
     /// <exception cref="ArgumentOutOfRangeException">The splitter value is negative.</exception>
-    public AppSettings(SavedWindow? window, int? mainSplit, string? lastFolder)
+    public AppSettings(
+        SavedWindow? window,
+        int? mainSplit,
+        string? lastFolder,
+        IReadOnlyDictionary<RuleStage, bool>? collapsedPanels = null)
     {
         if (mainSplit < 0)
         {
@@ -21,6 +28,16 @@ public sealed class AppSettings
         Window = window;
         MainSplit = mainSplit;
         LastFolder = string.IsNullOrWhiteSpace(lastFolder) ? null : lastFolder;
+        var copy = new Dictionary<RuleStage, bool>();
+        if (collapsedPanels != null)
+        {
+            foreach (KeyValuePair<RuleStage, bool> pair in collapsedPanels)
+            {
+                copy[pair.Key] = pair.Value;
+            }
+        }
+
+        CollapsedPanels = copy;
     }
 
     /// <summary>No value: the window opens as it does without a file.</summary>
@@ -34,4 +51,8 @@ public sealed class AppSettings
 
     /// <summary>The last folder shown, exactly as it was; null or a path that is not blank.</summary>
     public string? LastFolder { get; }
+
+    /// <summary>Each rule panel's stage and whether it was collapsed (NS-84); never null, empty when none is kept.
+    /// A panel with no entry uses the default (collapsed when its check box is off).</summary>
+    public IReadOnlyDictionary<RuleStage, bool> CollapsedPanels { get; }
 }
