@@ -1,6 +1,6 @@
 # NS-69: Command line: use a saved preset
 
-Status: In Review
+Status: Done
 Depends on: NS-38, NS-36, NS-43, NS-72, NS-42, NS-39, NS-40
 Area: app
 
@@ -126,3 +126,10 @@ Help and tests of the words:
   NS-40, NS-69, to be started only after NS-72 and NS-40 are merged (po).
 - 2026-10-24: In Progress (builder).
 - 2026-10-24: In Review (builder), PR #76.
+- 2026-10-24: Done (tech-lead), PR #76 approved and squash-merged. Hand checks for David: the window shows the same
+  eleven rule panels in the same order and loading a preset still works; `apply --help` and `help` in cmd, PowerShell and
+  Windows Terminal; on a scratch folder, save a preset in the window, then `apply --preset <name> --dry-run`, a real run and
+  `undo`, then `apply <folder> --case lower --save-preset Test --dry-run` and check the Presets menu lists `Test`. Follow-up
+  nits: `Reset()` in `ApplyOptions.ApplyTo` is redundant (`LoadSettings` restores every default); `RunApply` is about 100
+  lines (extract `TryLoadPreset` and `SavePreset`); one long `RenamePlanner.Plan` line; `--preset Empty --case lower` gives
+  `PresetHasNoRules` by design (the preset is checked alone, before the options).
