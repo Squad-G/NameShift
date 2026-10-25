@@ -1,6 +1,6 @@
 # NS-85: Read the photo dates of the listed files
 
-Status: In Progress
+Status: In Review
 Depends on: NS-62, NS-27
 Area: app
 
@@ -107,3 +107,4 @@ a date; "no date from the bytes" (cached); "could not read" (not cached).
 - 2026-10-25: re-checked against dev after NS-62 (306e581): API facts recorded, cloud placeholders and failed-read caching
   decided, criteria tightened; set Ready (po).
 - 2026-10-25: In Progress (builder).
+- 2026-10-25: In Review: PhotoDates, DiskPhotoFile and the IPhotoFile seam in Ui/Files, 69 tests per runtime; not wired (NS-86) (builder).
