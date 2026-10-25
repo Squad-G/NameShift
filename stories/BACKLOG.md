@@ -77,7 +77,7 @@ IDs), not the rank: the rank is the row order.
 | 78 | [NS-78 Sub-folders box and Folder column](NS-78-subfolderbox.md) | Ready | NS-70, NS-74 |
 | 79 | [NS-79 Command line: split the apply parser by panel](NS-79-parseapplysplit.md) | Done | NS-40, NS-69 |
 | 75 | [NS-75 Command line: Name, Extension and Remove options](NS-75-clirules2.md) | Done | NS-40, NS-69, NS-79, NS-55, NS-30 |
-| 76 | [NS-76 Command line: RegEx, Move/Copy, Auto date and Folder name options](NS-76-clirules3.md) | Ready | NS-75, NS-31, NS-59 |
+| 76 | [NS-76 Command line: RegEx, Move/Copy, Auto date and Folder name options](NS-76-clirules3.md) | In Progress | NS-75, NS-31, NS-59 |
 | 34 | [NS-34 Copy or move to another folder (engine and executor)](NS-34-copymove.md) | Cancelled | NS-8, NS-9 |
 | 35 | [NS-35 Copy/move to location panel](NS-35-copymoveui.md) | Cancelled | NS-34, NS-15 |
 | 41 | [NS-41 Command line: recursion and filters](NS-41-clifilters.md) | Draft | NS-38, NS-32, NS-33, NS-74 |

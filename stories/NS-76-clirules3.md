@@ -1,6 +1,6 @@
 # NS-76: Command line: RegEx, Move/Copy, Auto date and Folder name options
 
-Status: Ready
+Status: In Progress
 Depends on: NS-75, NS-31, NS-59
 Area: app
 Build after NS-75 is merged (it sets the five option rules, the cut-text helper and the panel readers this story reuses; both
@@ -126,3 +126,4 @@ Same as the window, and the rest:
 - 2026-10-24: NS-40 approved. Criteria written from the panel models (every setting an option, the window's error text cut),
   after NS-75 settles the five option rules; set Ready, to start after NS-75 is merged (po).
 - 2026-10-24: PR #75 review applied: blank `--move` count refused, Replace and Case worded as NS-69 leaves them (po).
+- 2026-10-24: In Progress (builder).
