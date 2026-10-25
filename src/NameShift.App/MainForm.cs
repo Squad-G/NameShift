@@ -72,6 +72,7 @@ internal sealed class MainForm : Form
         _filterBinding = new FilterBinding(Filters, FileListModel);
         _skippedFolders = new SkippedFoldersNotice(FileListModel, CultureInfo.CurrentCulture);
         _skippedFolders.Notice += (_, text) => ShowStatus(text);
+        _skippedFolders.Withdrawn += (_, text) => ClearStatusIf(text);
         FilterHost.Controls.Add(new FilterRow(Filters) { Dock = DockStyle.Fill });
         Actions = new MainActions(Preview, FileListModel, RuleHost, Filters, renamer);
         ButtonsHost.Controls.Add(new ActionButtons(Actions, ShowReport, ShowStatus, AskYesNo));
@@ -142,6 +143,15 @@ internal sealed class MainForm : Form
     {
         _statusText.Text = text;
         _statusText.ToolTipText = text; // the full text, when the bar cuts it
+    }
+
+    /// <summary>Clears the status bar only while it still shows this text (a newer message stays).</summary>
+    private void ClearStatusIf(string text)
+    {
+        if (_statusText.Text == text)
+        {
+            ShowStatus("");
+        }
     }
 
     /// <summary>A Yes/No question; Escape is No. The default button is Yes only when asked to.</summary>

@@ -128,6 +128,70 @@ public sealed class SkippedFoldersNoticeTests : IDisposable
     }
 
     [Fact]
+    public async Task Untick_WithdrawsTheReportedText()
+    {
+        var withdrawn = new List<string>();
+        _notice.Withdrawn += (_, text) => withdrawn.Add(text);
+        Assert.False(await TestWait.Within(_files.SetIncludeSubfoldersAsync(true))); // no folder yet: only stored
+        SetSkipped(FolderA, 2);
+        Assert.True(await TestWait.Within(_files.LoadAsync(FolderA)));
+        Assert.Equal(new[] { "2 folders could not be read" }, Notices());
+
+        SetSkipped(FolderA, 0);
+        Assert.True(await TestWait.Within(_files.SetIncludeSubfoldersAsync(false)));
+
+        Assert.Equal(new[] { "2 folders could not be read" }, withdrawn);
+        Assert.Equal(new[] { "2 folders could not be read" }, Notices());
+    }
+
+    [Fact]
+    public async Task ReloadWithBoxStillOn_DoesNotWithdraw()
+    {
+        var withdrawn = new List<string>();
+        _notice.Withdrawn += (_, text) => withdrawn.Add(text);
+        await TestWait.Within(_files.SetIncludeSubfoldersAsync(true));
+        SetSkipped(FolderA, 2);
+        Assert.True(await TestWait.Within(_files.LoadAsync(FolderA)));
+        SetSkipped(FolderA, 0);
+
+        Assert.True(await TestWait.Within(_files.LoadAsync(FolderA)));
+
+        Assert.Empty(withdrawn);
+    }
+
+    [Fact]
+    public async Task UntickWithoutAReport_WithdrawsNothing()
+    {
+        var withdrawn = new List<string>();
+        _notice.Withdrawn += (_, text) => withdrawn.Add(text);
+        await TestWait.Within(_files.SetIncludeSubfoldersAsync(true));
+        SetSkipped(FolderA, 0);
+        Assert.True(await TestWait.Within(_files.LoadAsync(FolderA)));
+
+        Assert.True(await TestWait.Within(_files.SetIncludeSubfoldersAsync(false)));
+        Assert.True(await TestWait.Within(_files.SetIncludeSubfoldersAsync(true)));
+        Assert.True(await TestWait.Within(_files.SetIncludeSubfoldersAsync(false)));
+
+        Assert.Empty(withdrawn);
+    }
+
+    [Fact]
+    public async Task WithdrawnOnce()
+    {
+        var withdrawn = new List<string>();
+        _notice.Withdrawn += (_, text) => withdrawn.Add(text);
+        await TestWait.Within(_files.SetIncludeSubfoldersAsync(true));
+        SetSkipped(FolderA, 1);
+        Assert.True(await TestWait.Within(_files.LoadAsync(FolderA)));
+        SetSkipped(FolderA, 0);
+
+        Assert.True(await TestWait.Within(_files.SetIncludeSubfoldersAsync(false)));
+        Assert.True(await TestWait.Within(_files.LoadAsync(FolderA)));
+
+        Assert.Equal(new[] { "1 folder could not be read" }, withdrawn);
+    }
+
+    [Fact]
     public void NullArguments_Throw()
     {
         Assert.Throws<ArgumentNullException>(() => new SkippedFoldersNotice(null!, EnUs));

@@ -43,16 +43,14 @@ public sealed class FilterBindingTests
         _source.SetEntries(FolderA, File("a.jpg"), File("b.txt"), File("c.jpg"));
 
     [Fact]
-    public async Task Tick_ReloadsWithSubfolders()
+    public void Tick_ReloadsWithSubfolders() => UiThread.Run(async () =>
     {
         await _files.LoadAsync(FolderA);
-
-        // Both models start at an equal default filter, but not the same instance: make it the same, so the tick's
-        // Changed asks for the filter the list already has (no filter run), as after any earlier filter change.
-        await TestWait.Within(_files.SetFilterAsync(_filters.Filter));
         int calls = _source.Calls;
         SetTreeListing();
 
+        // On the UI thread, as in the window. A fresh window's two default filters are equal but not the same
+        // instance, so this first Changed asks for a filter run too; the reload supersedes it and nothing applies.
         _filters.IncludeSubfolders = true;
 
         Assert.True(await TestWait.Within(_binding.LastReload));
@@ -62,7 +60,24 @@ public sealed class FilterBindingTests
         Assert.True(_source.LastToken.CanBeCanceled);
         Assert.True(_files.IncludeSubfolders);
         Assert.Equal(new[] { "a.jpg", "b.txt", "c.jpg", "s.txt" }, Names(_files.Items));
-    }
+    });
+
+    [Fact]
+    public void TickAfterAFilter_NoFilterRun() => UiThread.Run(async () =>
+    {
+        await _files.LoadAsync(FolderA);
+        _filters.Mask = "*";
+        Assert.True(await TestWait.Within(_binding.LastRun));
+        int orderChanges = Volatile.Read(ref _orderChanges);
+
+        // The filter is the same instance now: the tick's Changed gives one reload and no filter run.
+        _filters.IncludeSubfolders = true;
+
+        Assert.True(_binding.LastRun.IsCompleted);
+        Assert.False(await TestWait.Within(_binding.LastRun));
+        Assert.True(await TestWait.Within(_binding.LastReload));
+        Assert.Equal(orderChanges, Volatile.Read(ref _orderChanges));
+    });
 
     [Fact]
     public async Task Untick_ReloadsWithout()
@@ -97,7 +112,7 @@ public sealed class FilterBindingTests
     }
 
     [Fact]
-    public async Task Reset_WithBoxAndMask_ConsistentEnd()
+    public void Reset_WithBoxAndMask_ConsistentEnd() => UiThread.Run(async () =>
     {
         await _files.LoadAsync(FolderA);
         SetTreeListing();
@@ -117,14 +132,15 @@ public sealed class FilterBindingTests
         await TestWait.Within(_binding.LastReload);
         await TestWait.Within(_files.PendingFilter);
 
-        // The filter was asked for first, so the reload lands with it: one list, no filter run after the load.
+        // On the UI thread the filter run cannot land before the reload starts. The filter was asked for first, so
+        // the reload lands with it: one list, no filter run after the load.
         Assert.Equal(orderChanges, Volatile.Read(ref _orderChanges));
         Assert.False(_files.IncludeSubfolders);
         Assert.False(_source.LastIncludeSubfolders);
         Assert.Equal(calls + 1, _source.Calls);
         Assert.Equal(new[] { "a.jpg", "b.txt", "c.jpg" }, Names(_files.Items));
         Assert.Same(_filters.Filter, _files.Filter);
-    }
+    });
 
     [Fact]
     public async Task TickBeforeAnyFolder_FirstLoadUsesIt()
