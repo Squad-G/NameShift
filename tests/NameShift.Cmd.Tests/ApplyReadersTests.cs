@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -95,5 +96,101 @@ public sealed class ApplyReadersTests
 
         Assert.Equal(CommandKind.Error, command.Kind);
         Assert.StartsWith("--number-start: ", command.Error, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void EveryApplyWord_IsClaimedByExactlyOneReader()
+    {
+        var readers = ApplyReaders.Create();
+        foreach (string word in CommandLineParser.ApplyOptionWords)
+        {
+            int claims = readers.Count(r => r.Words.Any(w => string.Equals(w, word, StringComparison.OrdinalIgnoreCase)));
+            Assert.True(claims == 1, word + " is claimed by " + claims + " readers.");
+        }
+
+        foreach (ApplyOptionReader reader in readers)
+        {
+            foreach (string own in reader.Words)
+            {
+                Assert.True(
+                    CommandLineParser.ApplyOptionWords.Contains(own, StringComparer.OrdinalIgnoreCase),
+                    own + " is a reader word that ApplyOptionWords lacks.");
+            }
+        }
+    }
+
+    [Fact]
+    public void FakeReader_IsDispatched_WithoutTouchingTheLoop()
+    {
+        var fake = new FakeReader();
+
+        ParsedCommand command = CommandLineParser.ParseApply(
+            Args(@"apply|--fake|v|D:\P|--case|lower"), ApplyReaders.Create().Concat(new[] { fake }).ToList());
+
+        Assert.Equal(CommandKind.Apply, command.Kind);
+        ApplyOptions options = command.Options!;
+        Assert.Equal(@"D:\P", options.FolderText);
+        Assert.Equal(new[] { "v" }, fake.Values);
+        Assert.Equal(CaseMode.Lower, options.Case);
+        Assert.Contains(fake.Model, options.Panels.Given);
+    }
+
+    [Fact]
+    public void FakeReader_FinishError_IsTheResult()
+    {
+        var fake = new FakeReader { FinishError = OptionArgs.Fail("x") };
+
+        ParsedCommand command = CommandLineParser.ParseApply(
+            Args(@"apply|--fake|v|D:\P|--case|lower"), ApplyReaders.Create().Concat(new[] { fake }).ToList());
+
+        Assert.Same(fake.FinishError, command);
+    }
+
+    [Fact]
+    public void ApplyPanels_SortsByStage_AndRefusesTwoOfAStage()
+    {
+        var add = new AddPanelModel { Enabled = true };
+        var numbering = new NumberingPanelModel { Enabled = true };
+
+        var panels = new ApplyPanels(new IRulePanelModel[] { numbering, add });
+
+        Assert.Equal(new IRulePanelModel[] { add, numbering }, panels.Given);
+        Assert.Same(add, panels.Add);
+        Assert.Same(numbering, panels.Numbering);
+        Assert.Empty(ApplyPanels.None.Given);
+        Assert.Throws<ArgumentException>(
+            () => new ApplyPanels(new IRulePanelModel[] { add, new AddPanelModel { Enabled = true } }));
+        Assert.Throws<ArgumentNullException>(() => new ApplyPanels(null!));
+        Assert.Throws<ArgumentNullException>(() => new ApplyPanels(new IRulePanelModel[] { add, null! }));
+    }
+
+    private sealed class FakeReader : ApplyOptionReader
+    {
+        private static readonly string[] OwnWords = { "--fake" };
+
+        public List<string> Values { get; } = new List<string>();
+
+        public RemovePanelModel Model { get; } = new RemovePanelModel { Enabled = true };
+
+        public ParsedCommand? FinishError { get; set; }
+
+        public override IReadOnlyList<string> Words => OwnWords;
+
+        protected override OptionRead ReadOwn(IReadOnlyList<string> args, ref int index, string word)
+        {
+            if (!OptionArgs.TakeOne(args, ref index, word, out string? value, out ParsedCommand? error))
+            {
+                return OptionRead.Failed(error!);
+            }
+
+            Values.Add(value!);
+            return OptionRead.Taken;
+        }
+
+        public override ParsedCommand? Finish(ApplyDraft draft)
+        {
+            draft.Panels.Add(Model);
+            return FinishError;
+        }
     }
 }
