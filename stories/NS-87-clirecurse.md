@@ -1,6 +1,6 @@
 # NS-87: Command line: --recurse
 
-Status: In Progress
+Status: In Review
 Depends on: NS-41, NS-74, NS-78
 Area: app
 
@@ -131,3 +131,4 @@ Logic in `NameShift.Cmd`, tests on net10.0 and net48. `--recurse` is a switch re
 - 2026-10-25: PR #102 re-review nits folded in by the tech lead: 7a names the message when only hidden-folder items are
   left, the chosen folder itself is never tested (with a test), and the `--include-hidden` help line (tech-lead).
 - 2026-10-25: started (builder).
+- 2026-10-25: built; PR opened, In Review (builder).
