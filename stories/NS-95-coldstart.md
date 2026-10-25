@@ -1,6 +1,6 @@
 # NS-95: Cold start: the first window gathers its own paths with the later ones
 
-Status: Ready
+Status: In Progress
 Depends on: NS-88, NS-89
 Area: app
 
