@@ -1,6 +1,6 @@
 # NS-93: Command line readers: remove the copies
 
-Status: Ready
+Status: In Progress
 Depends on: NS-40, NS-69, NS-75, NS-76
 Area: app
 Chore: no visible change; every existing Cmd test passes unchanged (except the one fixed row of criterion 5).
@@ -44,3 +44,4 @@ suite passes without edits to its expectations.
 
 ## Log
 - 2026-10-25: created from the CLI review follow-ups; set Ready (po).
+- 2026-10-25: In Progress (builder).
