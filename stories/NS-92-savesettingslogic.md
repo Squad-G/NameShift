@@ -1,6 +1,6 @@
 # NS-92: Move the settings-saving logic out of MainForm into NameShift.Ui
 
-Status: Ready
+Status: In Progress
 Depends on: NS-37, NS-84
 Area: app
 Chore: no visible change; behaviour stays exactly as it is.
@@ -43,3 +43,4 @@ by member (window, split, last folder, collapsed panels), which a small test hel
 
 ## Log
 - 2026-10-25: created from the NS-37 review follow-up; set Ready (po).
+- 2026-10-25: In Progress (builder).
