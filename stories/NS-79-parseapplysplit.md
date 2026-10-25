@@ -1,6 +1,6 @@
 # NS-79: Command line: split the apply parser by panel
 
-Status: Ready
+Status: In Progress
 Depends on: NS-40, NS-69
 Area: app
 Build after NS-40 and NS-69 are merged (NS-69 adds words to the same loop), and before NS-75 and NS-76.
@@ -58,3 +58,4 @@ Code in `src/NameShift.Cmd` only; no change in `Strings.resx`, the help, `NameSh
 
 ## Log
 - 2026-10-24: created and set Ready (po), from the NS-40 review note about the size of `ParseApply`.
+- 2026-10-24: In Progress (builder).
