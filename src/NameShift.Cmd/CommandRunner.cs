@@ -252,10 +252,15 @@ public sealed class CommandRunner
                 if (dryRun)
                 {
                     // The check reads the disk and changes nothing; every entry prints in journal order.
-                    RevertCheck check = _renamer.CheckRevert();
+                    var skipped = new Dictionary<(string, string), SkippedRevert>();
+                    foreach (SkippedRevert s in _renamer.CheckRevert().Skipped)
+                    {
+                        skipped[(s.Entry.NewPath, s.Entry.OldPath)] = s;
+                    }
+
                     foreach (CompletedRename rename in last.Renames)
                     {
-                        SkippedRevert? skip = check.Skipped.FirstOrDefault(s => s.Entry.NewPath == rename.NewPath && s.Entry.OldPath == rename.OldPath);
+                        skipped.TryGetValue((rename.NewPath, rename.OldPath), out SkippedRevert? skip);
                         string name = Path.GetFileName(rename.NewPath);
                         _output.WriteLine(skip != null
                             ? Format(Strings.DryRunSkippedLine, name, RevertCheckText.Reason(skip.Reason))

@@ -97,7 +97,7 @@ public sealed class CommandRunnerHelpTests : IDisposable
                 "",
                 "Options of undo:",
                 "  --dry-run       List the names undo would restore; change nothing. Checks",
-                "                  the files and the history; changes nothing.",
+                "                  the files and the history.",
                 "  --help, -h, /?  Show this help.",
                 "Undo takes back the last batch, also one made in the window.",
                 "",

@@ -362,8 +362,7 @@ public sealed class CommandRunnerUndoTests
                 (RevertSkipReason.ItemMissing, @"C:\A\C.txt", @"C:\A\c.txt")),
         };
 
-        var run = Cmd.Run(renamer, @"C:
-owhere", new[] { "undo", "--dry-run" });
+        var run = Cmd.Run(renamer, @"C:\nowhere", new[] { "undo", "--dry-run" });
 
         Assert.Equal(0, run.Code);
         Assert.Equal(
