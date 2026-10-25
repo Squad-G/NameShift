@@ -484,7 +484,7 @@ public sealed class MainActionsTests
                 if (Interlocked.Increment(ref reads) == 1)
                 {
                     startupReading.SetResult(true);
-                    Assert.True(gate.Wait(TestWait.Timeout));
+                    TestWait.Block(gate);
                     return DiskResults.Last(LastBatchState.None);
                 }
 

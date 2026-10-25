@@ -1,6 +1,6 @@
 # NS-77: Find and fix the occasional net48 failure in the Ui tests
 
-Status: In Review
+Status: Done
 Depends on:
 Area: app
 
@@ -81,3 +81,10 @@ no product change.
 - 2026-10-24: created and set Ready (po): occasional net48 failure, hang and early stop in the Ui tests.
 - 2026-10-24: In Progress (builder).
 - 2026-10-25: In Review (builder), PR #83. Caught and fixed in tests only (no src change): the short counts were a hang of MainActionsTests.SlowStartupJournalRead_DoesNotOverwriteTheReadAfterRename (11 tests never ran); FolderTreeModelTests drove a UI-thread model from pool threads (corrupted Dictionary, a net48 hang); FilterBindingTests and PreviewModelTests assumed a run could not land before the next step.
+- 2026-10-25: Done (tech-lead), PR #83 approved and squash-merged; review nit 2 folded (the held startup journal read
+  in `MainActionsTests` uses `TestWait.Block(gate)`, as the other fakes do). Follow-ups: `FilterBindingTests`
+  (`Tick_ReloadsWithSubfolders`, `Reset_WithBoxAndMask_ConsistentEnd`) now pin only one of the two orders the product
+  allows (reload first, then the held filter run): a comment or a test of the other order would help (nit 1); the
+  duplicate Cmd row `RegexMoveDateFolderParserTests.UsageErrors` `--copy|1|--copy|1` (xUnit skips it with a
+  duplicate-ID message on every run); the `CLAUDE.md` checks text proposed in the PR body (a lead chore); the NS-58
+  timing guard fails on a single core.
