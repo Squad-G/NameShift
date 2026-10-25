@@ -6,8 +6,8 @@ namespace NameShift.Ui.Settings;
 /// <summary>Which folder the window opens on.</summary>
 public enum StartFolderSource
 {
-    /// <summary>The path on the command line (NS-47).</summary>
-    Argument,
+    /// <summary>Path arguments: gathered with the requests of later starts and opened together (NS-95).</summary>
+    Gather,
 
     /// <summary>The folder shown at the last close (NS-37).</summary>
     Remembered,
@@ -16,16 +16,16 @@ public enum StartFolderSource
     StartFolder,
 }
 
-/// <summary>The start folder (NS-37 AC 8): a path argument wins, then the remembered folder when it still exists, then
+/// <summary>The start folder (NS-37 AC 8): path arguments are gathered and opened (NS-95), else the remembered folder when it still exists, then
 /// the usual start folder, with no message.</summary>
 public static class StartFolderChoice
 {
-    /// <summary>Argument when there is one; else Remembered when it is not blank; else StartFolder.</summary>
+    /// <summary>Gather when there is a path argument; else Remembered when it is not blank; else StartFolder.</summary>
     public static StartFolderSource Pick(string? argument, string? remembered)
     {
         if (argument != null)
         {
-            return StartFolderSource.Argument;
+            return StartFolderSource.Gather;
         }
 
         return string.IsNullOrWhiteSpace(remembered) ? StartFolderSource.StartFolder : StartFolderSource.Remembered;
