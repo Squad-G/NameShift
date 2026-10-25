@@ -1,6 +1,6 @@
 # NS-88: Start on several files: one folder, those items selected
 
-Status: In Progress
+Status: In Review
 Depends on: NS-47, NS-14
 Area: app
 
@@ -52,3 +52,4 @@ Logic in `NameShift.Ui` (`OpenTarget`, `FileListModel`) with tests on net10.0 an
 
 ## Log
 - 2026-10-25: created from NS-49's split (po).
+- 2026-10-25: built: ResolveMany, SelectNames, status line for unselected items; singular string NotSelectedOne added (tech lead).

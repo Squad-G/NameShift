@@ -23,10 +23,14 @@ public sealed class SelectNamesTests
         return model;
     }
 
-    [Fact]
-    public async Task SelectNames_RootOnly_WithSubfolders()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task SelectNames_RootOnly_WithSubfolders(bool subFirst)
     {
-        _source.SetEntries(FolderA, File("a.jpg", folder: FolderA), File("a.jpg", folder: @"C:\A\sub"));
+        RenameItem root = File("a.jpg", folder: FolderA);
+        RenameItem sub = File("a.jpg", folder: @"C:\A\sub");
+        _source.SetEntries(FolderA, subFirst ? new[] { sub, root } : new[] { root, sub });
         var filters = new FilterPanelModel();
         using var model = new FileListModel(_source);
         using var binding = new FilterBinding(filters, model);
