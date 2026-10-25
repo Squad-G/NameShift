@@ -1,6 +1,6 @@
 # NS-70: Filter row above the file list
 
-Status: Ready
+Status: In Progress
 Depends on: NS-33
 Area: app
 
@@ -104,3 +104,4 @@ Alt keys and access:
 - 2026-10-24: NS-33 merged. Split again: the sub-folder parts moved to NS-78 so this story no longer waits for NS-74.
   Added the `FileList.RenderOrder` row-count fix, `MainForm` disposing `FileListModel`, the typing debounce class, the
   `MainActions` filter reset and the filtered count rule; set Ready (po).
+- 2026-10-24: In Progress (builder).
