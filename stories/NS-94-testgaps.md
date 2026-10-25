@@ -1,6 +1,6 @@
 # NS-94: Close gaps in the tests: PathInput prefixes, both orders of the list model, broken path literals
 
-Status: In Progress
+Status: In Review
 Depends on: NS-10, NS-70, NS-78, NS-80
 Area: app
 Chore: tests only; no change to `src`.
@@ -55,3 +55,4 @@ written up in the PR and a story is made, not fixed here).
 - 2026-10-25: PR #90 review: the second-order test is made deterministic at `FileListModel` (no seam); the broken-escape
   guard added (po).
 - 2026-10-25: created from the NS-10, NS-70 and NS-78 review follow-ups; set Ready (po).
+- 2026-10-25: built: TryExact prefix rows, ListOrderTests (both orders), BrokenLiteralScanner guard; tests only (builder).
