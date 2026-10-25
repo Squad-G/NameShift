@@ -12,6 +12,9 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\NameShift.Core.Tests\JpegBuilder.cs" Link="Files\JpegBuilder.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\src\NameShift.Ui\NameShift.Ui.csproj" />
   </ItemGroup>
 </Project>
