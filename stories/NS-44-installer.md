@@ -1,6 +1,6 @@
 # NS-44: Installer
 
-Status: Ready
+Status: Done
 Depends on: NS-15, NS-38
 Order: built first in the last round before the v1 release (David, 2026-10-24/25); NS-49 follows and depends on it.
 Area: installer
@@ -117,3 +117,25 @@ never need Inno Setup. Nothing in `tools/` or `docs/RELEASING.md` is changed by 
   silent-mode wording, PATH kind, data-folder guard, README Layout line, check script execution policy (po).
 - 2026-10-25: PR #107 re-review nit folded in: the `/DIR` guard also refuses a folder inside the two data folders
   (criteria 2 and 13) (tech-lead).
+- 2026-10-25: In Progress (builder).
+- 2026-10-25: In Review: installer/ with the .iss, build-installer.sh, check-registry.ps1 and README; setup 2.29 MB; nothing installed on the build machine (builder).
+- 2026-10-25: Done (tech-lead), PR #110 approved and squash-merged. The setup was never run on the build machine: 2.29
+  MB, ten files, the tree clean after a build. Per-user install stays pending David's confirmation (QUESTIONS.md #10).
+- 2026-10-25: follow-ups from the PR #110 review (none blocks): (1) a PATH entry written with quotes or with an
+  unexpanded variable (`%LOCALAPPDATA%\Programs\NameShift`) is not matched, so a reinstall adds the expanded form and
+  uninstall leaves the first one; (2) the data-folder guard does not see through an 8.3 short name or a junction; (3)
+  uninstall also removes a `{app}` PATH entry the user added by hand; (4) the registry handles are 32-bit `Cardinal`
+  (right for Inno 6's 32-bit setup; a 64-bit setup would need `NativeUInt`); (5) `check-registry.ps1` does not dispose
+  its `RegistryKey` objects (harmless in a short script).
+- 2026-10-25: notes for David: Inno Setup 6.7.3 prints "Non-commercial use only" in its compile banner (check that its
+  licence fits); a suggested `docs/RELEASING.md` step, not applied: "6. Build the installer: after step 4, run
+  `installer/build-installer.sh` in Git Bash (Inno Setup 6 needed) and attach
+  `installer/Output/NameShift-Setup-<version>.exe` to the GitHub release for `v<version>`; see `installer/README.md`."
+- 2026-10-25: hand checks for David (criterion 13, on a clean Windows 10 or 11 user): install with all defaults (no
+  UAC, files in `%LocalAppData%\Programs\NameShift`, Start menu shortcut, no desktop shortcut, licence page, English);
+  each task changed; a reinstall unchecking a task removes its keys or PATH entry; upgrade, also while NameShift is
+  open; uninstall with No (data kept) and with Yes (both data folders deleted, nothing else); uninstall while open;
+  silent install and uninstall (no question, data kept); a `/DIR` of either data folder or a folder inside one refused,
+  `NameShiftOld` accepted; `check-registry.ps1` `-State Installed` after install and `-State Removed` after uninstall;
+  a `REG_EXPAND_SZ` PATH with `%USERPROFILE%` entries kept as it was with one entry added and later removed; Add/Remove
+  Programs shows NameShift 0.1.0 by Squad-G; the window starts sharp at 150 % and `NameShiftCmd.exe --version` runs.
