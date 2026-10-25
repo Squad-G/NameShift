@@ -292,9 +292,14 @@ internal sealed class MainForm : Form
         base.OnShown(e);
         switch (StartFolderChoice.Pick(_startArgument, _saved.LastFolder))
         {
-            case StartFolderSource.Argument:
-                // One navigation once the path is resolved: Documents is never shown first for nothing.
-                _ = _startArguments.Count >= 2 ? OpenManyAsync(_startArguments) : OpenAsync(_startArgument!);
+            case StartFolderSource.Gather:
+                // Gathered with the requests of later starts (NS-95): nothing is shown until the burst is over, so
+                // neither Documents nor the remembered folder flashes first; OnGatherTick opens the batch.
+                if (StartGathering.Begin(_gatherer, _startArguments, _currentDirectory))
+                {
+                    ScheduleGatherCheck();
+                }
+
                 break;
             case StartFolderSource.Remembered:
                 _ = OpenRememberedAsync(_saved.LastFolder!);
@@ -699,11 +704,6 @@ internal sealed class MainForm : Form
             ShowStatus(Strings.SomethingWentWrong);
         }
     }
-
-    /// <summary>Opens several paths from the command line: the folder of the first that exists, with those items selected
-    /// (NS-88). Resolves off the UI thread; never throws.</summary>
-    private Task OpenManyAsync(IReadOnlyList<string> texts) =>
-        OpenManyAsync(texts.Select(t => new PathArgument(t, _currentDirectory)).ToList());
 
     /// <summary>Opens several paths, each joined to its own directory (gathered requests of other starts keep theirs,
     /// NS-89). One disk check per tried path only (NS-88). Resolves off the UI thread; never throws.</summary>

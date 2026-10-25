@@ -11,10 +11,10 @@ namespace NameShift.Ui.Tests.Settings;
 public sealed class StartFolderChoiceTests
 {
     [Fact]
-    public void Pick_ArgumentWins()
+    public void Pick_ArgumentGathers()
     {
-        Assert.Equal(StartFolderSource.Argument, StartFolderChoice.Pick(@"D:\X", @"D:\Y"));
-        Assert.Equal(StartFolderSource.Argument, StartFolderChoice.Pick(@"D:\X", null));
+        Assert.Equal(StartFolderSource.Gather, StartFolderChoice.Pick(@"D:\X", @"D:\Y"));
+        Assert.Equal(StartFolderSource.Gather, StartFolderChoice.Pick(@"D:\X", null));
     }
 
     [Fact]

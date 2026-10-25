@@ -1,6 +1,6 @@
 # NS-95: Cold start: the first window gathers its own paths with the later ones
 
-Status: Ready
+Status: Done
 Depends on: NS-88, NS-89
 Area: app
 
@@ -57,3 +57,12 @@ Logic in `NameShift.Ui` with tests on net10.0 and net48 (the fake clock of NS-89
 - 2026-10-25: PR #107 re-review nits folded in: the gather decision in `NameShift.Ui` (`Pick` gives `Gather`, a helper
   builds the owner's request, tests that fail without the change), nothing shown during the gathering and the not-found
   end as today, the 2,000-path cap stated for the owner (tech-lead).
+- 2026-10-25: built (builder): StartFolderSource.Argument became Gather, StartGathering helper, OnShown gathers; PR open, In Review.
+- 2026-10-25: Done (tech-lead), PR #109 approved and squash-merged. Review nits folded: two long lines wrapped.
+  Follow-up: if a dialog opens in the first 300 ms, OnDue gives Busy, the paths are dropped and the window shows no
+  folder, because _navigator.Start() is not called on that branch (practically unreachable at a first start; a later
+  story could call Start() on Busy when no folder is shown). Hand checks for David (criterion 7), with no window
+  running, from cmd: 15 starts in a loop give one window with all 15 rows selected, the first file included, and
+  Documents never flashes first; the same with 2 files; a single start opens as before, at most 300 ms later; a start
+  with no path opens the remembered folder at once; a path that does not exist gives the message, then the start
+  folder; close the window and repeat.
