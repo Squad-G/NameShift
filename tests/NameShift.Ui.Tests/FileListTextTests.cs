@@ -24,6 +24,24 @@ public sealed class FileListTextTests
         Assert.Equal(expected, FileListText.SelectionCount(batchCount, total, CultureInfo.GetCultureInfo("en-US")));
     }
 
+    // NS-70 AC 7
+
+    [Theory]
+    [InlineData(2, 3, true, "2 of 3 files (filtered)")]
+    [InlineData(1, 1, true, "1 of 1 file (filtered)")]
+    [InlineData(2, 3, false, "2 of 3 files")]
+    [InlineData(0, 0, true, "")]
+    public void SelectionCount_Filtered(int batchCount, int total, bool filtered, string expected)
+    {
+        Assert.Equal(expected, FileListText.SelectionCount(batchCount, total, filtered, CultureInfo.GetCultureInfo("en-US")));
+    }
+
+    [Fact]
+    public void SelectionCount_Filtered_TurkishCulture()
+    {
+        Assert.Equal("1.234 of 10.000 files (filtered)", FileListText.SelectionCount(1234, 10000, true, CultureInfo.GetCultureInfo("tr-TR")));
+    }
+
     [Theory]
     [InlineData(0L, "0 KB")]
     [InlineData(1L, "1 KB")]

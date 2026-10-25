@@ -109,6 +109,48 @@ public static class Strings
     /// <summary>"Enter a whole number for the length.".</summary>
     public static string FilterLengthInvalid => Get(nameof(FilterLengthInvalid));
 
+    /// <summary>The filter row's accessible name (NS-70).</summary>
+    public static string FilterRowName => Get(nameof(FilterRowName));
+
+    /// <summary>"Mas&amp;k:", the mask label of the filter row.</summary>
+    public static string FilterMask => Get(nameof(FilterMask));
+
+    /// <summary>"Fi&amp;les", a check box of the filter row.</summary>
+    public static string FilterFiles => Get(nameof(FilterFiles));
+
+    /// <summary>"Folder&amp;s", a check box of the filter row.</summary>
+    public static string FilterFolders => Get(nameof(FilterFolders));
+
+    /// <summary>"&amp;Hidden", a check box of the filter row.</summary>
+    public static string FilterHidden => Get(nameof(FilterHidden));
+
+    /// <summary>"M&amp;ore", the toggle of the filter row's second line.</summary>
+    public static string FilterMore => Get(nameof(FilterMore));
+
+    /// <summary>"M&amp;ore *": the toggle while its hidden line holds a value (same Alt key as FilterMore).</summary>
+    public static string FilterMoreMarked => Get(nameof(FilterMoreMarked));
+
+    /// <summary>"Regex or length filter active": the More toggle's accessible description while marked.</summary>
+    public static string FilterMoreActive => Get(nameof(FilterMoreActive));
+
+    /// <summary>"Regex:", the second line's pattern label (no Alt key: option B of NS-70 AC 10).</summary>
+    public static string FilterRegex => Get(nameof(FilterRegex));
+
+    /// <summary>"Ignore case" on the filter row's second line (no Alt key).</summary>
+    public static string FilterIgnoreCase => Get(nameof(FilterIgnoreCase));
+
+    /// <summary>"Min length:" on the filter row's second line (no Alt key).</summary>
+    public static string FilterMinLength => Get(nameof(FilterMinLength));
+
+    /// <summary>"Max length:" on the filter row's second line (no Alt key).</summary>
+    public static string FilterMaxLength => Get(nameof(FilterMaxLength));
+
+    /// <summary>The accessible name of the filter row's error label.</summary>
+    public static string FilterErrorName => Get(nameof(FilterErrorName));
+
+    /// <summary>"{0} (filtered)": {0} is the whole count text.</summary>
+    public static string SelectionCountFiltered => Get(nameof(SelectionCountFiltered));
+
     public static string FileListName => Get(nameof(FileListName));
 
     /// <summary>"Error: {0}", a rule's error in the New Name cell.</summary>

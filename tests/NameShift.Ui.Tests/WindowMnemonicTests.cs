@@ -5,9 +5,11 @@ using Xunit;
 
 namespace NameShift.Ui.Tests;
 
-/// <summary>NS-72 AC 14: the Alt keys of the window's top level texts. The rule panel titles and the menu title must
-/// all have different letters, and so must the items of one menu. NS-70 adds the strings of its filter row here.
-/// (Letters of labels inside a panel may repeat a title letter of another panel: <see cref="MnemonicCheck"/>.)</summary>
+/// <summary>NS-72 AC 14 and NS-70 AC 10: the Alt keys of the window's top level texts. The rule panel titles, the menu
+/// title and the first line of the filter row (Mask, Files, Folders, Hidden, More) must all have different letters, and
+/// so must the items of one menu. The filter row's second line has no Alt key (More opens it and focuses its first box),
+/// and the row never uses B, which NS-78's Sub-folders box takes. (Letters of labels inside a panel may repeat a title
+/// letter of another panel: <see cref="MnemonicCheck"/>.)</summary>
 public sealed class WindowMnemonicTests
 {
     private static readonly string[] PanelTitles =
@@ -17,12 +19,47 @@ public sealed class WindowMnemonicTests
         Strings.MoveCopyTitle, Strings.AutoDateTitle, Strings.FolderNameTitle,
     };
 
+    private static readonly string[] FilterRowFirstLine =
+    {
+        Strings.FilterMask, Strings.FilterFiles, Strings.FilterFolders, Strings.FilterHidden, Strings.FilterMore,
+    };
+
+    private static readonly string[] FilterRowSecondLine =
+    {
+        Strings.FilterRegex, Strings.FilterIgnoreCase, Strings.FilterMinLength, Strings.FilterMaxLength,
+    };
+
     [Fact]
     public void TitleLetters_Distinct()
     {
         var texts = new List<string>(PanelTitles) { Strings.PresetsMenu };
+        texts.AddRange(FilterRowFirstLine);
 
         AssertDistinctLetters(texts);
+    }
+
+    [Fact]
+    public void FilterMoreMarked_SameLetterAsMore() =>
+        Assert.Equal(MnemonicCheck.LetterOf(Strings.FilterMore), MnemonicCheck.LetterOf(Strings.FilterMoreMarked));
+
+    [Fact]
+    public void Row_DoesNotUseB()
+    {
+        var texts = new List<string>(FilterRowFirstLine) { Strings.FilterMoreMarked };
+        texts.AddRange(FilterRowSecondLine);
+        foreach (string text in texts)
+        {
+            Assert.DoesNotContain("&b", text, StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
+    [Fact]
+    public void SecondLine_HasNoMnemonic()
+    {
+        foreach (string text in FilterRowSecondLine)
+        {
+            Assert.DoesNotContain("&", text, StringComparison.Ordinal);
+        }
     }
 
     [Fact]
