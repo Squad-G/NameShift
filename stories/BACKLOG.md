@@ -76,7 +76,7 @@ IDs), not the rank: the rank is the row order.
 | 78 | [NS-78 Sub-folders box and Folder column](NS-78-subfolderbox.md) | Done | NS-70, NS-74 |
 | 82 | [NS-82 Open a folder from the file list](NS-82-openfolderrow.md) | Done | NS-10, NS-51, NS-78 |
 | 77 | [NS-77 Find and fix the occasional net48 failure in the Ui tests](NS-77-uitestsflake.md) | Done | |
-| 83 | [NS-83 Collapsible rule panels, and a bottom row that fits](NS-83-collapsepanels.md) | Ready | NS-11, NS-15 |
+| 83 | [NS-83 Collapsible rule panels, and a bottom row that fits](NS-83-collapsepanels.md) | In Progress | NS-11, NS-15 |
 | 37 | [NS-37 Remember last settings](NS-37-settings.md) | Ready | NS-36, NS-72, NS-83 |
 | 84 | [NS-84 Remember which panels are collapsed](NS-84-collapsesaved.md) | Ready | NS-83, NS-37 |
 | 80 | [NS-80 Fix raw control characters in a test and guard against them](NS-80-controlchars.md) | Ready | |
