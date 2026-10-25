@@ -7,10 +7,11 @@ IDs), not the rank: the rank is the row order.
 Order after NS-37 (po, 2026-10-25): NS-81, NS-84 and NS-80 are Done; then safety and trust (NS-91
 hardening, NS-90 and NS-45 safer Revert), then the Explorer launch path (NS-88, NS-89), then the photo date (NS-62, then
 NS-85) and the command line (NS-93 cleanup first, then NS-41 filters, then NS-87), then the photo date's window and
-command-line choice (NS-86, after NS-87), then the small chores (NS-92, NS-94). NS-49 and
-NS-44 (the registry entry and the installer) are built together at the very end, just before the v1 release (David,
-2026-10-25); NS-44 is the last story of v1. NS-50 (Windows 11 compact menu) was cancelled by David on 2026-10-25. NS-85 is merged and NS-86 is Ready, but
-NS-86 and NS-87 both edit the command line's apply path: NS-87 is being built now, and NS-86 starts after NS-87 merges.
+command-line choice (NS-86, after NS-87; NS-85, NS-86 and NS-87 are Done), then the small chores (NS-92, NS-94). The last
+round, just before the v1 release (David, 2026-10-25), is three stories in this order, one PR each: NS-95 (cold start: the
+first window gathers its own paths), then NS-44 (the installer, with the three registry keys and their check script), then
+NS-49 (verify the Explorer entry on real Windows, README section, key adjustments). All three are Ready. NS-49 is the last
+story of v1. NS-50 (Windows 11 compact menu) was cancelled by David on 2026-10-25.
 
 | # | Story | Status | Depends on |
 |---|---|---|---|
@@ -105,5 +106,6 @@ NS-86 and NS-87 both edit the command line's apply path: NS-87 is being built no
 | 86 | [NS-86 Auto date panel: the Photo date choice](NS-86-autodatephotopanel.md) | Done | NS-62, NS-85, NS-87, NS-59, NS-76 |
 | 92 | [NS-92 Move the settings-saving logic out of MainForm into NameShift.Ui](NS-92-savesettingslogic.md) | Done | NS-37, NS-84 |
 | 94 | [NS-94 Close gaps in the tests: PathInput prefixes, both orders of the list model, broken path literals](NS-94-testgaps.md) | Done | NS-10, NS-70, NS-78, NS-80 |
-| 49 | [NS-49 Explorer right-click entry "Bulk Rename Here": the registry keys](NS-49-explorer-entry.md) | Draft | NS-88, NS-89 |
-| 44 | [NS-44 Installer](NS-44-installer.md) | Draft | NS-15, NS-38, NS-49 |
+| 95 | [NS-95 Cold start: the first window gathers its own paths with the later ones](NS-95-coldstart.md) | Ready | NS-88, NS-89 |
+| 44 | [NS-44 Installer](NS-44-installer.md) | Ready | NS-15, NS-38 |
+| 49 | [NS-49 Explorer right-click entry "Bulk Rename Here": verification and README](NS-49-explorer-entry.md) | Ready | NS-44, NS-95, NS-88, NS-89 |
