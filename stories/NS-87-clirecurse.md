@@ -40,7 +40,8 @@ Logic in `NameShift.Cmd`, tests on net10.0 and net48. `--recurse` is a switch re
    `ListEntries` is called with false, as today. Given `--recurse` twice, then `RepeatedOption`.
 2. Given reparse points (junctions, links), then they are not entered (the listing's rule, NS-74); the same folder is never
    listed twice. A fake source tests the call; a real temp folder with a junction made in the test (`mklink /J` needs no
-   admin; skipped with a note when it cannot be made) tests the rule.
+   admin; skipped with a note when the process fails; the junction's target is an absolute path inside the temp root)
+   tests the rule.
 3. Given `--recurse`, then each output line names the item by its path relative to the chosen folder: `old -> new` is
    `sub\a.jpg -> b.jpg` (the new name only on the right), `sub\a.jpg: unchanged`, and the conflict and error lines
    `sub\a.jpg: ...`. A file of the chosen folder shows its plain name. Without `--recurse` the lines are as today. The
@@ -52,20 +53,29 @@ Logic in `NameShift.Cmd`, tests on net10.0 and net48. `--recurse` is a switch re
    `N folders could not be read`) goes to the error stream right after the listing and before any other result line (also
    with `--dry-run`, `No files match.` and `Nothing to rename.`), the rest is renamed, and the exit code is not changed
    (still 0 when the rest succeeds). `--quiet` does not hide it. Given none skipped, nothing is written. Given no
-   `--recurse`, the line is never written. Tests: a fake source with `SkippedFolders` 1 and 2, with `--quiet`, with
-   `--dry-run`, and the stream (output stays free of it).
+   `--recurse`, the line is never written (tested with a fake source that returns a count, since the real source
+   reports 0 then). Tests use a fake source with `SkippedFolders` 1 and 2, with `--quiet`, with `--dry-run`, and check
+   the stream (output stays free of it). Never a real drive root: it always counts `System Volume Information` and
+   `$RECYCLE.BIN`, so the line appears on every `D:\ --recurse` run (expected, not a bug).
 6. Given `--recurse` with `--include-folders`, then a batch that renames a folder and files inside it works in one batch
    through the real journal, and `undo` restores both (temp-folder test). Given `--recurse` with `--folders-only`, then
    the folders of every level are the items (shown by relative path), the files are not. Given `--recurse` alone, then
    folders are not renamed (files only, as without it).
 7. Given a filter (NS-41), then it applies to the items of every folder (mask, regex, lengths, hidden), and a mask in the
    folder argument (`D:\Pics\*.jpg`) works the same. A hidden or system file in a visible folder follows the filter as
-   without `--recurse`; a file in a hidden folder follows its own attributes (as in the window). `No files match.` is
-   written when nothing in the whole tree matches.
+   without `--recurse`. `No files match.` is written when nothing in the whole tree matches.
+7a. Given `--recurse` without `--include-hidden`, then an item whose folder is, or is under, a hidden or system folder
+   of the walk (at any depth) is left out, whatever its own attributes (`repo\.git\config` is never planned). The
+   folder items of the listing carry the attributes, so this is computed from the listing. Given `--include-hidden`,
+   then those items are in. Given no `--recurse`, nothing changes. Tests: a fake source with a hidden folder
+   `h` holding a plain file and a plain folder holding a plain file (the first is left out, the second kept), a system
+   folder, a hidden folder two levels up, the same with `--include-hidden`, and `No files match.` when only such
+   items are left. A real temp tree with a hidden folder confirms it.
 8. Given Ctrl+C during the listing, then nothing has been renamed (the listing and the plan come before the first rename);
    checked by hand on a large tree, written in the PR.
-9. Given the apply help, then it names `--recurse` (`Also the files of the sub-folders.`) in the options list, and the
-   help test lists it.
+9. Given the apply help, then it names `--recurse` in the options list (help test lists it), with a line of at most 79
+   columns such as `--recurse                  Also the sub-folders (not hidden ones).`; if it does not fit, say
+   hidden folders are left out in a second line under it.
 10. Given a tree of 10,000 files in 100 folders, then a dry run through the CLI completes; the PR writes down the time (not
     asserted).
 
@@ -74,6 +84,8 @@ Logic in `NameShift.Cmd`, tests on net10.0 and net48. `--recurse` is a switch re
 - A "restart numbering in each folder" option (the window has one): with `--recurse` the numbers run through the whole
   list, as the window's default. A separate story if wanted.
 - A non-zero exit code or `--strict` for skipped folders.
+- Relative paths in the run-failure details (`ActionText.ForRename`, a bare name, shared with the window) and in
+  `undo --dry-run` (bare names): they stay as they are.
 
 ## Decisions
 - Relative names in the output? **Decision:** yes: the same name can exist in many folders, and the relative path is what
@@ -94,6 +106,10 @@ Logic in `NameShift.Cmd`, tests on net10.0 and net48. `--recurse` is a switch re
   both get `x.txt` (po, 2026-10-25).
 - Relative path display? **Decision:** the Folder column's text plus `\` plus the name, never the full path; the root's
   items show the plain name, so a run without sub-folders listed looks like today (po, 2026-10-25).
+- Hidden folders with `--recurse`? **Decision (Lead, 2026-10-25):** without `--include-hidden`, everything inside a hidden
+  or system folder, at any depth, is left out, so `apply D:\repo --recurse ...` never touches `.git` or similar;
+  `--include-hidden` brings it in. The window keeps entering hidden folders because it always previews first; the CLI is
+  stricter because it renames without a preview (po, 2026-10-25).
 - Numbering across folders? **Decision:** it runs through the whole list in tree order (the window's default); no new
   option now (po, 2026-10-25).
 
@@ -104,3 +120,5 @@ Logic in `NameShift.Cmd`, tests on net10.0 and net48. `--recurse` is a switch re
 - 2026-10-25: NS-41 merged (3dca426). Every criterion re-checked against the merged code: facts refreshed, `--folders-only`
   and `--include-folders` with `--recurse`, the mask, the warning text and stream, cross-folder conflicts and the
   help line decided; nothing needs David. Ready (po).
+- 2026-10-25: review of PR #102: hidden folders left out with `--recurse` unless `--include-hidden` (criterion 7a), nits
+  folded in (out of scope, fake-source tests, absolute junction target) (po).

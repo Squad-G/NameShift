@@ -8,8 +8,8 @@ Order after NS-37 (po, 2026-10-25): NS-81, NS-84 and NS-80 are Done; then safety
 hardening, NS-90 and NS-45 safer Revert), then the Explorer launch path (NS-88, NS-89), then the photo date (NS-62, then
 NS-85 and NS-86) and the command line (NS-93 cleanup first, then NS-41 filters, then NS-87), then the small chores (NS-92, NS-94). NS-49 and
 NS-44 (the registry entry and the installer) are built together at the very end, just before the v1 release (David,
-2026-10-25); NS-44 is the last story of v1. NS-50 (Windows 11 compact menu) was cancelled by David on 2026-10-25. Stories marked Draft with a full
-spec (NS-86) becomes Ready when NS-85 is merged. NS-41 is merged, so NS-87 and NS-85 are Ready. NS-86 and NS-87 both edit
+2026-10-25); NS-44 is the last story of v1. NS-50 (Windows 11 compact menu) was cancelled by David on 2026-10-25. The story marked Draft with a full
+spec, NS-86, becomes Ready when NS-85 is merged. NS-41 is merged, so NS-87 and NS-85 are Ready. NS-86 and NS-87 both edit
 the command line's apply path: build NS-87 first, then NS-86 (NS-85 does not touch the command line, so NS-85 and NS-87
 can be built at the same time).
 
