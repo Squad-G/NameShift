@@ -1,6 +1,6 @@
 # NS-40: Command line: Add and Numbering options
 
-Status: Ready
+Status: In Review
 Depends on: NS-38, NS-12, NS-53, NS-61, NS-43, NS-42, NS-39
 Area: app
 

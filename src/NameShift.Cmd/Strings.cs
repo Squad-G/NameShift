@@ -76,6 +76,9 @@ public static class Strings
     /// <summary>"upper or lower": the values of --number-case.</summary>
     public static string NumberCaseValues => Get(nameof(NumberCaseValues));
 
+    /// <summary>"Until then numbering is skipped.": the last sentence of the window's numbering error texts, removed from the command line's copy of them.</summary>
+    public static string NumberingSkippedSentence => Get(nameof(NumberingSkippedSentence));
+
     /// <summary>"The folder {0} contains a quote: ...": what cmd makes of a quoted folder that ends with a backslash.</summary>
     public static string QuoteInFolder => Get(nameof(QuoteInFolder));
 

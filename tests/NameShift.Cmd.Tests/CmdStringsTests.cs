@@ -52,6 +52,7 @@ public sealed class CmdStringsTests
         Assert.Equal("prefix, suffix or insert", Strings.NumberModeValues);
         Assert.Equal("decimal, hex, letters or roman", Strings.NumberSystemValues);
         Assert.Equal("upper or lower", Strings.NumberCaseValues);
+        Assert.Equal("Until then numbering is skipped.", Strings.NumberingSkippedSentence);
         Assert.Equal("Give at least one rule option, such as --replace or --case.", Strings.NoRule);
     }
 

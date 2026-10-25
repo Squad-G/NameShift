@@ -426,6 +426,18 @@ public sealed class CommandLineParserTests
         Assert.False(numbering.RestartPerFolder);
     }
 
+    [Fact]
+    public void NumberCase_UpperAndLower_AreEffective()
+    {
+        NumberingPanelModel upper = Applied(Args(@"apply|D:\P|--number-system|letters|--number-case|upper")).Panels.Numbering!;
+        NumberingPanelModel lower = Applied(Args(@"apply|D:\P|--number-system|roman|--number-case|lower")).Panels.Numbering!;
+        NumberingPanelModel plain = Applied(Args(@"apply|D:\P|--number-system|letters")).Panels.Numbering!;
+
+        Assert.True(upper.UpperCase);
+        Assert.False(lower.UpperCase);
+        Assert.False(plain.UpperCase);
+    }
+
     [Theory]
     [InlineData(@"apply|D:\P|--number-case|lower|--number-system|hex", false, 1)]
     [InlineData(@"apply|D:\P|--number-start|V|--number-system|roman", true, 5)]
@@ -535,11 +547,14 @@ public sealed class CommandLineParserTests
         setup(model);
         string modelText = error(model);
         Assert.NotEmpty(modelText);
+        Assert.EndsWith(Strings.NumberingSkippedSentence, modelText, StringComparison.Ordinal);
+        string expected = modelText.Substring(0, modelText.Length - Strings.NumberingSkippedSentence.Length).TrimEnd();
 
         ParsedCommand command = CommandLineParser.Parse(Args(@"apply|D:\P|" + options));
 
         Assert.Equal(CommandKind.Error, command.Kind);
-        Assert.Equal(Text("OptionError", option, modelText) + " " + Strings.Usage + " " + Strings.HelpPointer, command.Error);
+        Assert.DoesNotContain("skipped", command.Error, StringComparison.Ordinal);
+        Assert.Equal(Text("OptionError", option, expected) + " " + Strings.Usage + " " + Strings.HelpPointer, command.Error);
     }
 
     [Theory]

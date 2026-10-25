@@ -181,6 +181,7 @@ public sealed class WindowParityTests : IDisposable
     [InlineData("--number-case lower --number-system hex --number-start ff")]
     [InlineData("--number-case lower --number-system roman")]
     [InlineData("--number-system letters")]
+    [InlineData("--number-system letters --number-case upper")]
     [InlineData("--prefix p_ --number --suffix _s")]
     public async Task CliAddAndNumberingEqualTheWindows(string options)
     {

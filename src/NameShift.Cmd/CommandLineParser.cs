@@ -519,7 +519,7 @@ internal static class CommandLineParser
         }
 
         AddPanelModel? add = null;
-        if (anyAdd || fromEnd)
+        if (anyAdd)
         {
             add = new AddPanelModel
             {
@@ -608,7 +608,7 @@ internal static class CommandLineParser
 
             if (problem != null)
             {
-                return Fail(Format(Strings.OptionError, problemOption!, problem));
+                return Fail(Format(Strings.OptionError, problemOption!, WithoutSkipSentence(problem)));
             }
         }
 
@@ -664,6 +664,16 @@ internal static class CommandLineParser
 
         target = value;
         return true;
+    }
+
+    /// <summary>The window's error texts end with a sentence that says numbering is skipped; on the command line the run
+    /// fails instead, so the sentence is removed.</summary>
+    private static string WithoutSkipSentence(string problem)
+    {
+        string sentence = Strings.NumberingSkippedSentence;
+        return problem.EndsWith(sentence, StringComparison.Ordinal)
+            ? problem.Substring(0, problem.Length - sentence.Length).TrimEnd()
+            : problem;
     }
 
     private static bool TryChoice<T>(string text, KeyValuePair<string, T>[] values, out T result)

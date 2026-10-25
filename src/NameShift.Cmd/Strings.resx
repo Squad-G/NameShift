@@ -28,6 +28,7 @@
   <data name="NumberModeValues" xml:space="preserve"><value>prefix, suffix or insert</value></data>
   <data name="NumberSystemValues" xml:space="preserve"><value>decimal, hex, letters or roman</value></data>
   <data name="NumberCaseValues" xml:space="preserve"><value>upper or lower</value></data>
+  <data name="NumberingSkippedSentence" xml:space="preserve"><value>Until then numbering is skipped.</value></data>
   <data name="QuoteInFolder" xml:space="preserve"><value>The folder {0} contains a quote: remove the backslash before the closing quote, as in "D:\Pics" instead of "D:\Pics\".</value></data>
   <data name="InvalidFolder" xml:space="preserve"><value>"{0}" is not a valid folder path.</value></data>
   <data name="FolderIsFile" xml:space="preserve"><value>{0} is a file, not a folder.</value></data>

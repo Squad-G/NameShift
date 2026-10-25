@@ -90,6 +90,14 @@ public sealed class CommandRunnerRuleOptionsTests : IDisposable
     }
 
     [Fact]
+    public void Number_LettersUpper()
+    {
+        TwoFiles();
+
+        Assert.Equal(new[] { "a.txt -> a_A.txt", "b.txt -> b_B.txt" }, DryRun("--number-system", "letters", "--number-case", "upper"));
+    }
+
+    [Fact]
     public void UsageError_RenamesNothing()
     {
         TwoFiles();
