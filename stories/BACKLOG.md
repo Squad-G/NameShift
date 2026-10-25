@@ -70,7 +70,7 @@ IDs), not the rank: the rank is the row order.
 | 37 | [NS-37 Remember last settings](NS-37-settings.md) | Ready | NS-36, NS-72 |
 | 42 | [NS-42 Command line: undo the last batch](NS-42-cliundo.md) | Done | NS-38, NS-9, NS-43 |
 | 39 | [NS-39 Command line: quiet and verbose output](NS-39-clidry.md) | Done | NS-38, NS-43, NS-42 |
-| 40 | [NS-40 Command line: Add and Numbering options](NS-40-clirules.md) | In Review | NS-38, NS-12, NS-53, NS-61, NS-43, NS-42, NS-39 |
+| 40 | [NS-40 Command line: Add and Numbering options](NS-40-clirules.md) | Done | NS-38, NS-12, NS-53, NS-61, NS-43, NS-42, NS-39 |
 | 69 | [NS-69 Command line: use a saved preset](NS-69-clipreset.md) | Ready | NS-38, NS-36, NS-43, NS-72, NS-42, NS-39, NS-40 |
 | 78 | [NS-78 Sub-folders box and Folder column](NS-78-subfolderbox.md) | Draft | NS-70, NS-74 |
 | 75 | [NS-75 Command line: Name, Extension and Remove options](NS-75-clirules2.md) | Draft | NS-40, NS-55, NS-30 |

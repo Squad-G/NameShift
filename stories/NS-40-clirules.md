@@ -1,6 +1,6 @@
 # NS-40: Command line: Add and Numbering options
 
-Status: In Review
+Status: Done
 Depends on: NS-38, NS-12, NS-53, NS-61, NS-43, NS-42, NS-39
 Area: app
 
@@ -110,3 +110,11 @@ Same as the window, and the rest:
   build order; set Ready, third of NS-42, NS-39, NS-40, NS-69 (po).
 - 2026-10-24: In Progress (builder).
 - 2026-10-24: In Review (builder), PR #74.
+- 2026-10-25: Done, PR #74 squash-merged into `dev` after the reviewer's APPROVE on its re-review. Hand checks pending
+  for David: `apply --help` in cmd, PowerShell and Windows Terminal (alignment, the two wrapped lines); on a scratch
+  folder, one `--number --dry-run` and one real `--prefix` run, then `undo` (tech-lead).
+- 2026-10-25: Note for NS-75: `CommandLineParser.ParseApply` is now about 440 lines; split it first (extract the Add and
+  Numbering tails into their own methods) before adding the next panel's options (tech-lead).
+- 2026-10-25: Note for the po: criterion 6 gives `--number-pad 99` as a refused value, but the window's pad maximum is
+  255 (`NumberingRule.MaxPad`), so 99 is accepted, as in the window. The tests use `--number-pad 256`; the example in
+  criterion 6 could read `256` (tech-lead).
