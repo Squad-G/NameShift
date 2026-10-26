@@ -108,4 +108,4 @@ story of v1. NS-50 (Windows 11 compact menu) was cancelled by David on 2026-10-2
 | 94 | [NS-94 Close gaps in the tests: PathInput prefixes, both orders of the list model, broken path literals](NS-94-testgaps.md) | Done | NS-10, NS-70, NS-78, NS-80 |
 | 95 | [NS-95 Cold start: the first window gathers its own paths with the later ones](NS-95-coldstart.md) | Done | NS-88, NS-89 |
 | 44 | [NS-44 Installer](NS-44-installer.md) | Done | NS-15, NS-38 |
-| 49 | [NS-49 Explorer right-click entry "Bulk Rename Here": verification and README](NS-49-explorer-entry.md) | Ready | NS-44, NS-95, NS-88, NS-89 |
+| 49 | [NS-49 Explorer right-click entry "Bulk Rename Here": verification and README](NS-49-explorer-entry.md) | In Review | NS-44, NS-95, NS-88, NS-89 |

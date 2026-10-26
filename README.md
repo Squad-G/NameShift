@@ -9,6 +9,17 @@ live before anything is touched, then rename in one click, and undo it if needed
   the installer is a few MB at most.
 - **Safe:** live preview, conflict detection before renaming, one-click undo of the last batch.
 
+## Right-click in Explorer
+
+The installer can add **Bulk Rename Here** to the Explorer right-click menu (an option, on by default). On a folder, on
+the empty background of an open folder, or on selected files, it opens NameShift there, with exactly those files
+selected. On Windows 11 it is under "Show more options".
+
+TODO (phase B, from David's observations, criteria 6, 7 and 9): Explorer's limit on many selected files and the result
+for a mix of files and folders.
+
+The installer folder has a script that checks the registry entries: [installer/README.md](installer/README.md).
+
 ## Build
 
 Requires the .NET 10 SDK on Windows (the app itself targets .NET Framework 4.8, built into Windows).

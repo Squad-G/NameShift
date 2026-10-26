@@ -131,6 +131,27 @@ public sealed class OpenTargetTests
         AssertNothing(Resolve(@"""D:\My Pics"" --verbose"));
     }
 
+    [Fact]
+    public void Folder_WithAmpersand()
+    {
+        // Explorer hands the path to CreateProcess without cmd, so & arrives literally (checked by hand, NS-49).
+        _source.Folders.Add(@"D:\A & B");
+
+        AssertFolder(@"D:\A & B", Resolve(@"""D:\A & B"""));
+    }
+
+    [Fact]
+    public void File_InAmpersandFolder_OpensItsFolder()
+    {
+        _source.Files.Add(@"D:\A & B\x.jpg");
+
+        OpenRequest result = Resolve(@"D:\A & B\x.jpg");
+
+        Assert.Equal(@"D:\A & B", result.Folder);
+        Assert.Equal("x.jpg", result.FileName);
+        Assert.Null(result.Message);
+    }
+
     [Theory]
     [InlineData(@"D:\Pics\a.jpg", @"D:\Pics", "a.jpg")]
     [InlineData(@"D:\a.jpg", @"D:\", "a.jpg")]
