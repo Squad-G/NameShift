@@ -1,6 +1,6 @@
 # NS-49: Explorer right-click entry "Bulk Rename Here": verification and README
 
-Status: In Progress
+Status: In Review
 Depends on: NS-44, NS-95, NS-88, NS-89
 Area: installer
 
@@ -83,3 +83,4 @@ The PR lists what was observed, per Windows version.
 - 2026-10-25: PR #107 review: now built after NS-44 and NS-95 and covers the Explorer verification (Document test at 200+
   files, mixed selections, drive roots), the README section and any key adjustment; criterion 4 needs NS-95 (po).
 - 2026-10-25: In Progress (builder, phase A).
+- 2026-10-25: In Review (builder, phase A): criterion 1 read against the .iss and the check script (Removed: all PASS); `&` test rows; README section with a TODO for the limit and mixed-selection sentences; setup built (2.29 MB). Waits on David's observations (criteria 2 to 8) before phase B; the PR stays a draft.
